@@ -4,25 +4,23 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
-@Table(name = "medicamentos")
+@Table(name = "medicamento")
 @Data
 public class Medicamento {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id_medicamento; 
 
-    @Column(name = "nombre_comercial", nullable = false)
-    private String nombreComercial;
+    @Column(unique = true, nullable = false, length = 400)
+    private String nombre_canonico; 
 
-    @Column(name = "principio_activo", nullable = false)
-    private String principioActivo;
+    @Column(length = 400)
+    private String principio_activo; 
 
-    @Column(name = "es_bioequivalente", nullable = false)
-    private Boolean esBioequivalente;
+    @Column(length = 30)
+    private String origen_catalogo; 
 
-    private String gramaje;
-
-    @Column(name = "requiere_receta")
-    private Boolean requiereReceta;
+    @Column(nullable = false)
+    private Boolean activo = true; 
 }
