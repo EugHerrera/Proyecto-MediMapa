@@ -12,11 +12,11 @@ public class Medicamento {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id_medicamento; 
 
-    @Column(unique = true, nullable = false, length = 400)
-    private String nombre_canonico; 
+    @Column(name = "nombre_canonico")
+    private String nombreCanonico; // Así, sin guiones bajos en el nombre de la variable
 
-    @Column(length = 400)
-    private String principio_activo; 
+    @Column(name = "principio_activo")
+    private String principioActivo; 
 
     @Column(length = 30)
     private String origen_catalogo; 
