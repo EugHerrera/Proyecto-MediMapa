@@ -1,53 +1,67 @@
 package cl.duoc.medimapa.service;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
+import com.microsoft.playwright.*;
+import cl.duoc.medimapa.model.*;
+import cl.duoc.medimapa.repository.PrecioVigenteRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 
 @Service
 public class ScraperService {
 
-    public void extraerPrecioCruzVerde(String url) {
-        try {
-            // 1. Simular un navegador real (User-Agent) para evitar bloqueos
-            Document doc = Jsoup.connect(url)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-                    .timeout(15000)
-                    .get();
+    @Autowired
+    private PrecioVigenteRepository precioVigenteRepository;
 
-            // 2. BUSCAR METADATOS (Estrategia Avanzada)
-            // La mayoría de las farmacias grandes incluyen un script tipo "application/ld+json"
-            Element scriptTag = doc.select("script[type=application/ld+json]").first();
+    public void extraerYGuardarPrecio(String url, String textoBusqueda, SucursalFarmacia sucursal, Medicamento medicamento, CorridaActualizacion corrida) {
+        System.out.println("🚀 Iniciando motor Playwright...");
+
+        try (Playwright playwright = Playwright.create()) {
+            Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
+            Page page = browser.newPage();
+            page.navigate(url);
+            page.waitForTimeout(6000); 
+
+            Locator precioLocator = page.locator(".price, .price-wrapper").filter(new Locator.FilterOptions().setHasText("$")).first();
             
-            if (scriptTag != null) {
-                String jsonContent = scriptTag.html();
-                ObjectMapper mapper = new ObjectMapper();
-                JsonNode root = mapper.readTree(jsonContent);
-
-                // 3. EXTRAER DATOS DEL JSON
-                // Estos campos son estándar en el comercio electrónico profesional
-                String nombre = root.path("name").asText();
-                String precio = root.path("offers").path("price").asText();
-                String moneda = root.path("offers").path("priceCurrency").asText();
-
-                System.out.println("--- DATOS EXTRAÍDOS CON ÉXITO ---");
-                System.out.println("Producto: " + nombre);
-                System.out.println("Precio Actual: " + moneda + " " + precio);
-                System.out.println("---------------------------------");
+            if (precioLocator.count() > 0) {
+                String precioTexto = precioLocator.innerText().split("\n")[0].trim();
+                String soloNumeros = precioTexto.replaceAll("[^\\d]", "");
                 
-                // Aquí conectarías con tu entidad PrecioVigente y guardarías en la BD
-            } else {
-                System.out.println("No se encontraron metadatos estructurados. Intentando por Selectores CSS...");
-                // Fallback: Si no hay JSON, buscamos el precio por clase (más frágil)
-                String precioAlternativo = doc.select(".price-sales").text(); 
-                System.out.println("Precio por selector: " + precioAlternativo);
-            }
+                if (!soloNumeros.isEmpty()) {
+                    BigDecimal precioFinal = new BigDecimal(soloNumeros);
 
+                    // ARMAMOS EL OBJETO CON TODAS SUS RELACIONES
+                    PrecioVigente nuevoPrecio = new PrecioVigente();
+                    
+                    PrecioVigenteId idCompuesto = new PrecioVigenteId();
+                    idCompuesto.setId_sucursal(sucursal.getId_sucursal());
+                    idCompuesto.setTexto_busqueda(textoBusqueda);
+                    
+                    nuevoPrecio.setId(idCompuesto);
+                    nuevoPrecio.setPrecio_max_vta(precioFinal);
+                    nuevoPrecio.setMoneda("CLP");
+                    nuevoPrecio.setVigente_desde(OffsetDateTime.now());
+                    
+                    // ASIGNAMOS LOS OBJETOS PADRES (Esto evita el error que tenías)
+                    nuevoPrecio.setSucursal(sucursal);
+                    nuevoPrecio.setMedicamento(medicamento);
+                    nuevoPrecio.setCorrida(corrida);
+
+                    precioVigenteRepository.save(nuevoPrecio);
+
+                    System.out.println("\n======================================");
+                    System.out.println("✅ ¡HOME RUN! GUARDADO EXITOSO");
+                    System.out.println("💊 Medicamento: " + medicamento.getNombre_canonico());
+                    System.out.println("💰 Precio: $" + precioFinal);
+                    System.out.println("======================================\n");
+                }
+            }
+            browser.close();
         } catch (Exception e) {
-            System.err.println("Error técnico al scrapear Cruz Verde: " + e.getMessage());
+            System.err.println("Error técnico: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
