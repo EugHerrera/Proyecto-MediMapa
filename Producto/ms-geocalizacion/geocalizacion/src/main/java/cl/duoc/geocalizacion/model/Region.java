@@ -14,5 +14,5 @@ public class Region {
     private Long id_region;
 
     @Column(nullable = false, unique = true)
-    private String nombre; // Ej: "Región Metropolitana de Santiago"
+    private String nombre; 
 }

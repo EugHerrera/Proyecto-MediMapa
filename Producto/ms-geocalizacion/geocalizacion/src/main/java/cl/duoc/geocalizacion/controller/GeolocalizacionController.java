@@ -22,7 +22,7 @@ private final GeolocalizacionService service;
             @RequestParam double lon, 
             @RequestParam(defaultValue = "1000") double radio) {
         
-        // Los datos se procesan y se olvidan (procesamiento volátil)
+        // procesamiento volátil del radio a metros
         return ResponseEntity.ok(service.obtenerCercanas(lat, lon, radio));
     }
 }

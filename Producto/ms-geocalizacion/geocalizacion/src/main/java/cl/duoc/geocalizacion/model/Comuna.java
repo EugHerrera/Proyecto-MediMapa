@@ -20,5 +20,4 @@ public class Comuna {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_region")
     private Region region;
-    // Getters y Setters
 }

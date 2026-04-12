@@ -1,5 +1,6 @@
 package cl.duoc.geocalizacion.model;
 
+
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
@@ -7,26 +8,37 @@ import org.geolatte.geom.Point;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+
 import jakarta.persistence.Table;
 @Entity
 @Table(name = "sucursal_farmacia")
 
 public class SucursalFarmacia {
-
 @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id_sucursal; // Igualamos el nombre del ID al de Eugenio
 
+    @Column(nullable = false, length = 300)
     private String nombre_sucursal;
+
+    @Column(nullable = false, length = 400)
     private String direccion;
 
-    // Esta columna le dice a la base de datos que guarde coordenadas GPS (SRID 4326)
-    @Column(columnDefinition = "geometry(Point, 4326)")
-    private Point ubicacion;
+    // Cambiamos Geometría por números decimales
+    @Column(precision = 10, scale = 7, nullable = false)
+    private BigDecimal latitud;
+
+    @Column(precision = 10, scale = 7, nullable = false)
+    private BigDecimal longitud;
+
+    private Boolean activo = true;
+
+    @Column(name = "creado_en", updatable = false)
+    private OffsetDateTime creadoEn;
+
+    @Column(name = "actualizado_en")
+    private OffsetDateTime actualizadoEn;
 }
