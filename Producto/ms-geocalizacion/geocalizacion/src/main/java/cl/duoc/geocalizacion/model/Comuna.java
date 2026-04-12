@@ -1,10 +1,5 @@
 package cl.duoc.geocalizacion.model;
 
-import java.math.BigDecimal;
-import java.time.OffsetDateTime;
-
-import org.geolatte.geom.Point;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -15,18 +10,15 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 @Entity
-@Table(name = "sucursal_farmacia")
-
-public class SucursalFarmacia {
-
+@Table(name = "comuna")
+public class Comuna {
 @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private String nombre;
 
-    private String nombre_sucursal;
-    private String direccion;
-
-    // Esta columna le dice a la base de datos que guarde coordenadas GPS (SRID 4326)
-    @Column(columnDefinition = "geometry(Point, 4326)")
-    private Point ubicacion;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "id_region")
+    private Region region;
+    // Getters y Setters
 }

@@ -12,14 +12,17 @@ import java.util.List;
 public class GeolocalizacionController {
 private final GeolocalizacionService service;
 
-
-
     public GeolocalizacionController(GeolocalizacionService service) {
         this.service = service;
     }
 
-    @GetMapping("/la-florida")
-    public ResponseEntity<List<SucursalFarmacia>> getLaFlorida() {
-        return ResponseEntity.ok(service.obtenerFarmaciasLaFlorida());
+    @GetMapping("/sucursales")
+    public ResponseEntity<List<SucursalFarmacia>> getSucursales(
+            @RequestParam double lat, 
+            @RequestParam double lon, 
+            @RequestParam(defaultValue = "1000") double radio) {
+        
+        // Los datos se procesan y se olvidan (procesamiento volátil)
+        return ResponseEntity.ok(service.obtenerCercanas(lat, lon, radio));
     }
 }

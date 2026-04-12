@@ -8,14 +8,10 @@ import cl.duoc.geocalizacion.model.SucursalFarmacia;
 
 
 public interface SucursalFarmaciaRepository extends JpaRepository<SucursalFarmacia, Long>{
-@Query(value = "SELECT * FROM sucursal_farmacia " +
-                   "WHERE activo = true " +
-                   "AND latitud BETWEEN :minLat AND :maxLat " +
-                   "AND longitud BETWEEN :minLon AND :maxLon", 
+// PostGIS calcula la distancia real en metros usando la curvatura terrestre (geography)
+@Query(value = "SELECT * FROM sucursal_farmacia s " +
+                   "WHERE ST_DWithin(s.ubicacion::geography, " +
+                   "ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography, :radio)", 
            nativeQuery = true)
-    List<SucursalFarmacia> buscarEnRangoCoordenadas(
-            @Param("minLat") double minLat, 
-            @Param("maxLat") double maxLat, 
-            @Param("minLon") double minLon, 
-            @Param("maxLon") double maxLon);
+    List<SucursalFarmacia> buscarCercanas(double lat, double lon, double radio);
 }
