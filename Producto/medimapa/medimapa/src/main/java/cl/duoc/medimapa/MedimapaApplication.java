@@ -7,9 +7,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import cl.duoc.medimapa.model.CorridaActualizacion;
-import cl.duoc.medimapa.model.SucursalFarmacia;
-import cl.duoc.medimapa.model.Medicamento;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -30,65 +27,72 @@ public class MedimapaApplication {
         
         return args -> {
             System.out.println("\n======================================");
-            System.out.println("🛠️  PREPARANDO AMBIENTE DE BASE DE DATOS");
+            System.out.println("🛠️ PREPARANDO AMBIENTE MULTI-FARMACIA (3 CADENAS)");
             System.out.println("======================================");
 
-            // 1. BUSCAMOS O CREAMOS UNA SUCURSAL (Para evitar error de FK)
-            // Intentamos buscar la sucursal con ID 1, si no existe, la creamos.
-            SucursalFarmacia sucursal = sucursalRepo.findById(1L).orElseGet(() -> {
-                System.out.println("📝 Creando sucursal de prueba...");
-                SucursalFarmacia s = new SucursalFarmacia();
-                s.setNombre_sucursal("Farmacia Ahumada Central");
-                s.setDireccion("Av. Libertador Bernardo O'Higgins 123");
-                s.setLatitud(new BigDecimal("-33.4489"));
-                s.setLongitud(new BigDecimal("-70.6693"));
-                s.setActivo(true);
-                s.setCreadoEn(OffsetDateTime.now());
-                return sucursalRepo.save(s);
+            // 1. PREPARAMOS LAS SUCURSALES (Ahumada ID 1, Simi ID 2, Salcobrand ID 3)
+            sucursalRepo.findById(1L).orElseGet(() -> {
+                System.out.println("📝 Creando sucursal: Farmacia Ahumada...");
+                SucursalFarmacia s1 = new SucursalFarmacia();
+                s1.setNombre_sucursal("Farmacia Ahumada Central");
+                s1.setDireccion("Av. Libertador Bernardo O'Higgins 123");
+                s1.setLatitud(new BigDecimal("-33.4489"));
+                s1.setLongitud(new BigDecimal("-70.6693"));
+                s1.setActivo(true);
+                s1.setCreadoEn(OffsetDateTime.now());
+                return sucursalRepo.save(s1);
             });
 
-            // 2. BUSCAMOS O CREAMOS UN MEDICAMENTO CANÓNICO
-            Medicamento medicamento = medicamentoRepo.findAll().stream()
-                .filter(m -> m.getNombre_canonico().equalsIgnoreCase("Paracetamol 500mg"))
-                .findFirst()
-                .orElseGet(() -> {
-                    System.out.println("📝 Creando medicamento de prueba...");
-                    Medicamento m = new Medicamento();
-                    m.setNombre_canonico("Paracetamol 500mg");
-                    m.setPrincipio_activo("Paracetamol");
-                    m.setOrigen_catalogo("MANUAL");
-                    m.setActivo(true);
-                    return medicamentoRepo.save(m);
-                });
+            sucursalRepo.findById(2L).orElseGet(() -> {
+                System.out.println("📝 Creando sucursal: Farmacias Dr. Simi...");
+                SucursalFarmacia s2 = new SucursalFarmacia();
+                s2.setNombre_sucursal("Dr. Simi La Florida");
+                s2.setDireccion("Vicuña Mackenna 7000");
+                s2.setLatitud(new BigDecimal("-33.5218"));
+                s2.setLongitud(new BigDecimal("-70.5985"));
+                s2.setActivo(true);
+                s2.setCreadoEn(OffsetDateTime.now());
+                return sucursalRepo.save(s2);
+            });
 
-            // 3. CREAMOS UNA NUEVA CORRIDA (Obligatoria según tu modelo)
-            System.out.println("📝 Registrando nueva corrida de actualización...");
+            sucursalRepo.findById(3L).orElseGet(() -> {
+                System.out.println("📝 Creando sucursal: Farmacias Salcobrand...");
+                SucursalFarmacia s3 = new SucursalFarmacia();
+                s3.setNombre_sucursal("Salcobrand Centro");
+                s3.setDireccion("Paseo Ahumada 200");
+                s3.setLatitud(new BigDecimal("-33.4411"));
+                s3.setLongitud(new BigDecimal("-70.6503"));
+                s3.setActivo(true);
+                s3.setCreadoEn(OffsetDateTime.now());
+                return sucursalRepo.save(s3);
+            });
+
+            // 2. CREAMOS UNA NUEVA CORRIDA
+            System.out.println("📝 Registrando nueva corrida de actualización masiva...");
             CorridaActualizacion corrida = new CorridaActualizacion();
-            corrida.setId_fuente(1L); // ID de la fuente (ej: Ahumada)
+            corrida.setId_fuente(0L); // 0 indica que fue una corrida general (multi-fuente)
             corrida.setInicio(OffsetDateTime.now());
             corrida.setEstado("PROCESANDO");
             corrida = corridaRepo.save(corrida);
 
-            System.out.println("✅ Ambiente listo. Llamando al robot...");
+            System.out.println("✅ Ambiente listo. Despertando al robot...");
 
-            // 4. EJECUTAMOS EL SCRAPER PASÁNDOLE LOS OBJETOS REALES
-            String urlAhumada = "https://www.farmaciasahumada.cl/catalogsearch/result/?q=paracetamol";
-            String textoBusqueda = "paracetamol";
-
+            // 3. EL ROBOT INICIA SU TRABAJO AUTÓNOMO
             try {
-                scraperService.extraerYGuardarPrecio(urlAhumada, textoBusqueda, sucursal, medicamento, corrida);
+                // Pasamos la corrida al robot para que haga su magia
+                scraperService.ejecutarScrapingAutomatico(corrida);
                 
-                // Si todo sale bien, actualizamos el estado de la corrida
                 corrida.setEstado("ok");
                 corrida.setFin(OffsetDateTime.now());
                 corridaRepo.save(corrida);
+                System.out.println("🎉 ¡Corrida de las 3 Farmacias terminada con éxito!");
                 
             } catch (Exception e) {
                 corrida.setEstado("error");
                 corrida.setDetalle_error(e.getMessage());
                 corrida.setFin(OffsetDateTime.now());
                 corridaRepo.save(corrida);
-                System.err.println("❌ Error en la ejecución del scraper: " + e.getMessage());
+                System.err.println("❌ Error crítico: " + e.getMessage());
             }
 
             System.out.println("======================================\n");
