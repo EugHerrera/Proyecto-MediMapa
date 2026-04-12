@@ -72,7 +72,7 @@ public class MedimapaApplication {
             CorridaActualizacion corrida = new CorridaActualizacion();
             corrida.setId_fuente(0L); // 0 indica que fue una corrida general (multi-fuente)
             corrida.setInicio(OffsetDateTime.now());
-            corrida.setEstado("PROCESANDO");
+            corrida.setEstado("parcial");
             corrida = corridaRepo.save(corrida);
 
             System.out.println("✅ Ambiente listo. Despertando al robot...");
