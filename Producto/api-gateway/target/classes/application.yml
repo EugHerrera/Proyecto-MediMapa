@@ -1,0 +1,36 @@
+server:
+  port: 8080 # El Gateway SIEMPRE es el 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+            allowedHeaders: "*"
+      routes:
+        # RUTA 1: MICROSERVICIO CATÁLOGO
+        - id: ms-catalogo-route
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/catalogo/**
+
+       # RUTA 2: SCRAPER
+        - id: medimapa-scraper-route
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/scraper/**      
+            
+        # RUTA 3: MICROSERVICIO GEOLOCALIZACIÓN
+        - id: ms-geo-route
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/geo/**
