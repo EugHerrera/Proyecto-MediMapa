@@ -14,7 +14,7 @@ public class SalcobrandScraper implements FarmaciaScraper {
 
     @Override
     public Long getIdFuente() {
-        return 3L; // ID 3 para Salcobrand
+        return 3L; // ID 3 para Salcobrand en tu BD
     }
 
     @Override
@@ -35,7 +35,10 @@ public class SalcobrandScraper implements FarmaciaScraper {
 
     @Override
     public BigDecimal extraerMenorPrecio(Page page) {
-        // Aplicamos el "Modo Dios" que tan bien nos funcionó con Dr. Simi
+        // 1. Le damos 5 segundos para que cargue la página React de Salcobrand
+        page.waitForTimeout(5000); 
+
+        // 2. Volvemos al Modo Dios: leemos TODO lo que tenga un signo $
         Locator precios = page.locator("span, div, p").filter(new Locator.FilterOptions().setHasText("$"));
         
         if (precios.count() > 0) {
@@ -48,9 +51,10 @@ public class SalcobrandScraper implements FarmaciaScraper {
                 if (!limpio.isEmpty()) {
                     try {
                         BigDecimal actual = new BigDecimal(limpio);
+                        int valor = actual.intValue(); // Lo pasamos a entero para filtrarlo fácil
                         
-                        // Ignoramos precios menores a $100 (basura o centavos)
-                        if (actual.compareTo(new BigDecimal(100)) > 0) {
+                        // 3. EL ESCUDO: Mayor a 100 y que NO sea parte del menú lateral falso
+                        if (valor > 100 && valor != 5000 && valor != 10000 && valor != 15000 && valor != 20000 && valor != 25000) {
                             if (minPrecio == null || actual.compareTo(minPrecio) < 0) {
                                 minPrecio = actual;
                             }
