@@ -14,7 +14,7 @@ public class SimiScraper implements FarmaciaScraper {
 
     @Override
     public Long getIdFuente() {
-        return 2L; // ID para Dr. Simi en tu base de datos
+        return 2L; 
     }
 
     @Override
@@ -25,9 +25,9 @@ public class SimiScraper implements FarmaciaScraper {
     @Override
     public String generarUrl(String nombreMedicamento) {
         try {
-            // Dr. Simi suele usar una estructura de URL directa para búsquedas
             String busquedaEncoded = URLEncoder.encode(nombreMedicamento, StandardCharsets.UTF_8);
-            return "https://www.drsimi.cl/" + busquedaEncoded + "?_q=" + busquedaEncoded + "&map=ft";
+            // 🚀 EL ARREGLO: Le decimos a la página que nos entregue los más baratos primero
+            return "https://www.drsimi.cl/" + busquedaEncoded + "?_q=" + busquedaEncoded + "&map=ft&order=OrderByPriceASC";
         } catch (Exception e) {
             return "";
         }
@@ -35,8 +35,7 @@ public class SimiScraper implements FarmaciaScraper {
 
     @Override
     public BigDecimal extraerMenorPrecio(Page page) {
-        // Aplicamos el "Modo Dios": escaneamos todo lo que tenga un signo "$"
-        // Dr. Simi usa mucho contenido dinámico, así que buscamos en spans y divs
+        // Tu lógica "Modo Dios" está impecable, la dejamos tal cual.
         Locator precios = page.locator("span, div").filter(new Locator.FilterOptions().setHasText("$"));
         
         if (precios.count() > 0) {
@@ -44,20 +43,19 @@ public class SimiScraper implements FarmaciaScraper {
             BigDecimal minPrecio = null;
 
             for (String t : textos) {
-                // Limpieza profunda para quedarnos solo con los dígitos
                 String limpio = t.replaceAll("[^\\d]", "");
                 if (!limpio.isEmpty()) {
                     try {
                         BigDecimal actual = new BigDecimal(limpio);
                         
-                        // Filtro de seguridad: ignoramos valores irreales o centavos
+                        // Ignoramos el "$0" del carrito de compras u otros errores
                         if (actual.compareTo(new BigDecimal(100)) > 0) {
                             if (minPrecio == null || actual.compareTo(minPrecio) < 0) {
                                 minPrecio = actual;
                             }
                         }
                     } catch (Exception e) {
-                        // Si el texto no era un número puro, lo saltamos
+                        // Ignorado
                     }
                 }
             }
