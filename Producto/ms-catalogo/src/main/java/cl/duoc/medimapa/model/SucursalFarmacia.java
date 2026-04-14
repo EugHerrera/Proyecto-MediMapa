@@ -2,29 +2,30 @@ package cl.duoc.medimapa.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
+@Data
 @Entity
 @Table(name = "sucursal_farmacia")
-@Data
 public class SucursalFarmacia {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_sucursal; 
+    @Column(name = "id_sucursal") // Nombre en la base de datos
+    private Long idSucursal;      // Nombre en Java (camelCase)
 
-    @Column(nullable = false, length = 300)
-    private String nombre_sucursal; 
+    @Column(name = "nombre_sucursal", nullable = false, length = 300)
+    private String nombreSucursal; 
 
     @Column(nullable = false, length = 400)
     private String direccion; 
 
-    @Column(precision = 10, scale = 7, nullable = false)
-    private BigDecimal latitud; 
+    // REGLA DE EUGENIO: Columnas decimales separadas (Double) sin PostGIS
+    @Column(nullable = false)
+    private Double latitud; 
 
-    @Column(precision = 10, scale = 7, nullable = false)
-    private BigDecimal longitud; 
+    @Column(nullable = false)
+    private Double longitud; 
 
     private Boolean activo = true; 
 
