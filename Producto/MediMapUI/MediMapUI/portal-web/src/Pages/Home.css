@@ -1,0 +1,181 @@
+/* Importamos una fuente moderna estilo Google */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Contenedor principal: Fondo de pantalla completo con degradado suave */
+.home-container {
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* Tarjeta flotante central */
+.search-card {
+  background: #ffffff;
+  padding: 3rem 4rem;
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(14, 165, 233, 0.08); /* Sombra azulada muy elegante */
+  text-align: center;
+  max-width: 700px;
+  width: 100%;
+  animation: slideUp 0.6s ease-out; /* Pequeña animación al cargar */
+}
+
+/* Logo */
+.logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.logo-icon {
+  font-size: 2.5rem;
+}
+
+.logo-text {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #0ea5e9; /* Azul médico */
+  margin: 0;
+  letter-spacing: -1px;
+}
+
+/* Textos principales */
+.main-title {
+  color: #0f172a;
+  font-size: 1.8rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: #64748b;
+  font-size: 1.1rem;
+  margin-bottom: 2.5rem;
+}
+
+/* Buscador */
+.search-form {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 2.5rem;
+}
+
+.input-wrapper {
+  position: relative;
+  flex-grow: 1;
+}
+
+.search-icon {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  color: #94a3b8;
+}
+
+.search-input {
+  width: 100%;
+  padding: 16px 20px 16px 50px; /* Espacio extra a la izquierda para la lupa */
+  font-size: 1.1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 100px;
+  outline: none;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.search-input:focus {
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
+}
+
+.search-button {
+  padding: 16px 36px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  background-color: #0ea5e9;
+  color: white;
+  border: none;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.search-button:hover {
+  background-color: #0284c7;
+  transform: translateY(-2px); /* Efecto de flotar al pasar el mouse */
+  box-shadow: 0 10px 20px rgba(14, 165, 233, 0.2);
+}
+
+.search-button:active {
+  transform: translateY(0);
+}
+
+/* Píldoras de sugerencias */
+.suggestions-container {
+  border-top: 1px solid #f1f5f9;
+  padding-top: 1.5rem;
+}
+
+.suggestions-title {
+  color: #94a3b8;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+.pills-wrapper {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.suggestion-pill {
+  padding: 8px 20px;
+  background-color: #f0f9ff;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+  border-radius: 100px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.suggestion-pill:hover {
+  background-color: #e0f2fe;
+  border-color: #7dd3fc;
+  transform: scale(1.05);
+}
+
+/* Footer (Abajo de la tarjeta) */
+.footer-credits {
+  margin-top: 3rem;
+  color: #64748b;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Animación de entrada */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
