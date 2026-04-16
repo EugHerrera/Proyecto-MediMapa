@@ -9,7 +9,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/medicamentos")
-@CrossOrigin(origins = "*") // Para que Sebastián no tenga problemas de CORS
 public class MedicamentoController {
 
     @Autowired

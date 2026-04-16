@@ -12,7 +12,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/catalogo")
-@CrossOrigin(origins = "*") // <-- ¡La magia contra el bloqueo! Permite peticiones de cualquier frontend
 public class CatalogoController {
 
     @Autowired
