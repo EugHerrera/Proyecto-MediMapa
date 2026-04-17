@@ -2,7 +2,6 @@ package cl.duoc.medimapa.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
 @Entity
@@ -11,26 +10,22 @@ import java.time.OffsetDateTime;
 public class PrecioVigente {
 
     @EmbeddedId
-    private PrecioVigenteId id; 
+    private PrecioVigenteId id;
+
+    @Column(name = "precio_max_vta")
+    private Double precioMaxVta; // Nombre limpio para la Query
+
+    @Column(name = "moneda")
+    private String moneda;
+
+    @Column(name = "vigente_desde")
+    private OffsetDateTime vigenteDesde;
 
     @ManyToOne
-    @MapsId("id_sucursal")
-    @JoinColumn(name = "id_sucursal")
-    private SucursalFarmacia sucursal; 
+    @JoinColumn(name = "id_medicamento", insertable = false, updatable = false)
+    private Medicamento medicamento;
 
     @ManyToOne
-    @JoinColumn(name = "id_medicamento")
-    private Medicamento medicamento; 
-
-    @Column(precision = 12, scale = 2)
-    private BigDecimal precio_max_vta; 
-
-    @Column(length = 3, nullable = false)
-    private String moneda = "CLP"; 
-
-    private OffsetDateTime vigente_desde; 
-
-    @ManyToOne
-    @JoinColumn(name = "id_corrida", nullable = false)
-    private CorridaActualizacion corrida; 
+    @JoinColumn(name = "id_sucursal", insertable = false, updatable = false)
+    private SucursalFarmacia sucursal;
 }

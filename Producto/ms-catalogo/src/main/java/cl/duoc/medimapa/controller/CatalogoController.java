@@ -8,40 +8,44 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/catalogo")
-@CrossOrigin(origins = "*") // <-- ¡La magia contra el bloqueo! Permite peticiones de cualquier frontend
+@CrossOrigin(origins = "*")
 public class CatalogoController {
 
     @Autowired
     private PrecioVigenteRepository precioRepo;
 
-    // Inyectamos nuestro nuevo repositorio traductor
     @Autowired
     private MedicamentoCatalogoRepository catalogoRepo;
 
-    // Endpoint original que ya tenías
-    @GetMapping("/precios")
-    public List<PrecioVigente> obtenerTodosLosPrecios() {
-        return precioRepo.findAll();
-    }
-
-    // NUEVO ENDPOINT: La solución al problema de Eugenio
-    // Ruta: GET http://localhost:8081/api/catalogo/traducir?nombre=Tapsin
     @GetMapping("/traducir")
-    public ResponseEntity<?> traducirMedicamento(@RequestParam String nombre) {
+    public ResponseEntity<?> buscarMedicamentoCompleto(@RequestParam String nombre) {
         
-        Optional<MedicamentoCatalogo> medicamento = catalogoRepo.findByNombreComercialIgnoreCase(nombre);
+        // 1. Traducimos (ej: Tapsin -> Paracetamol)
+        Optional<MedicamentoCatalogo> traduccion = catalogoRepo.findByNombreComercialIgnoreCase(nombre);
         
-        if (medicamento.isPresent()) {
-            // Si encuentra "Tapsin", devuelve el JSON con "Paracetamol"
-            return ResponseEntity.ok(medicamento.get());
-        } else {
-            // Si el usuario busca algo que no está en la base de datos
-            return ResponseEntity.notFound().build();
+        if (traduccion.isPresent()) {
+            String principio = traduccion.get().getPrincipioActivo();
+            
+            // 2. Buscamos PRECIOS y SUCURSALES de los bioequivalentes
+            List<PrecioVigente> resultados = precioRepo.buscarBioequivalentesConPrecio(principio);
+            
+            // 3. Armamos la respuesta completa para el mapa y las tarjetas
+            Map<String, Object> response = new HashMap<>();
+            response.put("termino_buscado", nombre);
+            response.put("principio_activo", principio);
+            response.put("total_encontrados", resultados.size());
+            response.put("resultados", resultados);
+            
+            return ResponseEntity.ok(response);
         }
+        
+        return ResponseEntity.notFound().build();
     }
 }
