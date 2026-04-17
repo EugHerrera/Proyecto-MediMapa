@@ -13,7 +13,7 @@ public class Medicamento {
     private Long id_medicamento; 
 
     @Column(name = "nombre_canonico")
-    private String nombreCanonico; // Así, sin guiones bajos en el nombre de la variable
+    private String nombreCanonico;
 
     @Column(name = "principio_activo")
     private String principioActivo; 
@@ -22,5 +22,9 @@ public class Medicamento {
     private String origen_catalogo; 
 
     @Column(nullable = false)
-    private Boolean activo = true; 
+    private Boolean activo = true;
+
+    // Esta es la columna que nos faltaba y que causaba el error
+    @Column(name = "es_bioequivalente")
+    private Boolean esBioequivalente = false; 
 }
