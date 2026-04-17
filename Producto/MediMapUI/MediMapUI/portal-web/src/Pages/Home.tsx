@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import './Home.css';
+import { useNavigate } from 'react-router-dom';
+import './Home.css'; 
 
 const Home = () => {
   const [busqueda, setBusqueda] = useState('');
@@ -16,54 +16,74 @@ const Home = () => {
   const sugerenciasRapidas = ['Paracetamol', 'Ibuprofeno', 'Loratadina', 'Kitadol'];
 
   return (
-    <div className="home-container">
-      <div className="search-card">
-        <div className="logo-container">
-          <span className="logo-icon">💊</span>
-          <h1 className="logo-text">MediMapa</h1>
-        </div>
+    <div className="home-modern-container">
+      <div className="hero-section">
         
-        <h2 className="main-title">Encuentra tu medicamento al mejor precio en La Florida</h2>
-        <p className="subtitle">Compara precios entre Salcobrand, Ahumada y Dr. Simi en segundos.</p>
+        {/* COLUMNA IZQUIERDA: Textos y Buscador */}
+        <div className="hero-content">
+          <div className="badge-modern">✨ Nueva plataforma web</div>
+          
+          <h1 className="hero-title">
+            Encuentra tu medicamento al <span className="highlight-green">mejor precio</span> en La Florida
+          </h1>
+          
+          <p className="hero-subtitle">
+            Comparamos los valores entre las principales cadenas y farmacias independientes para que cuides tu salud y tu bolsillo en segundos.
+          </p>
 
-        <form onSubmit={manejarBusqueda} className="search-form">
-          <div className="input-wrapper">
-            <span className="search-icon">🔍</span>
-            <input
-              type="text"
-              placeholder="Ej. Paracetamol, Tapsin..."
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              className="search-input"
-            />
-          </div>
-          <button type="submit" className="search-button">
-            Buscar
-          </button>
-        </form>
-
-        <div className="suggestions-container">
-          <p className="suggestions-title">Búsquedas frecuentes:</p>
-          <div className="pills-wrapper">
-            {sugerenciasRapidas.map((med, index) => (
-              <button 
-                key={index} 
-                onClick={() => setBusqueda(med)}
-                className="suggestion-pill"
-                type="button"
-              >
-                {med}
+          <form onSubmit={manejarBusqueda} className="modern-search-form">
+            <div className="modern-input-wrapper">
+              <span className="search-icon">🔍</span>
+              <input
+                type="text"
+                placeholder="Ej. Paracetamol, Tapsin, Eutirox..."
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                className="modern-search-input"
+              />
+              <button type="submit" className="modern-search-button">
+                Buscar ahora
               </button>
-            ))}
+            </div>
+          </form>
+
+          <div className="modern-suggestions">
+            <p>Búsquedas frecuentes:</p>
+            <div className="modern-pills">
+              {sugerenciasRapidas.map((med, index) => (
+                <button 
+                  key={index} 
+                  onClick={() => setBusqueda(med)}
+                  className="modern-pill"
+                  type="button"
+                >
+                  {med}
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Trust Indicators (Logos simulados) */}
+          <div className="trust-indicators">
+            <p>Comparamos inventarios de:</p>
+            <div className="trust-logos">
+               {/* Aquí después puedes poner imágenes reales de los logos */}
+               <span className="logo-placeholder">Salcobrand</span>
+               <span className="logo-placeholder">Ahumada</span>
+               <span className="logo-placeholder">Dr. Simi</span>
+            </div>
           </div>
         </div>
-      </div>
-      
-      <div className="footer-credits">
-        <Link to="/login" style={{ color: '#0ea5e9', textDecoration: 'none', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>
-          ¿Eres dueño de una farmacia? Inicia sesión aquí
-        </Link>
-        <p>Proyecto de Título - Duoc UC | Arquitectura de Microservicios</p>
+
+        {/* COLUMNA DERECHA: Imagen/Ilustración */}
+        <div className="hero-image-container">
+          {/* Aquí iría tu imagen generada por IA. Por ahora ponemos un placeholder elegante */}
+          <div className="image-placeholder">
+            <span className="placeholder-icon">🏥</span>
+            <p>Inserta aquí una ilustración 3D de una farmacia o elementos médicos</p>
+          </div>
+        </div>
+
       </div>
     </div>
   );

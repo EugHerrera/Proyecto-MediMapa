@@ -179,3 +179,238 @@
     transform: translateY(0);
   }
 }
+/* Contenedor principal con un degradado sutil y moderno */
+.home-modern-container {
+  min-height: calc(100vh - 70px); /* Restando la altura de la navbar */
+  background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 20px;
+  font-family: 'Inter', sans-serif;
+}
+
+.hero-section {
+  max-width: 1200px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr; /* Divide en dos columnas */
+  gap: 4rem;
+  align-items: center;
+}
+
+/* --- COLUMNA IZQUIERDA --- */
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.badge-modern {
+  display: inline-block;
+  align-self: flex-start;
+  background-color: #dbeafe;
+  color: #1e40af;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.hero-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.highlight-green {
+  color: #059669; /* Verde médico elegante */
+}
+
+.hero-subtitle {
+  font-size: 1.1rem;
+  color: #475569;
+  line-height: 1.6;
+  max-width: 90%;
+}
+
+/* Buscador Moderno */
+.modern-search-form {
+  margin-top: 1rem;
+}
+
+.modern-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: white;
+  padding: 8px;
+  border-radius: 50px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  transition: box-shadow 0.3s ease;
+}
+
+.modern-input-wrapper:focus-within {
+  box-shadow: 0 10px 30px rgba(14, 165, 233, 0.2);
+  border-color: #7dd3fc;
+}
+
+.search-icon {
+  padding-left: 15px;
+  font-size: 1.2rem;
+}
+
+.modern-search-input {
+  flex: 1;
+  border: none;
+  padding: 15px;
+  font-size: 1.1rem;
+  outline: none;
+  background: transparent;
+  color: #1e293b;
+}
+
+.modern-search-button {
+  background: #0ea5e9;
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 40px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.1s;
+}
+
+.modern-search-button:hover {
+  background: #0284c7;
+  transform: translateY(-1px);
+}
+
+/* Sugerencias (Pills) */
+.modern-suggestions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 0.5rem;
+}
+
+.modern-suggestions p {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.modern-pills {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.modern-pill {
+  background: white;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modern-pill:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+/* Indicadores de Confianza */
+.trust-indicators {
+  margin-top: 2rem;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 1.5rem;
+}
+
+.trust-indicators p {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.trust-logos {
+  display: flex;
+  gap: 20px;
+}
+
+.logo-placeholder {
+  color: #cbd5e1;
+  font-weight: 800;
+  font-size: 1.2rem;
+  filter: grayscale(100%);
+}
+
+/* --- COLUMNA DERECHA --- */
+.hero-image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.image-placeholder {
+  width: 100%;
+  height: 450px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px dashed #bae6fd;
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+  color: #38bdf8;
+  backdrop-filter: blur(10px);
+}
+
+.placeholder-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+/* Responsividad para pantallas pequeñas */
+@media (max-width: 968px) {
+  .hero-section {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  
+  .badge-modern {
+    align-self: center;
+  }
+  
+  .hero-title {
+    font-size: 2.8rem;
+  }
+  
+  .hero-subtitle {
+    max-width: 100%;
+  }
+
+  .modern-suggestions {
+    flex-direction: column;
+  }
+
+  .trust-logos {
+    justify-content: center;
+  }
+  
+  .hero-image-container {
+    display: none; /* Ocultamos la imagen en móviles para dar prioridad al buscador */
+  }
+}
