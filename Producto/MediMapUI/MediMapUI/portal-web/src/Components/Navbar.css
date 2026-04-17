@@ -1,0 +1,124 @@
+/* Contenedor principal de la barra */
+.navbar-container {
+  background-color: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+  font-family: 'Inter', sans-serif;
+}
+
+.navbar-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  height: 70px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* LOGO */
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.navbar-logo .logo-icon { font-size: 1.8rem; }
+.navbar-logo .logo-text {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+}
+
+/* ENLACES CENTRALES */
+.navbar-links {
+  display: flex;
+  gap: 30px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+}
+.navbar-links a, .dropdown-trigger {
+  text-decoration: none;
+  color: #64748b;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: color 0.2s ease;
+  cursor: pointer;
+  padding: 5px 0;
+}
+.navbar-links a:hover, .dropdown-trigger:hover { color: #0ea5e9; }
+.active-link {
+  color: #0ea5e9 !important;
+  font-weight: 700 !important;
+  border-bottom: 2px solid #0ea5e9;
+}
+
+/* MENÚ DESPLEGABLE (CATÁLOGO) */
+.dropdown-container { position: relative; padding: 10px 0; }
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  border: 1px solid #f1f5f9;
+  min-width: 240px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 8px 0;
+}
+.dropdown-item {
+  padding: 12px 20px;
+  color: #334155;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+.dropdown-item:hover { background: #f8fafc; color: #0ea5e9; }
+.highlight-item {
+  font-weight: 600;
+  color: #10b981; /* Verde esmeralda para resaltar los bioequivalentes */
+}
+.highlight-item:hover { color: #059669; }
+
+/* ACCIONES DERECHA */
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.nav-login-btn {
+  text-decoration: none;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: color 0.2s;
+}
+.nav-login-btn:hover { color: #0ea5e9; }
+.nav-cta-btn {
+  background-color: #0ea5e9;
+  color: white;
+  text-decoration: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  transition: background-color 0.3s, transform 0.1s;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2);
+}
+.nav-cta-btn:hover {
+  background-color: #0284c7;
+  transform: translateY(-2px);
+}
