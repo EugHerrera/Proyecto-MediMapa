@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './Home.css'; // ¡Aquí conectamos la magia!
+import { useNavigate, Link } from 'react-router-dom';
+import './Home.css';
 
 const Home = () => {
   const [busqueda, setBusqueda] = useState('');
@@ -60,6 +60,9 @@ const Home = () => {
       </div>
       
       <div className="footer-credits">
+        <Link to="/login" style={{ color: '#0ea5e9', textDecoration: 'none', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>
+          ¿Eres dueño de una farmacia? Inicia sesión aquí
+        </Link>
         <p>Proyecto de Título - Duoc UC | Arquitectura de Microservicios</p>
       </div>
     </div>
