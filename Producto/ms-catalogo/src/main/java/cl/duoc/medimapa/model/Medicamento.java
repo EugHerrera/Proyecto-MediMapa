@@ -2,14 +2,17 @@ package cl.duoc.medimapa.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "medicamento")
 @Data
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Evita errores de carga perezosa
 public class Medicamento {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_medicamento")
     private Long id_medicamento; 
 
     @Column(name = "nombre_canonico")
@@ -18,13 +21,12 @@ public class Medicamento {
     @Column(name = "principio_activo")
     private String principioActivo; 
 
-    @Column(length = 30)
+    @Column(name = "origen_catalogo", length = 30)
     private String origen_catalogo; 
 
     @Column(nullable = false)
     private Boolean activo = true;
 
-    // Esta es la columna que nos faltaba y que causaba el error
     @Column(name = "es_bioequivalente")
     private Boolean esBioequivalente = false; 
 }

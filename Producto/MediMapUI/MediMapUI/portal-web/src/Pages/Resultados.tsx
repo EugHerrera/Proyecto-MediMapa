@@ -2,69 +2,94 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 
 function Resultados() {
-  // Esto atrapa la palabra que el usuario escribió en el Home (ej: ?q=Paracetamol)
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || ''; 
 
   const [precios, setPrecios] = useState<any[]>([]);
   const [error, setError] = useState<string>("");
+  const [cargando, setCargando] = useState<boolean>(false);
 
   useEffect(() => {
-    fetch('http://localhost:8080/api/catalogo/precios')
+    if (!query) return;
+
+    setCargando(true);
+    setError("");
+
+    fetch(`http://localhost:8080/api/catalogo/precios?nombre=${encodeURIComponent(query)}`)
       .then(response => {
         if (!response.ok) {
-          throw new Error("Error en la red al intentar conectar");
+          throw new Error("No se encontraron resultados para ese medicamento o principio activo.");
         }
         return response.json(); 
       })
       .then(data => {
-        // Filtro rápido para mostrar solo lo que buscaste
-        if (query) {
-           const filtrados = data.filter((item: any) => 
-             item.medicamento?.nombreCanonico.toLowerCase().includes(query.toLowerCase())
-           );
-           setPrecios(filtrados);
+        if (data.resultados && data.resultados.length > 0) {
+            setPrecios(data.resultados);
         } else {
-           setPrecios(data);
+            setPrecios([]);
+            throw new Error("No hay precios registrados actualmente.");
         }
       })
-      .catch(err => setError(err.message));
+      .catch(err => {
+        setPrecios([]);
+        setError(err.message);
+      })
+      .finally(() => setCargando(false));
   }, [query]);
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif', maxWidth: '800px', margin: '0 auto' }}>
-      {/* Botón para volver al buscador */}
-      <Link to="/" style={{ textDecoration: 'none', color: '#0ea5e9', fontWeight: 'bold' }}>
+    <div style={{ padding: '2rem', fontFamily: "'Inter', sans-serif", maxWidth: '900px', margin: '0 auto' }}>
+      <Link to="/" style={{ textDecoration: 'none', color: '#0ea5e9', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px' }}>
         ⬅ Volver al buscador
       </Link>
       
-      <h1 style={{ marginTop: '1rem' }}>🏥 Resultados para: "{query}"</h1>
-      <p>Conectado en tiempo real al API Gateway (Puerto 8080) 🚦</p>
+      <h1 style={{ marginTop: '1.5rem', color: '#0f172a' }}>🏥 Resultados para: "{query}"</h1>
+      <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Consulta procesada por API Gateway MediMapa 🚦</p>
 
-      {error && <p style={{ color: 'red', fontWeight: 'bold' }}>❌ Error: {error}</p>}
+      {error && (
+        <div style={{ backgroundColor: '#fef2f2', padding: '1.2rem', borderRadius: '12px', borderLeft: '6px solid #ef4444', marginTop: '1.5rem' }}>
+          <p style={{ color: '#b91c1c', fontWeight: 'bold', margin: 0 }}>{error}</p>
+          <p style={{ color: '#7f1d1d', fontSize: '0.85rem', marginTop: '5px' }}>Sugerencia: Intenta buscar por el nombre genérico o revisa si el Scraper está activo.</p>
+        </div>
+      )}
+
+      {cargando && <p style={{ textAlign: 'center', marginTop: '3rem', color: '#0ea5e9', fontWeight: 'bold' }}>⏳ Buscando los mejores precios...</p>}
       
-      {precios.length > 0 ? (
+      {!cargando && precios.length > 0 && (
         <div style={{ marginTop: '2rem' }}>
-          <h3>✅ Opciones encontradas: {precios.length}</h3>
+          <h3 style={{ color: '#1e293b', marginBottom: '1.5rem' }}>✅ Se encontraron {precios.length} opciones disponibles:</h3>
           
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'grid', gap: '1.5rem' }}>
             {precios.map((item, index) => (
-              <div key={index} style={{ border: '1px solid #ccc', padding: '1rem', borderRadius: '8px', backgroundColor: '#f9f9f9' }}>
-                <h4 style={{ margin: '0 0 0.5rem 0', color: '#2c3e50' }}>💊 {item.medicamento?.nombreCanonico}</h4>
-                <p style={{ margin: '0.2rem 0' }}><strong>📍 Sucursal:</strong> {item.sucursal?.nombreSucursal}</p>
-                <p style={{ margin: '0.2rem 0' }}><strong>🗺️ Dirección:</strong> {item.sucursal?.direccion}</p>
-                <p style={{ margin: '0.2rem 0', color: '#27ae60', fontSize: '1.2rem', fontWeight: 'bold' }}>
-                  💰 Precio: ${item.precio_max_vta} {item.moneda}
-                </p>
+              <div key={index} style={{ 
+                border: '1px solid #e2e8f0', 
+                padding: '1.5rem', 
+                borderRadius: '16px', 
+                backgroundColor: '#ffffff', 
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <div>
+                  <h4 style={{ margin: '0 0 0.5rem 0', color: '#0f172a', fontSize: '1.25rem' }}>💊 {item.medicamento?.nombreCanonico}</h4>
+                  <p style={{ margin: '0.2rem 0', color: '#475569' }}><strong>🏪 Farmacia:</strong> {item.sucursal?.nombreSucursal}</p>
+                  <p style={{ margin: '0.2rem 0', color: '#64748b', fontSize: '0.9rem' }}>📍 {item.sucursal?.direccion}</p>
+                </div>
+
+                <div style={{ textAlign: 'right' }}>
+                  <p style={{ margin: 0, color: '#059669', fontSize: '1.8rem', fontWeight: '800' }}>
+                    ${(item.precioMaxVta || item.precio_max_vta).toLocaleString('es-CL')}
+                  </p>
+                  <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 'bold' }}>{item.moneda || 'CLP'}</span>
+                </div>
               </div>
             ))}
           </div>
         </div>
-      ) : (
-        !error && <p>⏳ Buscando los mejores precios...</p>
       )}
     </div>
-  )
+  );
 }
 
 export default Resultados;

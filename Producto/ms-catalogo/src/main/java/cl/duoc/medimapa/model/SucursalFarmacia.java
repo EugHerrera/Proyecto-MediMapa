@@ -3,6 +3,8 @@ package cl.duoc.medimapa.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.locationtech.jts.geom.Point; // ¡IMPORTANTE: Que sea esta importación!
+
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
 @Data
@@ -12,18 +14,19 @@ public class SucursalFarmacia {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_sucursal")
-    private Long idSucursal;
+    private Long id_sucursal; 
 
-    @Column(name = "nombre_sucursal", nullable = false, length = 300)
-    private String nombreSucursal; 
+    @Column(nullable = false, length = 300)
+    private String nombre_sucursal; 
 
     @Column(nullable = false, length = 400)
     private String direccion; 
 
-    // REGLA DE EUGENIO: Usamos Point de PostGIS con SRID 4326 (GPS Estándar)
-    @Column(columnDefinition = "geometry(Point, 4326)", nullable = false)
-    private Point ubicacion; 
+    @Column(precision = 10, scale = 7, nullable = false)
+    private BigDecimal latitud; 
+
+    @Column(precision = 10, scale = 7, nullable = false)
+    private BigDecimal longitud; 
 
     private Boolean activo = true; 
 

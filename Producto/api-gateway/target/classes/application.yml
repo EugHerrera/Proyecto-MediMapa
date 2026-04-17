@@ -7,7 +7,7 @@ spring:
   cloud:
     gateway:
       globalcors:
-        corsConfigurations:
+        cors-configurations:
           '[/**]':
             allowedOrigins: "*"
             allowedMethods:
@@ -15,6 +15,7 @@ spring:
               - POST
               - PUT
               - DELETE
+              - OPTIONS
             allowedHeaders: "*"
       routes:
         # RUTA 1: MICROSERVICIO CATÁLOGO
@@ -23,14 +24,20 @@ spring:
           predicates:
             - Path=/api/catalogo/**
 
-       # RUTA 2: SCRAPER
+        # RUTA 2: SCRAPER
         - id: medimapa-scraper-route
           uri: http://localhost:8082
           predicates:
-            - Path=/api/scraper/**      
+            - Path=/api/scraper/**
             
         # RUTA 3: MICROSERVICIO GEOLOCALIZACIÓN
         - id: ms-geo-route
           uri: http://localhost:8083
           predicates:
             - Path=/api/geo/**
+
+        # RUTA 4: MICROSERVICIO USUARIOS
+        - id: ms-usuarios-route
+          uri: http://localhost:8085
+          predicates:
+            - Path=/api/usuarios/**
