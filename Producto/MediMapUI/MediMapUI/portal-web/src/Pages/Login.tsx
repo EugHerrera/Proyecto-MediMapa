@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import './Home.css'; 
+import './Login.css'; 
 
 const Login = () => {
   const [correo, setCorreo] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [cargando, setCargando] = useState(false); // Para mostrar un estado de carga
+  const [cargando, setCargando] = useState(false);
   const navigate = useNavigate();
 
   const manejarLogin = async (e: React.FormEvent) => {
@@ -15,32 +15,27 @@ const Login = () => {
     setCargando(true);
 
     try {
-      // Aquí hacemos la llamada a tu Microservicio de Usuarios en el puerto 8085
+      // Llamada a tu Microservicio de Usuarios (Puerto 8085)
       const respuesta = await fetch('http://localhost:8085/api/usuarios/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ correo, password }), // Mandamos el DTO
+        body: JSON.stringify({ correo, password }),
       });
 
       const data = await respuesta.json();
 
       if (respuesta.ok) {
-        // ¡Las credenciales son correctas!
-        alert(`¡Bienvenido! Has ingresado con el rol de: ${data.rol}`);
-        
-        // Aquí le decimos al navegador que recuerde que este usuario ya inició sesión
+        // Guardamos el rol en el almacenamiento local
         localStorage.setItem('usuarioRol', data.rol);
         
-        // Lo redirigimos al buscador (después lo mandaremos al panel de control)
+        // Redirigimos al Home
         navigate('/'); 
       } else {
-        // El backend nos devolvió un error (ej: clave incorrecta)
         setError(data.error || 'Correo o contraseña incorrectos');
       }
     } catch (err) {
-      // Este error salta si el backend está apagado o hay un problema de red
       setError('❌ No se pudo conectar con el servidor (Puerto 8085).');
     } finally {
       setCargando(false);
@@ -48,53 +43,62 @@ const Login = () => {
   };
 
   return (
-    <div className="home-container">
-      <div className="search-card" style={{ maxWidth: '400px' }}>
-        <div className="logo-container">
-          <span className="logo-icon">🔐</span>
-          <h1 className="logo-text" style={{ fontSize: '2rem' }}>Acceso</h1>
-        </div>
-        
-        <p className="subtitle" style={{ marginBottom: '1.5rem' }}>
-          Portal para Farmacias y Administradores
-        </p>
+    <div className="login-page-container">
+      <div className="login-card">
+        <h1>Acceso</h1>
+        <p>Portal para Farmacias y Administradores</p>
 
-        {error && <p style={{ color: 'red', fontWeight: 'bold', marginBottom: '1rem', backgroundColor: '#fee2e2', padding: '10px', borderRadius: '8px' }}>{error}</p>}
+        {error && (
+          <div style={{ 
+            color: '#991b1b', 
+            backgroundColor: '#fee2e2', 
+            padding: '12px', 
+            borderRadius: '8px', 
+            marginBottom: '20px',
+            fontSize: '0.9rem',
+            fontWeight: '600',
+            border: '1px solid #fecaca'
+          }}>
+            {error}
+          </div>
+        )}
 
-        <form onSubmit={manejarLogin} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          <input
-            type="email"
-            placeholder="Correo electrónico"
-            value={correo}
-            onChange={(e) => setCorreo(e.target.value)}
-            className="search-input"
-            style={{ paddingLeft: '20px' }}
-            required
-          />
-          <input
-            type="password"
-            placeholder="Contraseña"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="search-input"
-            style={{ paddingLeft: '20px' }}
-            required
-          />
+        <form onSubmit={manejarLogin} className="login-form">
+          <div className="input-group-login">
+            <label>Correo electrónico</label>
+            <input
+              type="email"
+              placeholder="ejemplo@farmacia.cl"
+              value={correo}
+              onChange={(e) => setCorreo(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="input-group-login">
+            <label>Contraseña</label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
           <button 
             type="submit" 
-            className="search-button" 
-            style={{ marginTop: '10px', opacity: cargando ? 0.7 : 1 }}
+            className="btn-login-submit" 
             disabled={cargando}
+            style={{ opacity: cargando ? 0.7 : 1 }}
           >
             {cargando ? 'Verificando...' : 'Iniciar Sesión'}
           </button>
         </form>
 
-        <div style={{ marginTop: '2rem', fontSize: '0.9rem' }}>
-          <Link to="/" style={{ color: '#0ea5e9', textDecoration: 'none', fontWeight: 'bold' }}>
-            ⬅ Volver al buscador
-          </Link>
-        </div>
+        <Link to="/" className="btn-volver-buscador">
+          ← Volver al buscador
+        </Link>
       </div>
     </div>
   );
