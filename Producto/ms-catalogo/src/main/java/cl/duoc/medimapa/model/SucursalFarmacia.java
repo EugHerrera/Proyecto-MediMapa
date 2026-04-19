@@ -2,7 +2,6 @@ package cl.duoc.medimapa.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.locationtech.jts.geom.Point; // ¡IMPORTANTE: Que sea esta importación!
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
