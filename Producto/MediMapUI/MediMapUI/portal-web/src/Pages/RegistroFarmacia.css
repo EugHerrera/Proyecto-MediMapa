@@ -1,7 +1,8 @@
 .registro-container {
   background-color: #f1f5f9;
   min-height: 100vh;
-  padding: 40px 20px;
+  /* El padding superior de 110px evita que la Navbar tape el contenido */
+  padding: 110px 20px 40px 20px; 
   font-family: 'Inter', sans-serif;
 }
 
@@ -14,7 +15,7 @@
   box-shadow: 0 4px 20px rgba(0,0,0,0.05);
 }
 
-.form-header h1 { color: #0ea5e9; margin-bottom: 8px; }
+.form-header h1 { color: #059669; margin-bottom: 8px; } /* Verde Clínico */
 .form-header p { color: #64748b; margin-bottom: 32px; }
 
 .form-section {
@@ -25,7 +26,7 @@
 }
 
 .section-title {
-  background: #3b82f6;
+  background: #059669; /* Verde Clínico */
   color: white;
   margin: -24px -24px 20px -24px;
   padding: 12px 24px;
@@ -46,31 +47,57 @@
   border: 1px solid #cbd5e1;
   border-radius: 6px;
   outline: none;
+  transition: all 0.2s ease;
+}
+
+/* Efecto verde al escribir en los inputs */
+.input-group input:focus, .input-group select:focus {
+  border-color: #059669;
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
 }
 
 .full-width { grid-column: span 2; }
 
+/* Caja de advertencia legal */
 .ley-box {
-  background: #eff6ff;
+  background: #f0fdf4; /* Fondo verde clarito */
   padding: 16px;
   border-radius: 8px;
-  border-left: 4px solid #3b82f6;
+  border-left: 4px solid #059669; /* Borde lateral verde clínico */
   margin-bottom: 30px;
 }
 
 .checkbox-label { display: flex; gap: 12px; cursor: pointer; align-items: flex-start; }
-.checkbox-label span { font-size: 0.85rem; color: #1e3a8a; line-height: 1.5; }
+.checkbox-label span { font-size: 0.85rem; color: #064e3b; line-height: 1.5; } /* Texto en verde oscuro */
 
 .form-actions { display: flex; gap: 20px; align-items: center; }
+
+/* Botón Guardar principal */
 .btn-save {
-  background: #22c55e;
+  background: #059669; /* Verde Clínico Principal */
   color: white;
   padding: 14px 28px;
   border: none;
   border-radius: 6px;
   font-weight: bold;
   cursor: pointer;
-  transition: 0.3s;
+  transition: background 0.3s, transform 0.1s;
 }
-.btn-save:disabled { background: #94a3b8; cursor: not-allowed; }
-.btn-back { color: #64748b; text-decoration: none; font-size: 0.9rem; }
+
+.btn-save:hover:not(:disabled) { 
+  background: #047857; /* Verde oscuro al pasar el mouse */
+  transform: translateY(-2px);
+}
+
+.btn-save:disabled { background: #94a3b8; cursor: not-allowed; transform: none; }
+
+.btn-back { 
+  color: #64748b; 
+  text-decoration: none; 
+  font-size: 0.9rem; 
+  transition: color 0.2s ease;
+}
+
+.btn-back:hover { 
+  color: #059669; 
+}

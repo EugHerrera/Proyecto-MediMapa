@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './Navbar.css';
 
-const Navbar = () => {
-  const location = useLocation(); // Para saber en qué página estamos
-  const [menuAbierto, setMenuAbierto] = useState(false);
+// Importación según tu estructura de carpetas: src/assets/MediMapa.png
+import logoMediMapa from '../assets/MediMapa.png'; 
 
-  // Función para saber si un link está activo y pintarlo de azul
+const Navbar = () => {
+  const location = useLocation(); 
+
+  // Función para resaltar el link activo
   const isActive = (path: string) => {
     return location.pathname === path ? 'active-link' : '';
   };
@@ -15,37 +17,25 @@ const Navbar = () => {
     <nav className="navbar-container">
       <div className="navbar-content">
         
-        {/* LADO IZQUIERDO: Logo */}
+        {/* LADO IZQUIERDO: Logo oficial importado */}
         <Link to="/" className="navbar-logo">
-          <span className="logo-icon">💊</span>
+          <img src={logoMediMapa} alt="MediMapa Logo" className="logo-imagen" />
           <span className="logo-text">MediMapa</span>
         </Link>
 
-        {/* CENTRO: Enlaces de Navegación */}
+        {/* CENTRO: Navegación Principal (Ahora todo separado) */}
         <ul className="navbar-links">
           <li><Link to="/" className={isActive('/')}>Inicio</Link></li>
           
-          {/* Menú Desplegable del Catálogo */}
-          <li 
-            className="dropdown-container"
-            onMouseEnter={() => setMenuAbierto(true)}
-            onMouseLeave={() => setMenuAbierto(false)}
-          >
-            <span className={`dropdown-trigger ${isActive('/catalogo') || isActive('/bioequivalentes') ? 'active-link' : ''}`}>
-              Catálogo ▾
-            </span>
-            {menuAbierto && (
-              <div className="dropdown-menu">
-                <Link to="/catalogo" className="dropdown-item">Todos los medicamentos</Link>
-                <Link to="/bioequivalentes" className="dropdown-item highlight-item">✨ Alternativas Bioequivalentes</Link>
-              </div>
-            )}
-          </li>
-
+          {/* Catálogo y Bioequivalentes como links directos */}
+          <li><Link to="/catalogo" className={isActive('/catalogo')}>Catálogo</Link></li>
+          <li><Link to="/bioequivalentes" className={isActive('/bioequivalentes')}>Bioequivalentes</Link></li>
+          
           <li><Link to="/red-farmacias" className={isActive('/red-farmacias')}>Red de Farmacias</Link></li>
+          <li><Link to="/faq" className={isActive('/faq')}>Preguntas Frecuentes</Link></li>
         </ul>
 
-        {/* LADO DERECHO: Acciones */}
+        {/* LADO DERECHO: Acciones B2B (Inscripción) y Usuarios */}
         <div className="navbar-actions">
           <Link to="/login" className="nav-login-btn">
             <span className="user-icon">👤</span> Iniciar Sesión

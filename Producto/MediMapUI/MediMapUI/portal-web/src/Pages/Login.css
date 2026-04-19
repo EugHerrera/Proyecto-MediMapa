@@ -1,0 +1,108 @@
+/* Contenedor principal de la página de Login */
+.login-page-container {
+  /* En lugar de 100vh a secas, restamos el alto de la navbar (70px aprox) */
+  min-height: calc(100vh - 70px); 
+  background-color: #f8fafc;
+  display: flex;
+  justify-content: center;
+  align-items: center; /* Esto es lo que centra verticalmente */
+  
+  /* Bajamos el padding-top de 120 a 70 para que no empuje tanto hacia abajo */
+  padding: 70px 20px 20px 20px; 
+  font-family: 'Inter', sans-serif;
+}
+
+.login-card {
+  background: white;
+  width: 100%;
+  max-width: 450px;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  text-align: center;
+  
+  /* Esto ayuda a compensar visualmente el peso del header */
+  margin-top: -50px; 
+}
+
+.login-card h1 {
+  color: #059669; /* Verde Clínico */
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.login-card p {
+  color: #64748b;
+  margin-bottom: 30px;
+  font-size: 0.95rem;
+}
+
+/* Formulario */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.input-group-login {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.input-group-login label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.input-group-login input {
+  padding: 12px 15px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.input-group-login input:focus {
+  outline: none;
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+}
+
+/* Botón de Iniciar Sesión */
+.btn-login-submit {
+  background-color: #059669;
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.3s, transform 0.1s;
+}
+
+.btn-login-submit:hover {
+  background-color: #047857;
+  transform: translateY(-2px);
+}
+
+/* Enlace para volver */
+.btn-volver-buscador {
+  display: inline-block;
+  margin-top: 25px;
+  color: #64748b;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.btn-volver-buscador:hover {
+  color: #059669;
+}
