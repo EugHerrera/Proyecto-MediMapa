@@ -18,11 +18,11 @@ const FAQ = () => {
     },
     {
       pregunta: "¿Puedo comprar los medicamentos directamente en esta página?",
-      respuesta: "No. MediMapa opera bajo un modelo de agregador informativo y no procesa pagos ni ventas directas[cite: 126, 127]. Nuestra función es transparentar los precios para facilitar tu decisión de compra, derivándote a la página oficial de la farmacia o indicándote su ubicación física[cite: 128]."
+      respuesta: "No. MediMapa opera bajo un modelo de agregador informativo y no procesa pagos ni ventas directas. Nuestra función es transparentar los precios para facilitar tu decisión de compra, derivándote a la página oficial de la farmacia o indicándote su ubicación física."
     },
     {
       pregunta: "¿Necesito registrarme para buscar un medicamento?",
-      respuesta: "Absolutamente no. Protegemos tu privacidad operando bajo la Ley 21.719[cite: 129]. Todo tu procesamiento de búsqueda es volátil, lo que significa que no guardamos historiales médicos, direcciones exactas ni requerimos que inicies sesión para cotizar[cite: 130]."
+      respuesta: "Absolutamente no. Protegemos tu privacidad operando bajo la Ley 21.719. Todo tu procesamiento de búsqueda es volátil, lo que significa que no guardamos historiales médicos, direcciones exactas ni requerimos que inicies sesión para cotizar."
     },
     {
       pregunta: "¿Qué significa que un medicamento sea Bioequivalente?",
