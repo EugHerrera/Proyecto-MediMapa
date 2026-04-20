@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 
 function Resultados() {
@@ -9,8 +9,17 @@ function Resultados() {
   const [error, setError] = useState<string>("");
   const [cargando, setCargando] = useState<boolean>(false);
 
+  // 🔥 EL ESCUDO: Creamos una memoria para recordar la última búsqueda
+  const ultimaBusqueda = useRef<string>("");
+
   useEffect(() => {
     if (!query) return;
+
+    // 🔥 LA DEFENSA: Si React intenta buscar exactamente lo mismo dos veces seguidas, lo detenemos.
+    if (ultimaBusqueda.current === query) return;
+    
+    // Registramos en la memoria que ya empezamos a buscar esta palabra
+    ultimaBusqueda.current = query;
 
     setCargando(true);
     setError("");
@@ -36,7 +45,11 @@ function Resultados() {
         setPrecios([]);
         setError(err.message);
       })
-      .finally(() => setCargando(false));
+      .finally(() => {
+        setCargando(false);
+        // Opcional: Limpiamos la memoria al terminar por si el usuario quiere forzar la misma búsqueda después
+        ultimaBusqueda.current = ""; 
+      });
   }, [query]);
 
   return (
