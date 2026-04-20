@@ -15,7 +15,8 @@ function Resultados() {
     setCargando(true);
     setError("");
 
-    fetch(`http://localhost:8080/api/catalogo/precios?nombre=${encodeURIComponent(query)}`)
+    // 1. AHORA SÍ LLAMAMOS A LA RUTA DEL SCRAPER EN VIVO
+    fetch(`http://localhost:8080/api/scraper/buscar?query=${encodeURIComponent(query)}`)
       .then(response => {
         if (!response.ok) {
           throw new Error("No se encontraron resultados para ese medicamento o principio activo.");
@@ -23,11 +24,12 @@ function Resultados() {
         return response.json(); 
       })
       .then(data => {
-        if (data.resultados && data.resultados.length > 0) {
-            setPrecios(data.resultados);
+        // 2. EL BACKEND AHORA DEVUELVE UN ARREGLO DIRECTO (List<Map>)
+        if (Array.isArray(data) && data.length > 0) {
+            setPrecios(data);
         } else {
             setPrecios([]);
-            throw new Error("No hay precios registrados actualmente.");
+            throw new Error("El motor no encontró stock o precios para este medicamento en las farmacias.");
         }
       })
       .catch(err => {
@@ -39,21 +41,26 @@ function Resultados() {
 
   return (
     <div style={{ padding: '2rem', fontFamily: "'Inter', sans-serif", maxWidth: '900px', margin: '0 auto' }}>
-      <Link to="/" style={{ textDecoration: 'none', color: '#0ea5e9', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px' }}>
+      <Link to="/" style={{ textDecoration: 'none', color: '#059669', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px' }}>
         ⬅ Volver al buscador
       </Link>
       
       <h1 style={{ marginTop: '1.5rem', color: '#0f172a' }}>🏥 Resultados para: "{query}"</h1>
-      <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Consulta procesada por API Gateway MediMapa 🚦</p>
+      <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Consulta procesada en vivo por el Motor Scraper MediMapa 🤖</p>
 
       {error && (
         <div style={{ backgroundColor: '#fef2f2', padding: '1.2rem', borderRadius: '12px', borderLeft: '6px solid #ef4444', marginTop: '1.5rem' }}>
           <p style={{ color: '#b91c1c', fontWeight: 'bold', margin: 0 }}>{error}</p>
-          <p style={{ color: '#7f1d1d', fontSize: '0.85rem', marginTop: '5px' }}>Sugerencia: Intenta buscar por el nombre genérico o revisa si el Scraper está activo.</p>
+          <p style={{ color: '#7f1d1d', fontSize: '0.85rem', marginTop: '5px' }}>Sugerencia: Intenta buscar por el nombre genérico o revisa la consola de Spring Boot.</p>
         </div>
       )}
 
-      {cargando && <p style={{ textAlign: 'center', marginTop: '3rem', color: '#0ea5e9', fontWeight: 'bold' }}>⏳ Buscando los mejores precios...</p>}
+      {cargando && (
+        <div style={{ textAlign: 'center', marginTop: '3rem' }}>
+           <p style={{ color: '#059669', fontWeight: 'bold', fontSize: '1.2rem' }}>⏳ Encendiendo motores y buscando en las farmacias...</p>
+           <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Esto puede tomar unos segundos.</p>
+        </div>
+      )}
       
       {!cargando && precios.length > 0 && (
         <div style={{ marginTop: '2rem' }}>
@@ -69,19 +76,21 @@ function Resultados() {
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                 display: 'flex',
                 justifyContent: 'space-between',
-                alignItems: 'center'
+                alignItems: 'center',
+                transition: 'transform 0.2s ease',
               }}>
                 <div>
-                  <h4 style={{ margin: '0 0 0.5rem 0', color: '#0f172a', fontSize: '1.25rem' }}>💊 {item.medicamento?.nombreCanonico}</h4>
-                  <p style={{ margin: '0.2rem 0', color: '#475569' }}><strong>🏪 Farmacia:</strong> {item.sucursal?.nombreSucursal}</p>
-                  <p style={{ margin: '0.2rem 0', color: '#64748b', fontSize: '0.9rem' }}>📍 {item.sucursal?.direccion}</p>
+                  {/* 3. LEEMOS LOS DATOS EXACTOS QUE MANDA EL MAPA DE JAVA */}
+                  <h4 style={{ margin: '0 0 0.5rem 0', color: '#0f172a', fontSize: '1.25rem', textTransform: 'capitalize' }}>💊 {item.medicamento}</h4>
+                  <p style={{ margin: '0.2rem 0', color: '#475569' }}><strong>🏪 Farmacia:</strong> {item.farmacia}</p>
+                  <p style={{ margin: '0.2rem 0', color: '#059669', fontSize: '0.85rem', fontWeight: 'bold' }}>✓ Precio verificado en tiempo real</p>
                 </div>
 
                 <div style={{ textAlign: 'right' }}>
                   <p style={{ margin: 0, color: '#059669', fontSize: '1.8rem', fontWeight: '800' }}>
-                    ${(item.precioMaxVta || item.precio_max_vta).toLocaleString('es-CL')}
+                    ${item.precio?.toLocaleString('es-CL')}
                   </p>
-                  <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 'bold' }}>{item.moneda || 'CLP'}</span>
+                  <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 'bold' }}>CLP</span>
                 </div>
               </div>
             ))}

@@ -14,7 +14,7 @@ public class SalcobrandScraper implements FarmaciaScraper {
 
     @Override
     public Long getIdFuente() {
-        return 3L; // ID 3 para Salcobrand en tu BD
+        return 3L; 
     }
 
     @Override
@@ -26,7 +26,6 @@ public class SalcobrandScraper implements FarmaciaScraper {
     public String generarUrl(String nombreMedicamento) {
         try {
             String busquedaEncoded = URLEncoder.encode(nombreMedicamento, StandardCharsets.UTF_8);
-            // Salcobrand usa esta estructura para sus búsquedas
             return "https://salcobrand.cl/search_result?query=" + busquedaEncoded;
         } catch (Exception e) {
             return "";
@@ -35,32 +34,33 @@ public class SalcobrandScraper implements FarmaciaScraper {
 
     @Override
     public BigDecimal extraerMenorPrecio(Page page) {
-        // 1. Le damos 5 segundos para que cargue la página React de Salcobrand
         page.waitForTimeout(5000); 
 
-        // 2. Volvemos al Modo Dios: leemos TODO lo que tenga un signo $
-        Locator precios = page.locator("span, div, p").filter(new Locator.FilterOptions().setHasText("$"));
+        // 🔥 MODO FRANCOTIRADOR: Evitamos agarrar el precio por pastilla suelta
+        Locator precios = page.locator("[class*='price'], [class*='Precio'], .bestPrice").filter(new Locator.FilterOptions().setHasText("$"));
         
         if (precios.count() > 0) {
             List<String> textos = precios.allInnerTexts();
             BigDecimal minPrecio = null;
 
             for (String t : textos) {
-                // Limpiamos todo lo que no sea número
-                String limpio = t.replaceAll("[^\\d]", "");
+                // Separamos si viene basura pegada al número
+                String primerTexto = t.split("[\\n\\s]+")[0];
+                String limpio = primerTexto.replaceAll("[^\\d]", "");
+                
                 if (!limpio.isEmpty()) {
                     try {
                         BigDecimal actual = new BigDecimal(limpio);
-                        int valor = actual.intValue(); // Lo pasamos a entero para filtrarlo fácil
+                        int valor = actual.intValue(); 
                         
-                        // 3. EL ESCUDO: Mayor a 100 y que NO sea parte del menú lateral falso
-                        if (valor > 100 && valor != 5000 && valor != 10000 && valor != 15000 && valor != 20000 && valor != 25000) {
+                        // Ignoramos el menú lateral falso y valores ridículamente bajos (menos de $550)
+                        if (valor > 550 && valor != 5000 && valor != 10000 && valor != 15000 && valor != 20000 && valor != 25000) {
                             if (minPrecio == null || actual.compareTo(minPrecio) < 0) {
                                 minPrecio = actual;
                             }
                         }
                     } catch (Exception e) {
-                        // Ignorar si no se pudo parsear
+                        // Ignorar
                     }
                 }
             }
