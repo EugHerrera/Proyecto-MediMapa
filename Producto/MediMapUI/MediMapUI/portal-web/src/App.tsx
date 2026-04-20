@@ -7,6 +7,7 @@ import RegistroFarmacia from './Pages/RegistroFarmacia';
 import FAQ from './Pages/FAQ';
 import Catalogo from './Pages/Catalogo';
 import RedFarmacias from './Pages/RedFarmacias'; 
+import AdminPanel from './Pages/AdminPanel'; // <-- IMPORTAMOS EL NUEVO PANEL
 
 function App() {
   return (
@@ -24,6 +25,9 @@ function App() {
         {/* Módulo B2B y Login */}
         <Route path="/login" element={<Login />} />
         <Route path="/registro-farmacia" element={<RegistroFarmacia />} />
+        
+        {/* Panel de Administración */}
+        <Route path="/admin" element={<AdminPanel />} /> {/* <-- AGREGAMOS LA RUTA */}
         
         {/* Red de Farmacias (La que tiene los logos y el mapa) */}
         <Route path="/red-farmacias" element={<RedFarmacias />} />
