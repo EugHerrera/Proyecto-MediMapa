@@ -27,11 +27,21 @@ const Login = () => {
       const data = await respuesta.json();
 
       if (respuesta.ok) {
-        // Guardamos el rol en el almacenamiento local
+        // 1. Guardamos el rol y el correo en el almacenamiento local
         localStorage.setItem('usuarioRol', data.rol);
+        localStorage.setItem('usuarioCorreo', correo); // Útil para mostrar su nombre en el panel
         
-        // Redirigimos al Home
-        navigate('/'); 
+        // 2. REDIRECCIÓN INTELIGENTE SEGÚN EL ROL
+        const rolUsuario = data.rol.toUpperCase(); // Lo pasamos a mayúsculas por seguridad
+
+        if (rolUsuario === 'ADMIN' || rolUsuario === 'FARMACEUTICO') {
+          // Si es dueño o farmacéutico, lo mandamos a su área de trabajo
+          navigate('/admin'); 
+        } else {
+          // Si tienes roles de usuarios normales (clientes), los dejas en el Home
+          navigate('/'); 
+        }
+        
       } else {
         setError(data.error || 'Correo o contraseña incorrectos');
       }

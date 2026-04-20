@@ -1,0 +1,179 @@
+/* Contenedor Principal del Panel */
+.admin-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 120px 20px 60px 20px;
+  font-family: 'Inter', sans-serif;
+  color: #1e293b;
+}
+
+.admin-header {
+  margin-bottom: 30px;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 15px;
+}
+
+.admin-header h1 {
+  color: #059669; /* Verde Clínico */
+  margin: 0 0 5px 0;
+  font-size: 2rem;
+}
+
+.admin-header p {
+  color: #64748b;
+  margin: 0;
+}
+
+/* Tarjetas de Sección */
+.admin-card {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  margin-bottom: 30px;
+}
+
+.admin-card h2 {
+  margin-top: 0;
+  color: #0f172a;
+  font-size: 1.3rem;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Zona de Carga Masiva (Dropzone) */
+.dropzone {
+  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 40px 20px;
+  text-align: center;
+  background-color: #f8fafc;
+  transition: all 0.2s;
+  cursor: pointer;
+  position: relative;
+}
+
+.dropzone:hover {
+  border-color: #059669;
+  background-color: #f0fdf4;
+}
+
+.dropzone-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+  display: block;
+}
+
+.dropzone-text {
+  color: #475569;
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.dropzone-hint {
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+/* Ocultar el input real de archivo */
+.dropzone input[type="file"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.btn-upload {
+  background-color: #059669;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background 0.2s;
+}
+
+.btn-upload:hover:not(:disabled) {
+  background-color: #047857;
+}
+
+.btn-upload:disabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* Buscador Manual */
+.admin-search {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 1rem;
+  margin-bottom: 20px;
+}
+
+.admin-search:focus {
+  outline: none;
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+}
+
+/* Tabla de Inventario */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table th {
+  background-color: #f1f5f9;
+  color: #475569;
+  text-align: left;
+  padding: 12px 15px;
+  font-weight: 600;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.admin-table td {
+  padding: 15px;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: middle;
+}
+
+.input-precio {
+  width: 100px;
+  padding: 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 1rem;
+  text-align: right;
+}
+
+.input-precio:focus {
+  outline: none;
+  border-color: #059669;
+}
+
+.btn-guardar {
+  background-color: #f0fdf4;
+  color: #059669;
+  border: 1px solid #059669;
+  padding: 8px 15px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-guardar:hover {
+  background-color: #059669;
+  color: white;
+}
