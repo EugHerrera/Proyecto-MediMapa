@@ -9,7 +9,10 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ScraperService {
@@ -21,15 +24,17 @@ public class ScraperService {
     private MedicamentoRepository medicamentoRepository;
 
     @Autowired
-    private SucursalFarmaciaRepository sucursalRepo; // Añadido para buscar la sucursal
+    private SucursalFarmaciaRepository sucursalRepo;
 
     @Autowired
     private List<FarmaciaScraper> estrategiasFarmacias;
 
+    // -------------------------------------------------------------------------
+    // MÉTODO 1: Scraping Masivo Programado (Batch)
+    // -------------------------------------------------------------------------
     public void ejecutarScrapingAutomatico(CorridaActualizacion corrida) {
-        // El robot lee el catálogo completo desde la base de datos
         List<Medicamento> catalogo = medicamentoRepository.findAll();
-        System.out.println("🚀 Iniciando motor Playwright Multi-Farmacia...");
+        System.out.println("🚀 Iniciando motor Playwright Multi-Farmacia (Modo Batch)...");
 
         try (Playwright playwright = Playwright.create()) {
             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
@@ -38,20 +43,17 @@ public class ScraperService {
             for (Medicamento medicamento : catalogo) {
                 System.out.println("\n🤖 Procesando: " + medicamento.getNombre_canonico());
 
-                // El robot recorre cada farmacia que tengamos programada
                 for (FarmaciaScraper estrategia : estrategiasFarmacias) {
                     try {
                         System.out.println("   🏢 Buscando en: " + estrategia.getNombreFarmacia());
                         
-                        // BUSCAMOS LA SUCURSAL CORRECTA EN LA BD
                         SucursalFarmacia sucursalCorrecta = sucursalRepo.findById(estrategia.getIdFuente()).orElse(null);
                         
                         if (sucursalCorrecta == null) {
                             System.out.println("      ⚠️ Error: No existe la sucursal ID " + estrategia.getIdFuente() + " en la base de datos.");
-                            continue; // Saltamos a la siguiente estrategia si no hay sucursal
+                            continue; 
                         }
 
-                        // Navegamos y extraemos
                         String url = estrategia.generarUrl(medicamento.getNombre_canonico());
                         page.navigate(url);
                         page.waitForTimeout(5000); 
@@ -59,7 +61,6 @@ public class ScraperService {
                         BigDecimal precioEncontrado = estrategia.extraerMenorPrecio(page);
 
                         if (precioEncontrado != null) {
-                            // GUARDAMOS USANDO LA SUCURSAL CORRECTA
                             PrecioVigente pv = new PrecioVigente();
                             PrecioVigenteId id = new PrecioVigenteId();
                             
@@ -91,5 +92,67 @@ public class ScraperService {
         } catch (Exception e) {
             System.err.println("❌ Error crítico en el motor: " + e.getMessage());
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // MÉTODO 2: Scraping en Vivo para el Buscador del Frontend (MODO TURBO)
+    // -------------------------------------------------------------------------
+    public List<Map<String, Object>> compararEnVivo(String terminoBusqueda) {
+        System.out.println("🚀 Arrancando Playwright (MODO TURBO) para comparar: " + terminoBusqueda);
+        
+        List<Map<String, Object>> resultados = new ArrayList<>();
+
+        try (Playwright playwright = Playwright.create()) {
+            // MODO SIGILOSO: Headless true para no abrir ventanas
+            Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
+            Page page = browser.newPage();
+
+            // 🔥 FILTRO ACELERADOR: Bloquea descarga de imágenes y basura visual
+            page.route("**/*", route -> {
+                String tipo = route.request().resourceType();
+                if ("image".equals(tipo) || "stylesheet".equals(tipo) || "font".equals(tipo) || "media".equals(tipo)) {
+                    route.abort(); 
+                } else {
+                    route.resume(); 
+                }
+            });
+
+            for (FarmaciaScraper estrategia : estrategiasFarmacias) {   
+                try {
+                    System.out.println("   🏢 Buscando en: " + estrategia.getNombreFarmacia());
+                    
+                    String url = estrategia.generarUrl(terminoBusqueda);
+                    
+                    // NAVEGACIÓN INTELIGENTE: Solo espera a que cargue el HTML base, no espera 5 segundos fijos
+                    page.navigate(url);
+                    page.waitForLoadState(com.microsoft.playwright.options.LoadState.DOMCONTENTLOADED);
+
+                    BigDecimal precioEncontrado = estrategia.extraerMenorPrecio(page);
+
+                    if (precioEncontrado != null) {
+                        System.out.println("      ✅ Encontrado a $" + precioEncontrado);
+                        
+                        Map<String, Object> dato = new HashMap<>();
+                        dato.put("farmacia", estrategia.getNombreFarmacia());
+                        dato.put("precio", precioEncontrado);
+                        dato.put("medicamento", terminoBusqueda);
+                        
+                        resultados.add(dato);
+                    } else {
+                        System.out.println("      ⚠️ No encontrado en esta farmacia.");
+                    }
+
+                } catch (Exception e) {
+                    System.err.println("      ❌ Error en la farmacia " + estrategia.getNombreFarmacia() + ": " + e.getMessage());
+                }
+            }
+            browser.close();
+            System.out.println("🏁 Búsqueda terminada. Devolviendo " + resultados.size() + " resultados al frontend.");
+            
+        } catch (Exception e) {
+            System.err.println("❌ Error crítico en Playwright: " + e.getMessage());
+        }
+
+        return resultados;
     }
 }
