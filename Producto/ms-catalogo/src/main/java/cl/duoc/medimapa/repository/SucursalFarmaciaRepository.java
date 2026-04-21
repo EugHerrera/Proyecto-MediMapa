@@ -7,8 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface SucursalRepository extends JpaRepository<SucursalFarmacia, Long> {
-    
-    // Spring Boot armará el SQL: SELECT * FROM sucursal_farmacia WHERE activo = true
+public interface SucursalFarmaciaRepository extends JpaRepository<SucursalFarmacia, Long> {
     List<SucursalFarmacia> findByActivoTrue();
 }

@@ -2,31 +2,29 @@ package cl.duoc.medimapa.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+@Data
 @Entity
 @Table(name = "medicamento")
-@Data
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Evita errores de carga perezosa
 public class Medicamento {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_medicamento")
-    private Long id_medicamento; 
+    private Long idMedicamento;
 
-    @Column(name = "nombre_canonico")
+    @Column(name = "nombre_canonico", unique = true, nullable = false, length = 400)
     private String nombreCanonico;
 
-    @Column(name = "principio_activo")
-    private String principioActivo; 
+    @Column(name = "principio_activo", length = 400)
+    private String principioActivo;
 
     @Column(name = "origen_catalogo", length = 30)
-    private String origen_catalogo; 
+    private String origenCatalogo;
+
+    @Column(name = "es_bioequivalente")
+    private Boolean esBioequivalente;
 
     @Column(nullable = false)
     private Boolean activo = true;
-
-    @Column(name = "es_bioequivalente")
-    private Boolean esBioequivalente = false; 
 }
