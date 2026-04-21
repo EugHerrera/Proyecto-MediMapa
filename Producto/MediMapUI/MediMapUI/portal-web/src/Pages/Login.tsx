@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { apiUsuarios } from '../services/api'; // <-- 1. IMPORTAMOS NUESTRO CARTERO
 import './Login.css'; 
 
 const Login = () => {
@@ -15,38 +16,40 @@ const Login = () => {
     setCargando(true);
 
     try {
-      // Llamada a tu Microservicio de Usuarios (Puerto 8085)
-      const respuesta = await fetch('http://localhost:8085/api/usuarios/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ correo, password }),
+      // 🔥 2. MAGIA DE AXIOS: URL limpia y petición directa
+      // Ya sabe que debe ir a http://localhost:8085/api gracias al .env
+      const respuesta = await apiUsuarios.post('/usuarios/login', {
+        correo: correo,
+        password: password
       });
 
-      const data = await respuesta.json();
+      // 3. Con Axios, la respuesta JSON siempre viene dentro de ".data"
+      const data = respuesta.data;
 
-      if (respuesta.ok) {
-        // 1. Guardamos el rol y el correo en el almacenamiento local
-        localStorage.setItem('usuarioRol', data.rol);
-        localStorage.setItem('usuarioCorreo', correo); // Útil para mostrar su nombre en el panel
-        
-        // 2. REDIRECCIÓN INTELIGENTE SEGÚN EL ROL
-        const rolUsuario = data.rol.toUpperCase(); // Lo pasamos a mayúsculas por seguridad
+      console.log("¡Respuesta de Java completa!:", data);
+      console.log("¿Me dio un pasaporte JWT?:", data.token);
 
-        if (rolUsuario === 'ADMIN' || rolUsuario === 'FARMACEUTICO') {
-          // Si es dueño o farmacéutico, lo mandamos a su área de trabajo
-          navigate('/admin'); 
-        } else {
-          // Si tienes roles de usuarios normales (clientes), los dejas en el Home
-          navigate('/'); 
-        }
-        
+      // Guardamos el rol, el correo y EL TOKEN
+      localStorage.setItem('usuarioRol', data.rol);
+      localStorage.setItem('usuarioCorreo', correo); 
+      localStorage.setItem('token', data.token); 
+      
+      // Redirección inteligente
+      const rolUsuario = data.rol.toUpperCase(); 
+
+      if (rolUsuario === 'ADMIN' || rolUsuario === 'FARMACEUTICO') {
+        navigate('/admin'); 
       } else {
-        setError(data.error || 'Correo o contraseña incorrectos');
+        navigate('/'); 
       }
-    } catch (err) {
-      setError('❌ No se pudo conectar con el servidor (Puerto 8085).');
+        
+    } catch (err: any) {
+      // 4. Axios maneja los errores automáticamente. Si Java manda un 401 (No Autorizado), cae aquí.
+      if (err.response && err.response.data && err.response.data.error) {
+        setError(err.response.data.error); // Mensaje específico de tu backend
+      } else {
+        setError('❌ No se pudo conectar con el servidor.');
+      }
     } finally {
       setCargando(false);
     }
