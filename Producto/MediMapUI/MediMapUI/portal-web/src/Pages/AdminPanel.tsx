@@ -1,24 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { apiUsuarios } from '../services/api'; // Importamos tu cartero de Axios
 import './AdminPanel.css';
 
 const AdminPanel = () => {
   const navigate = useNavigate();
-  // Leemos quién entró desde el Local Storage
   const [rolUsuario, setRolUsuario] = useState('');
+  const [cargando, setCargando] = useState(false);
   
   useEffect(() => {
     const rolGuardado = localStorage.getItem('usuarioRol');
     if (!rolGuardado) {
-      navigate('/login'); // Si alguien intenta entrar sin hacer login, lo echamos
+      navigate('/login'); 
     } else {
       setRolUsuario(rolGuardado.toUpperCase());
     }
   }, [navigate]);
 
-  // --- ESTADOS Y FUNCIONES DEL FARMACÉUTICO ---
+  const manejarCerrarSesion = () => {
+    localStorage.clear();
+    navigate('/login');
+  };
+
+  // --- LÓGICA DE APROBACIÓN (ADMIN) ---
+  const manejarAprobacion = async (id: number) => {
+    try {
+      const resp = await apiUsuarios.patch(`/usuarios/aprobar/${id}`);
+      alert(resp.data);
+    } catch (err) {
+      alert("Error: No tienes permisos o el servidor no responde.");
+    }
+  };
+
+  // --- LÓGICA DE SUBIDA (FARMACÉUTICO) ---
   const [archivo, setArchivo] = useState<File | null>(null);
-  const [inventario, setInventario] = useState([
+  const [inventario] = useState([
     { id: 1, nombre: 'Paracetamol 500mg', stock: 45, precio: 1200 },
   ]);
 
@@ -26,7 +42,34 @@ const AdminPanel = () => {
     if (e.target.files && e.target.files.length > 0) setArchivo(e.target.files[0]);
   };
 
-  // --- VISTA 1: EL SÚPER ADMINISTRADOR (TÚ) ---
+  const subirArchivoInventario = async () => {
+    if (!archivo) return;
+    setCargando(true);
+    
+    const formData = new FormData();
+    formData.append('archivo', archivo);
+
+    // 1. Sacamos el pasaporte (Token) de la memoria del navegador
+    const token = localStorage.getItem('token'); 
+
+    try {
+      // 2. Se lo enviamos explícitamente en los headers (cabeceras)
+      await apiUsuarios.post('/usuarios/inventario/subir', formData, {
+        headers: { 
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}` // <-- ¡Aquí está la magia!
+        }
+      });
+      alert("✅ Inventario cargado con éxito en la Base de Datos.");
+      setArchivo(null);
+    } catch (err) {
+      console.error(err);
+      alert("❌ Error 403: El token no es válido o expiró. Intenta cerrar sesión y volver a entrar.");
+    } finally {
+      setCargando(false);
+    }
+  };
+
   const renderVistaAdmin = () => (
     <div className="admin-dashboard-grid">
       <div className="admin-card">
@@ -45,7 +88,6 @@ const AdminPanel = () => {
 
       <div className="admin-card">
         <h2>📋 Solicitudes de Farmacias Independientes</h2>
-        <p style={{ color: '#64748b' }}>Tienes 1 nueva solicitud pendiente de aprobación.</p>
         <table className="admin-table">
             <thead>
                 <tr><th>Farmacia</th><th>Dirección</th><th>Acción</th></tr>
@@ -55,7 +97,12 @@ const AdminPanel = () => {
                     <td>Farmacia La Florida Centro</td>
                     <td>Av. Vicuña Mackenna 7000</td>
                     <td>
-                        <button style={{ backgroundColor: '#0ea5e9', color: 'white', padding: '5px 10px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Revisar</button>
+                        <button 
+                          onClick={() => manejarAprobacion(1)} 
+                          style={{ backgroundColor: '#0ea5e9', color: 'white', padding: '5px 10px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                        >
+                          Aprobar
+                        </button>
                     </td>
                 </tr>
             </tbody>
@@ -64,7 +111,6 @@ const AdminPanel = () => {
     </div>
   );
 
-  // --- VISTA 2: EL FARMACÉUTICO ---
   const renderVistaFarmaceutico = () => (
     <>
       <div className="admin-card">
@@ -74,7 +120,13 @@ const AdminPanel = () => {
           <div className="dropzone-text">{archivo ? `Archivo: ${archivo.name}` : 'Sube tu Excel/CSV aquí'}</div>
           <input type="file" accept=".csv, .xlsx" onChange={manejarSeleccionArchivo} />
         </div>
-        <button className="btn-upload" disabled={!archivo}>Procesar y Actualizar Precios</button>
+        <button 
+          className="btn-upload" 
+          onClick={subirArchivoInventario} 
+          disabled={!archivo || cargando}
+        >
+          {cargando ? 'Procesando...' : 'Procesar y Actualizar Precios'}
+        </button>
       </div>
 
       <div className="admin-card">
@@ -97,22 +149,24 @@ const AdminPanel = () => {
     </>
   );
 
-  // --- RENDERIZADO PRINCIPAL ---
   return (
     <div className="admin-container">
-      <Link to="/" style={{ color: '#0ea5e9', textDecoration: 'none', fontWeight: 'bold', marginBottom: '20px', display: 'inline-block' }}>
-        ⬅ Volver al portal
-      </Link>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <Link to="/" style={{ color: '#0ea5e9', textDecoration: 'none', fontWeight: 'bold' }}>
+          ⬅ Volver al portal
+        </Link>
+        <button onClick={manejarCerrarSesion} className="btn-cerrar-sesion" style={{ backgroundColor: '#ef4444', color: 'white', padding: '8px 16px', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
+          🚪 Cerrar Sesión
+        </button>
+      </div>
 
       <div className="admin-header">
         <h1>{rolUsuario === 'ADMIN' ? 'Centro de Comando Súper Admin' : 'Panel de Gestión Farmacéutica'}</h1>
         <p>{rolUsuario === 'ADMIN' ? 'Monitoreo de sistema y aprobación de locales' : 'Actualiza tus precios y stock para La Florida'}</p>
       </div>
 
-      {/* AQUÍ DECIDIMOS QUÉ MOSTRAR SEGÚN EL ROL */}
       {rolUsuario === 'ADMIN' && renderVistaAdmin()}
       {rolUsuario === 'FARMACEUTICO' && renderVistaFarmaceutico()}
-
     </div>
   );
 };

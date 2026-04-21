@@ -19,7 +19,8 @@ function Resultados() {
     setCargando(true);
     setError("");
 
-    fetch(`http://localhost:8080/api/scraper/buscar?query=${encodeURIComponent(query)}`)
+    // 🔥 AHORA APUNTAMOS AL MICROSERVICIO DONDE SE GUARDÓ EL EXCEL (8085)
+    fetch(`http://localhost:8085/api/buscador/medicamentos?q=${encodeURIComponent(query)}`)
       .then(response => {
         if (!response.ok) {
           throw new Error("No se encontraron resultados para ese medicamento o principio activo.");
@@ -44,14 +45,14 @@ function Resultados() {
       });
   }, [query]);
 
-  // 🕵️‍♂️ LÓGICA DETECTIVE
+  // 🕵️‍♂️ LÓGICA DETECTIVE AJUSTADA A LA NUEVA DATA
   const farmaciasOficiales = ["Ahumada", "Salcobrand", "Dr. Simi"];
-  const farmaciasConStock = precios.map(p => (p.farmacia || "").toLowerCase());
+  const farmaciasConStock = precios.map(p => (p.sucursal || "").toLowerCase());
   const farmaciasSinStock = farmaciasOficiales.filter(oficial => 
     !farmaciasConStock.some(encontrada => encontrada.includes(oficial.toLowerCase()))
   );
 
-  // 📅 GENERADOR DE FECHA ACTUAL (Formato Chile: DD-MM-YYYY)
+  // 📅 GENERADOR DE FECHA ACTUAL
   const fechaHoy = new Date().toLocaleDateString('es-CL', {
     day: '2-digit',
     month: '2-digit',
@@ -66,20 +67,7 @@ function Resultados() {
       
       <h1 style={{ marginTop: '1.5rem', color: '#0f172a' }}>🏥 Resultados para: "{query}"</h1>
       
-      {/* 🕒 AVISO DE ACTUALIZACIÓN DE 24 HORAS */}
-      <div style={{ 
-        backgroundColor: '#e0f2fe', 
-        color: '#0369a1', 
-        padding: '10px 15px', 
-        borderRadius: '8px', 
-        fontSize: '0.85rem', 
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '8px',
-        fontWeight: '500',
-        marginBottom: '20px',
-        marginTop: '10px'
-      }}>
+      <div style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '10px 15px', borderRadius: '8px', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: '500', marginBottom: '20px', marginTop: '10px' }}>
         <span>🕒</span> <strong>Transparencia:</strong> Los precios y el stock de las farmacias se sincronizan automáticamente cada 24 horas.
       </div>
 
@@ -102,28 +90,15 @@ function Resultados() {
           <h3 style={{ color: '#1e293b', marginBottom: '1.5rem' }}>✅ {precios.length} opciones disponibles con stock:</h3>
           
           <div style={{ display: 'grid', gap: '1rem' }}>
-            {/* TARJETAS VERDES - FARMACIAS CON STOCK */}
             {precios.map((item, index) => (
-              <div key={index} style={{ 
-                border: '1px solid #bbf7d0', 
-                padding: '1.5rem', 
-                borderRadius: '16px', 
-                backgroundColor: '#f0fdf4', 
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}>
+              <div key={index} style={{ border: '1px solid #bbf7d0', padding: '1.5rem', borderRadius: '16px', backgroundColor: '#f0fdf4', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <h4 style={{ margin: '0 0 0.5rem 0', color: '#166534', fontSize: '1.25rem', textTransform: 'capitalize' }}>💊 {item.medicamento}</h4>
-                  <p style={{ margin: '0.2rem 0', color: '#15803d' }}><strong>🏪 {item.farmacia}</strong></p>
-                  
-                  {/* 🔥 AQUÍ ESTÁ LA MAGIA DE LA FECHA 🔥 */}
+                  <p style={{ margin: '0.2rem 0', color: '#15803d' }}><strong>🏪 {item.sucursal}</strong></p>
                   <p style={{ margin: '0.2rem 0', color: '#16a34a', fontSize: '0.85rem' }}>
                     ✓ Stock confirmado hoy: <strong>{fechaHoy}</strong>
                   </p>
-
                 </div>
-
                 <div style={{ textAlign: 'right' }}>
                   <p style={{ margin: 0, color: '#166534', fontSize: '1.8rem', fontWeight: '800' }}>
                     ${item.precio?.toLocaleString('es-CL')}
@@ -133,21 +108,11 @@ function Resultados() {
               </div>
             ))}
 
-            {/* TARJETAS GRISES - FARMACIAS SIN STOCK */}
             {farmaciasSinStock.length > 0 && (
               <>
                 <h4 style={{ color: '#64748b', marginTop: '1.5rem', marginBottom: '0.5rem' }}>❌ Sin resultados en esta zona:</h4>
                 {farmaciasSinStock.map((farmaciaGris, index) => (
-                  <div key={`gris-${index}`} style={{ 
-                    border: '1px dashed #cbd5e1', 
-                    padding: '1.2rem 1.5rem', 
-                    borderRadius: '16px', 
-                    backgroundColor: '#f8fafc', 
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    opacity: 0.8
-                  }}>
+                  <div key={`gris-${index}`} style={{ border: '1px dashed #cbd5e1', padding: '1.2rem 1.5rem', borderRadius: '16px', backgroundColor: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: 0.8 }}>
                     <div>
                       <p style={{ margin: '0', color: '#64748b', fontSize: '1rem' }}><strong>🏪 Farmacias {farmaciaGris}</strong></p>
                       <p style={{ margin: '0.2rem 0 0 0', color: '#94a3b8', fontSize: '0.85rem' }}>No se encontró stock o formato equivalente en catálogo.</p>
