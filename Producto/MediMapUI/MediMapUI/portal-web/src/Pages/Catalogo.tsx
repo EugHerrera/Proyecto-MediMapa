@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Catalogo.css';
 
 // 1. ESPEJO DEL DTO DE JAVA
@@ -11,10 +12,11 @@ interface MedicamentoResponseDTO {
 }
 
 const Catalogo: React.FC = () => {
+  const navigate = useNavigate();
   const [categoriaActiva, setCategoriaActiva] = useState('Todas');
   const [busqueda, setBusqueda] = useState('');
   
-  // NUEVO: Estado para el filtro del menú desplegable
+  // Estado para el filtro del menú desplegable
   const [filtroTipo, setFiltroTipo] = useState('Todos los disponibles'); 
 
   const [medicamentos, setMedicamentos] = useState<MedicamentoResponseDTO[]>([]);
@@ -83,20 +85,18 @@ const Catalogo: React.FC = () => {
     setBusqueda(''); 
   };
 
-  // NUEVO: Lógica de filtrado en memoria (Frontend)
+  // Lógica de filtrado en memoria (Frontend)
   const medicamentosFiltrados = medicamentos.filter((med) => {
     if (filtroTipo === 'Solo Bioequivalentes (ISP)') {
       return med.esBioequivalente === true;
     }
     if (filtroTipo === 'Medicamentos Genéricos') {
-      // Es genérico si el nombre comercial es igual al principio activo
       return med.nombreCanonico?.toLowerCase() === med.principioActivo?.toLowerCase();
     }
     if (filtroTipo === 'Medicamentos de Marca') {
-      // Es de marca si el nombre comercial es diferente al principio activo
       return med.nombreCanonico?.toLowerCase() !== med.principioActivo?.toLowerCase();
     }
-    return true; // 'Todos los disponibles'
+    return true; 
   });
 
   return (
@@ -198,7 +198,13 @@ const Catalogo: React.FC = () => {
             <tbody>
               {/* ITERAMOS SOBRE EL ARREGLO FILTRADO */}
               {medicamentosFiltrados.map((med) => (
-                <tr key={med.idMedicamento}>
+                <tr 
+                  key={med.idMedicamento}
+                  onClick={() => navigate(`/resultados?q=${encodeURIComponent(med.nombreCanonico)}`)}
+                  style={{ cursor: 'pointer', transition: 'background 0.2s' }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0fdf4'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
                   <td><strong>{med.principioActivo || med.nombreCanonico}</strong></td>
                   <td>{med.nombreCanonico}</td>
                   <td>{med.categoria || 'Sin clasificar'}</td>
