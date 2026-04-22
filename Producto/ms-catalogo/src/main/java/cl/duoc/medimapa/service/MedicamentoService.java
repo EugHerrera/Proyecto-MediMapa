@@ -15,16 +15,16 @@ public class MedicamentoService {
     @Autowired
     private MedicamentoRepository repo;
 
-    public List<MedicamentoResponseDTO> buscarMedicamentos(String query) {
-        return repo.buscarPorNombre(query).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public List<MedicamentoResponseDTO> obtenerTodo() {
+        return repo.findByActivoTrue().stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
-    public List<MedicamentoResponseDTO> obtenerBioequivalentes(String principio) {
-        return repo.findByPrincipioActivoAndEsBioequivalenteTrue(principio).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public List<MedicamentoResponseDTO> filtrarPorCategoria(String categoria) {
+        return repo.findByCategoriaAndActivoTrue(categoria).stream().map(this::convertToDTO).collect(Collectors.toList());
+    }
+
+    public List<MedicamentoResponseDTO> buscar(String query) {
+        return repo.buscadorGeneral(query).stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
     private MedicamentoResponseDTO convertToDTO(Medicamento med) {
@@ -32,6 +32,7 @@ public class MedicamentoService {
         dto.setIdMedicamento(med.getIdMedicamento());
         dto.setNombreCanonico(med.getNombreCanonico());
         dto.setPrincipioActivo(med.getPrincipioActivo());
+        dto.setCategoria(med.getCategoria());
         dto.setEsBioequivalente(med.getEsBioequivalente());
         return dto;
     }

@@ -1,9 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Catalogo.css';
+
+// 1. ESPEJO DEL DTO DE JAVA
+interface MedicamentoResponseDTO {
+  idMedicamento: number;
+  nombreCanonico: string;
+  principioActivo: string;
+  categoria: string | null;
+  esBioequivalente: boolean;
+}
 
 const Catalogo: React.FC = () => {
   const [categoriaActiva, setCategoriaActiva] = useState('Todas');
   const [busqueda, setBusqueda] = useState('');
+  
+  // NUEVO: Estado para el filtro del menú desplegable
+  const [filtroTipo, setFiltroTipo] = useState('Todos los disponibles'); 
+
+  const [medicamentos, setMedicamentos] = useState<MedicamentoResponseDTO[]>([]);
+  const [cargando, setCargando] = useState(false);
 
   // Categorías basadas en la imagen de referencia
   const categorias = [
@@ -27,9 +42,62 @@ const Catalogo: React.FC = () => {
     'Urológico y próstata'
   ];
 
+  // Llamada a tu backend en Spring Boot (Puerto 8081)
+  useEffect(() => {
+    const fetchMedicamentos = async () => {
+      setCargando(true);
+      try {
+        let url = 'http://localhost:8081/api/medicamentos';
+
+        if (busqueda.trim() !== '') {
+          url = `http://localhost:8081/api/medicamentos/buscar?q=${busqueda}`;
+        } 
+        else if (categoriaActiva !== 'Todas') {
+          url = `http://localhost:8081/api/medicamentos/categoria?nombre=${categoriaActiva}`;
+        }
+
+        const respuesta = await fetch(url);
+        if (respuesta.ok) {
+          const data = await respuesta.json();
+          setMedicamentos(data);
+        } else {
+          console.error("Error al obtener datos del servidor");
+        }
+      } catch (error) {
+        console.error("Error de conexión:", error);
+      } finally {
+        setCargando(false);
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      fetchMedicamentos();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+
+  }, [busqueda, categoriaActiva]); 
+
   const handleCategoriaClick = (cat: string) => {
     setCategoriaActiva(cat === 'Seleccionar todo' ? 'Todas' : cat);
+    setBusqueda(''); 
   };
+
+  // NUEVO: Lógica de filtrado en memoria (Frontend)
+  const medicamentosFiltrados = medicamentos.filter((med) => {
+    if (filtroTipo === 'Solo Bioequivalentes (ISP)') {
+      return med.esBioequivalente === true;
+    }
+    if (filtroTipo === 'Medicamentos Genéricos') {
+      // Es genérico si el nombre comercial es igual al principio activo
+      return med.nombreCanonico?.toLowerCase() === med.principioActivo?.toLowerCase();
+    }
+    if (filtroTipo === 'Medicamentos de Marca') {
+      // Es de marca si el nombre comercial es diferente al principio activo
+      return med.nombreCanonico?.toLowerCase() !== med.principioActivo?.toLowerCase();
+    }
+    return true; // 'Todos los disponibles'
+  });
 
   return (
     <div className="catalogo-container">
@@ -92,9 +160,13 @@ const Catalogo: React.FC = () => {
           </div>
         </div>
 
+        {/* MENÚ DESPLEGABLE CONECTADO AL ESTADO */}
         <div className="select-box">
           <label>Listado de medicamentos</label>
-          <select>
+          <select 
+            value={filtroTipo} 
+            onChange={(e) => setFiltroTipo(e.target.value)}
+          >
             <option>Todos los disponibles</option>
             <option>Solo Bioequivalentes (ISP)</option>
             <option>Medicamentos Genéricos</option>
@@ -103,38 +175,45 @@ const Catalogo: React.FC = () => {
         </div>
       </div>
 
-      {/* TABLA DE RESULTADOS (SIMULADA) */}
+      {/* TABLA DE RESULTADOS DINÁMICA */}
       <div className="catalogo-resultados">
-        <table className="tabla-catalogo">
-          <thead>
-            <tr>
-              <th>Principio Activo</th>
-              <th>Nombre Comercial (Ejemplo)</th>
-              <th>Categoría</th>
-              <th>Bioequivalente</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>Paracetamol 500mg</strong></td>
-              <td>Tapsin / Kitadol</td>
-              <td>Analgésicos y antiinflamatorios</td>
-              <td><span className="badge bio">Sí (ISP)</span></td>
-            </tr>
-            <tr>
-              <td><strong>Levotiroxina 100mcg</strong></td>
-              <td>Eutirox</td>
-              <td>Hormonas y endocrino</td>
-              <td><span className="badge bio">Sí (ISP)</span></td>
-            </tr>
-            <tr>
-              <td><strong>Amoxicilina 500mg</strong></td>
-              <td>Amoval</td>
-              <td>Antibióticos y antibacterianos</td>
-              <td><span className="badge bio">Sí (ISP)</span></td>
-            </tr>
-          </tbody>
-        </table>
+        {cargando ? (
+           <div style={{ padding: '20px', textAlign: 'center', color: '#059669', fontWeight: 'bold' }}>
+             Cargando catálogo...
+           </div>
+        ) : medicamentosFiltrados.length === 0 ? (
+           <div style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>
+             No se encontraron medicamentos para esta búsqueda o filtro.
+           </div>
+        ) : (
+          <table className="tabla-catalogo">
+            <thead>
+              <tr>
+                <th>Principio Activo</th>
+                <th>Nombre Comercial (Ejemplo)</th>
+                <th>Categoría</th>
+                <th>Bioequivalente</th>
+              </tr>
+            </thead>
+            <tbody>
+              {/* ITERAMOS SOBRE EL ARREGLO FILTRADO */}
+              {medicamentosFiltrados.map((med) => (
+                <tr key={med.idMedicamento}>
+                  <td><strong>{med.principioActivo || med.nombreCanonico}</strong></td>
+                  <td>{med.nombreCanonico}</td>
+                  <td>{med.categoria || 'Sin clasificar'}</td>
+                  <td>
+                    {med.esBioequivalente ? (
+                      <span className="badge bio">Sí (ISP)</span>
+                    ) : (
+                      <span style={{color: '#94a3b8', fontSize: '0.85rem'}}>-</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
     </div>
