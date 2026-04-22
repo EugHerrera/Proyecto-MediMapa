@@ -8,4 +8,5 @@ public interface FarmaciaScraper {
     String getNombreFarmacia(); // Para que los logs se vean bonitos
     String generarUrl(String nombreMedicamento); // Cada página tiene su propia forma de buscar
     BigDecimal extraerMenorPrecio(Page page); // El Modo Dios específico de cada HTML
+    boolean esBioequivalente(Page page);
 }

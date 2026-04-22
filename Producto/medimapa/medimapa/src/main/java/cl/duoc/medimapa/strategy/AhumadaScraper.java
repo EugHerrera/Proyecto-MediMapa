@@ -1,56 +1,55 @@
-    package cl.duoc.medimapa.strategy;
+package cl.duoc.medimapa.strategy;
 
-    import com.microsoft.playwright.Locator;
-    import com.microsoft.playwright.Page;
-    import org.springframework.stereotype.Component;
+import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Page;
+import org.springframework.stereotype.Component;
+import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
-    import java.math.BigDecimal;
-    import java.net.URLEncoder;
-    import java.nio.charset.StandardCharsets;
-    import java.util.List;
+@Component
+public class AhumadaScraper implements FarmaciaScraper {
+    @Override public Long getIdFuente() { return 1L; }
+    @Override public String getNombreFarmacia() { return "Farmacias Ahumada"; }
 
-    @Component
-    public class AhumadaScraper implements FarmaciaScraper {
+    @Override
+    public String generarUrl(String nombreMedicamento) {
+        try {
+            return "https://www.farmaciasahumada.cl/search?q=" + URLEncoder.encode(nombreMedicamento, StandardCharsets.UTF_8);
+        } catch (Exception e) { return ""; }
+    }
 
-        @Override
-        public Long getIdFuente() {
-            return 1L; // Asumiendo que Ahumada es el ID 1 en tu BD
-        }
-
-        @Override
-        public String getNombreFarmacia() {
-            return "Farmacias Ahumada";
-        }
-
-        @Override
-        public String generarUrl(String nombreMedicamento) {
-            try {
-                String busquedaEncoded = URLEncoder.encode(nombreMedicamento, StandardCharsets.UTF_8);
-                return "https://www.farmaciasahumada.cl/search?q=" + busquedaEncoded;
-            } catch (Exception e) {
-                return "";
-            }
-        }
-
-        @Override
-        public BigDecimal extraerMenorPrecio(Page page) {
-            Locator precios = page.locator(".price, .price-wrapper").filter(new Locator.FilterOptions().setHasText("$"));
-            
-            if (precios.count() > 0) {
-                List<String> textos = precios.allInnerTexts();
-                BigDecimal minPrecio = null;
-
-                for (String t : textos) {
-                    String limpio = t.split("\n")[0].replaceAll("[^\\d]", "");
-                    if (!limpio.isEmpty()) {
+    @Override
+    public BigDecimal extraerMenorPrecio(Page page) {
+        try { page.waitForLoadState(com.microsoft.playwright.options.LoadState.NETWORKIDLE, new Page.WaitForLoadStateOptions().setTimeout(8000)); } catch (Exception e) { page.waitForTimeout(3000); }
+        Locator precios = page.locator(".price, .price-wrapper").filter(new Locator.FilterOptions().setHasText("$"));
+        if (precios.count() > 0) {
+            List<String> textos = precios.allInnerTexts();
+            BigDecimal minPrecio = null;
+            for (String t : textos) {
+                String limpio = t.split("\n")[0].replaceAll("[^\\d]", "");
+                if (!limpio.isEmpty()) {
+                    try {
                         BigDecimal actual = new BigDecimal(limpio);
                         if (actual.compareTo(new BigDecimal(100)) > 0) {
                             if (minPrecio == null || actual.compareTo(minPrecio) < 0) minPrecio = actual;
                         }
-                    }
+                    } catch (Exception e) {}
                 }
-                return minPrecio;
             }
-            return null; // Si no encuentra nada, devuelve nulo
+            return minPrecio;
+        }
+        return null; 
+    }
+
+    // 🔥 EL NUEVO RADAR BIOEQUIVALENTE
+    @Override
+    public boolean esBioequivalente(Page page) {
+        try {
+            return page.locator("img[src*='bioequivalente' i], img[alt*='bioequivalente' i], [class*='bioequivalente' i]").count() > 0;
+        } catch (Exception e) {
+            return false;
         }
     }
+}
