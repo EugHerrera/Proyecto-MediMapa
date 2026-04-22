@@ -19,6 +19,9 @@ public class Medicamento {
     @Column(name = "principio_activo", length = 400)
     private String principioActivo;
 
+    @Column(name = "categoria", length = 100)
+    private String categoria;
+
     @Column(name = "origen_catalogo", length = 30)
     private String origenCatalogo;
 

@@ -1,9 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Catalogo.css';
+
+// 1. ESPEJO DEL DTO DE JAVA
+interface MedicamentoResponseDTO {
+  idMedicamento: number;
+  nombreCanonico: string;
+  principioActivo: string;
+  categoria: string | null;
+  esBioequivalente: boolean;
+}
 
 const Catalogo: React.FC = () => {
   const [categoriaActiva, setCategoriaActiva] = useState('Todas');
   const [busqueda, setBusqueda] = useState('');
+  
+  // 2. NUEVOS ESTADOS PARA LOS DATOS REALES
+  const [medicamentos, setMedicamentos] = useState<MedicamentoResponseDTO[]>([]);
+  const [cargando, setCargando] = useState(false);
 
   // Categorías basadas en la imagen de referencia
   const categorias = [
@@ -27,8 +40,48 @@ const Catalogo: React.FC = () => {
     'Urológico y próstata'
   ];
 
+  // 3. EL CEREBRO: Llamada a tu backend en Spring Boot (Puerto 8081)
+  useEffect(() => {
+    const fetchMedicamentos = async () => {
+      setCargando(true);
+      try {
+        let url = 'http://localhost:8081/api/medicamentos'; // Endpoint base (listar todos)
+
+        // Si hay texto en la búsqueda, usamos el endpoint de buscar (ignora la categoría)
+        if (busqueda.trim() !== '') {
+          url = `http://localhost:8081/api/medicamentos/buscar?q=${busqueda}`;
+        } 
+        // Si no hay texto, pero se seleccionó una categoría específica
+        else if (categoriaActiva !== 'Todas') {
+          url = `http://localhost:8081/api/medicamentos/categoria?nombre=${categoriaActiva}`;
+        }
+
+        const respuesta = await fetch(url);
+        if (respuesta.ok) {
+          const data = await respuesta.json();
+          setMedicamentos(data);
+        } else {
+          console.error("Error al obtener datos del servidor");
+        }
+      } catch (error) {
+        console.error("Error de conexión:", error);
+      } finally {
+        setCargando(false);
+      }
+    };
+
+    // Usamos un pequeño 'debounce' (retraso) automático al escribir para no saturar el backend
+    const timeoutId = setTimeout(() => {
+      fetchMedicamentos();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+
+  }, [busqueda, categoriaActiva]); // Se ejecuta cada vez que estos dos cambian
+
   const handleCategoriaClick = (cat: string) => {
     setCategoriaActiva(cat === 'Seleccionar todo' ? 'Todas' : cat);
+    setBusqueda(''); // Limpia la búsqueda por texto si hace clic en un botón
   };
 
   return (
@@ -103,38 +156,45 @@ const Catalogo: React.FC = () => {
         </div>
       </div>
 
-      {/* TABLA DE RESULTADOS (SIMULADA) */}
+      {/* TABLA DE RESULTADOS DINÁMICA */}
       <div className="catalogo-resultados">
-        <table className="tabla-catalogo">
-          <thead>
-            <tr>
-              <th>Principio Activo</th>
-              <th>Nombre Comercial (Ejemplo)</th>
-              <th>Categoría</th>
-              <th>Bioequivalente</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>Paracetamol 500mg</strong></td>
-              <td>Tapsin / Kitadol</td>
-              <td>Analgésicos y antiinflamatorios</td>
-              <td><span className="badge bio">Sí (ISP)</span></td>
-            </tr>
-            <tr>
-              <td><strong>Levotiroxina 100mcg</strong></td>
-              <td>Eutirox</td>
-              <td>Hormonas y endocrino</td>
-              <td><span className="badge bio">Sí (ISP)</span></td>
-            </tr>
-            <tr>
-              <td><strong>Amoxicilina 500mg</strong></td>
-              <td>Amoval</td>
-              <td>Antibióticos y antibacterianos</td>
-              <td><span className="badge bio">Sí (ISP)</span></td>
-            </tr>
-          </tbody>
-        </table>
+        {cargando ? (
+           <div style={{ padding: '20px', textAlign: 'center', color: '#059669', fontWeight: 'bold' }}>
+             Cargando catálogo...
+           </div>
+        ) : medicamentos.length === 0 ? (
+           <div style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>
+             No se encontraron medicamentos para esta búsqueda o categoría.
+           </div>
+        ) : (
+          <table className="tabla-catalogo">
+            <thead>
+              <tr>
+                <th>Principio Activo</th>
+                <th>Nombre Comercial (Ejemplo)</th>
+                <th>Categoría</th>
+                <th>Bioequivalente</th>
+              </tr>
+            </thead>
+            <tbody>
+              {/* 4. RENDERIZADO DEL MAP (Iteramos sobre los datos del backend) */}
+              {medicamentos.map((med) => (
+                <tr key={med.idMedicamento}>
+                  <td><strong>{med.principioActivo || med.nombreCanonico}</strong></td>
+                  <td>{med.nombreCanonico}</td>
+                  <td>{med.categoria || 'Sin clasificar'}</td>
+                  <td>
+                    {med.esBioequivalente ? (
+                      <span className="badge bio">Sí (ISP)</span>
+                    ) : (
+                      <span style={{color: '#94a3b8', fontSize: '0.85rem'}}>-</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
     </div>

@@ -7,5 +7,9 @@ public class MedicamentoResponseDTO {
     private Long idMedicamento;
     private String nombreCanonico;
     private String principioActivo;
-    private Boolean esBioequivalente; 
+    
+    // ---> ESTE ES EL CAMPO QUE EXIGE TU SERVICIO <---
+    private String categoria; 
+    
+    private Boolean esBioequivalente;
 }

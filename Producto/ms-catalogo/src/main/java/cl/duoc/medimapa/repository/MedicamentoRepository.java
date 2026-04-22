@@ -11,8 +11,12 @@ import java.util.List;
 @Repository
 public interface MedicamentoRepository extends JpaRepository<Medicamento, Long> {
 
-    @Query("SELECT m FROM Medicamento m WHERE LOWER(m.nombreCanonico) LIKE LOWER(CONCAT('%', :query, '%'))")
-    List<Medicamento> buscarPorNombre(@Param("query") String query);
+    List<Medicamento> findByActivoTrue();
 
-    List<Medicamento> findByPrincipioActivoAndEsBioequivalenteTrue(String principioActivo);
+    List<Medicamento> findByCategoriaAndActivoTrue(String categoria);
+
+    @Query("SELECT m FROM Medicamento m WHERE m.activo = true AND " +
+           "(LOWER(m.nombreCanonico) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
+           "LOWER(m.principioActivo) LIKE LOWER(CONCAT('%', :q, '%')))")
+    List<Medicamento> buscadorGeneral(@Param("q") String q);
 }
