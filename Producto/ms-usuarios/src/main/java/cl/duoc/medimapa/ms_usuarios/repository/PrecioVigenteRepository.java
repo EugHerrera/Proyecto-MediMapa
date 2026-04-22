@@ -12,7 +12,11 @@ import java.util.List;
 @Repository
 public interface PrecioVigenteRepository extends JpaRepository<PrecioVigente, PrecioVigenteId> {
     
-    // 🔥 MAGIA SQL: Busca sin importar si escriben en mayúsculas o minúsculas
+    // 🔥 MANTENIDO INTACTO: Tu buscador de palabras
     @Query("SELECT p FROM PrecioVigente p WHERE LOWER(p.id.texto_busqueda) LIKE LOWER(CONCAT('%', :texto, '%'))")
     List<PrecioVigente> buscarPorTexto(@Param("texto") String texto);
+    
+    // 🔥 ARREGLADO: Ahora es una consulta nativa a prueba de balas
+    @Query(value = "SELECT * FROM precio_vigente WHERE id_sucursal = :idSucursal", nativeQuery = true)
+    List<PrecioVigente> buscarPorSucursal(@Param("idSucursal") Long idSucursal);
 }

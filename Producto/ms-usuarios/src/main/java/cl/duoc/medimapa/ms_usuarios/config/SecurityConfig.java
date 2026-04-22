@@ -42,11 +42,12 @@ public class SecurityConfig {
                 // 2. 🔥 PERMITIMOS LAS PETICIONES PREFLIGHT DEL NAVEGADOR
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() 
                 
-                // 🔥 NUEVO: Dejamos que cualquier persona pueda usar el buscador público
+                // 🔥 Dejamos que cualquier persona pueda usar el buscador público
                 .requestMatchers("/api/buscador/**").permitAll()
 
-                // Tus reglas de siempre
-                .requestMatchers("/api/usuarios/login", "/api/usuarios/registro").permitAll()
+                // 🔥 NUEVO: Reglas VIP de Usuarios (Login, Registro y NUEVA Solicitud)
+                .requestMatchers("/api/usuarios/login", "/api/usuarios/registro", "/api/usuarios/solicitud-inscripcion").permitAll()
+                
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

@@ -36,7 +36,7 @@ const RedFarmacias: React.FC = () => {
             <img src={logoSalcobrand} alt="Salcobrand" />
           </a>
 
-          {/* Módulo de Inclusión B2B: Farmacias Independientes */}
+          {/* 🔥 ESTE BOTÓN AHORA CONECTA CON TU NUEVO FORMULARIO */}
           <Link to="/registro-farmacia" className="logo-card independiente-card link-card">
             <span className="independiente-icon">🏪</span>
             <span>Farmacias Independientes</span>
