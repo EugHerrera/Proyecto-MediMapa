@@ -1,6 +1,6 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { apiUsuarios } from '../services/api'; // 🔥 Importamos la conexión al backend
 import './RegistroFarmacia.css';
 
 const RegistroFarmacia = () => {
@@ -8,9 +8,9 @@ const RegistroFarmacia = () => {
   const [aceptoTerminos, setAceptoTerminos] = useState(false);
   const [cargando, setCargando] = useState(false);
 
-  // Estados para capturar los datos de la imagen
+  // 🔥 AGREGAMOS razonSocial y resolucionSeremi al estado
   const [datosEstablecimiento, setDatosEstablecimiento] = useState({
-    nombre: '', rut: '', region: '', comuna: '', direccion: '', tamano: '', inicioActividades: '', resolucion: ''
+    nombre: '', razonSocial: '', rut: '', resolucionSeremi: '', region: '', comuna: '', direccion: ''
   });
 
   const [datosRepresentante, setDatosRepresentante] = useState({
@@ -27,16 +27,36 @@ const RegistroFarmacia = () => {
 
     setCargando(true);
     try {
-      // Aquí conectarás con tu microservicio 8085 o el Gateway 8080
-      console.log("Enviando datos:", { datosEstablecimiento, datosRepresentante, datosQuimico });
+      // 🔥 Armamos el paquete de datos EXACTAMENTE como lo espera el Modelo de Java
+      const payload = {
+        nombre_fantasia: datosEstablecimiento.nombre,
+        razon_social: datosEstablecimiento.razonSocial,
+        rut_empresa: datosEstablecimiento.rut,
+        resolucion_seremi: datosEstablecimiento.resolucionSeremi,
+        region: datosEstablecimiento.region,
+        comuna: datosEstablecimiento.comuna,
+        direccion: datosEstablecimiento.direccion,
+        
+        rep_legal_nombre: datosRepresentante.nombre,
+        rep_legal_rut: datosRepresentante.run,
+        rep_legal_correo: datosRepresentante.correo,
+        rep_legal_telefono: datosRepresentante.movil,
+        
+        quimico_nombre: datosQuimico.nombre,
+        quimico_rut: datosQuimico.run,
+        quimico_correo: datosQuimico.correo,
+        
+        acepta_ley_21719: aceptoTerminos
+      };
+
+      // 🔥 Enviamos la solicitud al endpoint que creamos en Java
+      const respuesta = await apiUsuarios.post('/usuarios/solicitud-inscripcion', payload);
       
-      // Simulación de envío
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      alert("Solicitud de afiliación enviada con éxito. Revisaremos los datos legales.");
-      navigate('/login');
+      alert(respuesta.data); // Muestra el mensaje de éxito de Java
+      navigate('/'); // Lo mandamos al inicio tras enviar
     } catch (error) {
-      alert("Error al enviar el formulario.");
+      console.error(error);
+      alert("Error al enviar el formulario. Verifica que el servidor Java esté encendido.");
     } finally {
       setCargando(false);
     }
@@ -47,7 +67,7 @@ const RegistroFarmacia = () => {
       <div className="form-wrapper">
         <header className="form-header">
           <h1>Paso 1: Formulario de Afiliación</h1>
-          <p>Complete los datos para unir su farmacia a la red MediMapa</p>
+          <p>Complete los datos para unir su farmacia a la red MediMapa. Un administrador validará su SEREMI.</p>
         </header>
 
         <form onSubmit={handleSubmit}>
@@ -56,13 +76,27 @@ const RegistroFarmacia = () => {
             <h2 className="section-title">Datos del Establecimiento</h2>
             <div className="grid-container">
               <div className="input-group">
-                <label>Nombre farmacia (*)</label>
+                <label>Nombre Fantasía (*)</label>
                 <input type="text" required value={datosEstablecimiento.nombre} onChange={e => setDatosEstablecimiento({...datosEstablecimiento, nombre: e.target.value})} />
               </div>
+              
+              {/* 🔥 NUEVO CAMPO: RAZÓN SOCIAL */}
               <div className="input-group">
-                <label>Rut farmacia (*)</label>
+                <label>Razón Social (*)</label>
+                <input type="text" required value={datosEstablecimiento.razonSocial} onChange={e => setDatosEstablecimiento({...datosEstablecimiento, razonSocial: e.target.value})} />
+              </div>
+
+              <div className="input-group">
+                <label>RUT Empresa (*)</label>
                 <input type="text" placeholder="12.345.678-5" required value={datosEstablecimiento.rut} onChange={e => setDatosEstablecimiento({...datosEstablecimiento, rut: e.target.value})} />
               </div>
+
+              {/* 🔥 NUEVO CAMPO: RESOLUCIÓN SEREMI */}
+              <div className="input-group">
+                <label>N° Resolución SEREMI (*)</label>
+                <input type="text" required value={datosEstablecimiento.resolucionSeremi} onChange={e => setDatosEstablecimiento({...datosEstablecimiento, resolucionSeremi: e.target.value})} />
+              </div>
+
               <div className="input-group">
                 <label>Región (*)</label>
                 <select required onChange={e => setDatosEstablecimiento({...datosEstablecimiento, region: e.target.value})}>
@@ -119,7 +153,7 @@ const RegistroFarmacia = () => {
                 <label>Run (*)</label>
                 <input type="text" required value={datosQuimico.run} onChange={e => setDatosQuimico({...datosQuimico, run: e.target.value})} />
               </div>
-              <div className="input-group">
+              <div className="input-group full-width">
                 <label>Correo (*)</label>
                 <input type="email" required value={datosQuimico.correo} onChange={e => setDatosQuimico({...datosQuimico, correo: e.target.value})} />
               </div>
@@ -139,7 +173,7 @@ const RegistroFarmacia = () => {
 
           <div className="form-actions">
             <button type="submit" className="btn-save" disabled={!aceptoTerminos || cargando}>
-              {cargando ? 'Guardando...' : 'Guardar Formulario, ir al paso 2 ➡️'}
+              {cargando ? 'Guardando y Enviando...' : 'Enviar Solicitud a Evaluación ➡️'}
             </button>
             <Link to="/login" className="btn-back">Cancelar</Link>
           </div>
