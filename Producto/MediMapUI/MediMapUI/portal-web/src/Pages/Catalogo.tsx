@@ -14,7 +14,9 @@ const Catalogo: React.FC = () => {
   const [categoriaActiva, setCategoriaActiva] = useState('Todas');
   const [busqueda, setBusqueda] = useState('');
   
-  // 2. NUEVOS ESTADOS PARA LOS DATOS REALES
+  // NUEVO: Estado para el filtro del menú desplegable
+  const [filtroTipo, setFiltroTipo] = useState('Todos los disponibles'); 
+
   const [medicamentos, setMedicamentos] = useState<MedicamentoResponseDTO[]>([]);
   const [cargando, setCargando] = useState(false);
 
@@ -40,18 +42,16 @@ const Catalogo: React.FC = () => {
     'Urológico y próstata'
   ];
 
-  // 3. EL CEREBRO: Llamada a tu backend en Spring Boot (Puerto 8081)
+  // Llamada a tu backend en Spring Boot (Puerto 8081)
   useEffect(() => {
     const fetchMedicamentos = async () => {
       setCargando(true);
       try {
-        let url = 'http://localhost:8081/api/medicamentos'; // Endpoint base (listar todos)
+        let url = 'http://localhost:8081/api/medicamentos';
 
-        // Si hay texto en la búsqueda, usamos el endpoint de buscar (ignora la categoría)
         if (busqueda.trim() !== '') {
           url = `http://localhost:8081/api/medicamentos/buscar?q=${busqueda}`;
         } 
-        // Si no hay texto, pero se seleccionó una categoría específica
         else if (categoriaActiva !== 'Todas') {
           url = `http://localhost:8081/api/medicamentos/categoria?nombre=${categoriaActiva}`;
         }
@@ -70,19 +70,34 @@ const Catalogo: React.FC = () => {
       }
     };
 
-    // Usamos un pequeño 'debounce' (retraso) automático al escribir para no saturar el backend
     const timeoutId = setTimeout(() => {
       fetchMedicamentos();
     }, 300);
 
     return () => clearTimeout(timeoutId);
 
-  }, [busqueda, categoriaActiva]); // Se ejecuta cada vez que estos dos cambian
+  }, [busqueda, categoriaActiva]); 
 
   const handleCategoriaClick = (cat: string) => {
     setCategoriaActiva(cat === 'Seleccionar todo' ? 'Todas' : cat);
-    setBusqueda(''); // Limpia la búsqueda por texto si hace clic en un botón
+    setBusqueda(''); 
   };
+
+  // NUEVO: Lógica de filtrado en memoria (Frontend)
+  const medicamentosFiltrados = medicamentos.filter((med) => {
+    if (filtroTipo === 'Solo Bioequivalentes (ISP)') {
+      return med.esBioequivalente === true;
+    }
+    if (filtroTipo === 'Medicamentos Genéricos') {
+      // Es genérico si el nombre comercial es igual al principio activo
+      return med.nombreCanonico?.toLowerCase() === med.principioActivo?.toLowerCase();
+    }
+    if (filtroTipo === 'Medicamentos de Marca') {
+      // Es de marca si el nombre comercial es diferente al principio activo
+      return med.nombreCanonico?.toLowerCase() !== med.principioActivo?.toLowerCase();
+    }
+    return true; // 'Todos los disponibles'
+  });
 
   return (
     <div className="catalogo-container">
@@ -145,9 +160,13 @@ const Catalogo: React.FC = () => {
           </div>
         </div>
 
+        {/* MENÚ DESPLEGABLE CONECTADO AL ESTADO */}
         <div className="select-box">
           <label>Listado de medicamentos</label>
-          <select>
+          <select 
+            value={filtroTipo} 
+            onChange={(e) => setFiltroTipo(e.target.value)}
+          >
             <option>Todos los disponibles</option>
             <option>Solo Bioequivalentes (ISP)</option>
             <option>Medicamentos Genéricos</option>
@@ -162,9 +181,9 @@ const Catalogo: React.FC = () => {
            <div style={{ padding: '20px', textAlign: 'center', color: '#059669', fontWeight: 'bold' }}>
              Cargando catálogo...
            </div>
-        ) : medicamentos.length === 0 ? (
+        ) : medicamentosFiltrados.length === 0 ? (
            <div style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>
-             No se encontraron medicamentos para esta búsqueda o categoría.
+             No se encontraron medicamentos para esta búsqueda o filtro.
            </div>
         ) : (
           <table className="tabla-catalogo">
@@ -177,8 +196,8 @@ const Catalogo: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {/* 4. RENDERIZADO DEL MAP (Iteramos sobre los datos del backend) */}
-              {medicamentos.map((med) => (
+              {/* ITERAMOS SOBRE EL ARREGLO FILTRADO */}
+              {medicamentosFiltrados.map((med) => (
                 <tr key={med.idMedicamento}>
                   <td><strong>{med.principioActivo || med.nombreCanonico}</strong></td>
                   <td>{med.nombreCanonico}</td>
