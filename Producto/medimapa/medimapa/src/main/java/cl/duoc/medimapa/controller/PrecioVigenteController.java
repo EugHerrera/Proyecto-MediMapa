@@ -1,7 +1,9 @@
 package cl.duoc.medimapa.controller;
 
 import cl.duoc.medimapa.model.PrecioVigente;
+import cl.duoc.medimapa.model.SucursalFarmacia;
 import cl.duoc.medimapa.repository.PrecioVigenteRepository;
+import cl.duoc.medimapa.repository.SucursalFarmaciaRepository;
 import cl.duoc.medimapa.service.ScraperService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +15,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/scraper")
+@CrossOrigin(origins = "*") 
 public class PrecioVigenteController {
 
     @Autowired
@@ -21,41 +24,76 @@ public class PrecioVigenteController {
     @Autowired
     private ScraperService scraperService;
 
+    // 🔥 TRAEMOS EL REPOSITORIO DE TODAS TUS SUCURSALES
+    @Autowired
+    private SucursalFarmaciaRepository sucursalRepo;
+
     @GetMapping("/precios")
     public List<PrecioVigente> obtenerTodosLosPrecios() {
         return precioRepo.findAll();
     }
 
-    // 🔥 EL GUARDIA DE TRÁNSITO INTELIGENTE (Estrategia Caché-First)
     @GetMapping("/buscar")
     public List<Map<String, Object>> buscarEnVivo(@RequestParam String query) {
         System.out.println("\n🔎 Frontend solicitó buscar: " + query);
         
-        // 1. REVISAR LA BASE DE DATOS PRIMERO (Respuesta en 0.1 segundos)
+        List<Map<String, Object>> preciosBase = new ArrayList<>();
+
+        // 1. REVISAR LA BD (Caché)
         List<PrecioVigente> preciosEnBaseDeDatos = precioRepo.buscarPorNombreMedicamento(query);
         
         if (!preciosEnBaseDeDatos.isEmpty()) {
-            System.out.println("⚡ ¡Medicamento encontrado en Caché (PostgreSQL)! Devolviendo al instante.");
-            
-            // Transformamos la data de BD al formato que React ya entiende
-            List<Map<String, Object>> respuestaRapida = new ArrayList<>();
+            System.out.println("⚡ Obteniendo precios base desde PostgreSQL...");
             for (PrecioVigente pv : preciosEnBaseDeDatos) {
                 Map<String, Object> dato = new HashMap<>();
-                
-                // Evitamos errores si por alguna razón la sucursal viene nula
                 String nombreFarmacia = (pv.getSucursal() != null) ? pv.getSucursal().getNombre_sucursal() : "Farmacia Asociada";
-                
                 dato.put("farmacia", nombreFarmacia);
                 dato.put("precio", pv.getPrecio_max_vta());
                 dato.put("medicamento", pv.getId().getTexto_busqueda());
-                
-                respuestaRapida.add(dato);
+                if (pv.getMedicamento() != null) {
+                    dato.put("esBioequivalente", pv.getMedicamento().getEs_bioequivalente());
+                }
+                preciosBase.add(dato);
             }
-            return respuestaRapida;
+        } else {
+            // 2. MODO TURBO (Playwright)
+            preciosBase = scraperService.compararEnVivo(query);
         }
 
-        // 2. SI NO ESTÁ EN BD, ENCENDEMOS EL ROBOT (Respuesta en 13 segundos)
-        System.out.println("🐢 No está en caché. Encendiendo a Playwright en Modo Turbo...");
-        return scraperService.compararEnVivo(query);
+        // 🔥 3. LA MAGIA: EXPANSIÓN A TODAS LAS SUCURSALES DE LA FLORIDA
+        List<SucursalFarmacia> todasLasSucursales = sucursalRepo.findAll();
+        List<Map<String, Object>> respuestaExpandida = new ArrayList<>();
+
+        for (SucursalFarmacia sucursal : todasLasSucursales) {
+            String nombreSuc = sucursal.getNombre_sucursal().toLowerCase();
+            
+            for (Map<String, Object> p : preciosBase) {
+                String farmaciaPrecio = ((String) p.get("farmacia")).toLowerCase();
+                
+                boolean mismaCadena = false;
+                if (nombreSuc.contains("ahumada") && farmaciaPrecio.contains("ahumada")) mismaCadena = true;
+                else if (nombreSuc.contains("salco") && farmaciaPrecio.contains("salco")) mismaCadena = true;
+                else if (nombreSuc.contains("simi") && farmaciaPrecio.contains("simi")) mismaCadena = true;
+                else if (!nombreSuc.contains("ahumada") && !nombreSuc.contains("salco") && !nombreSuc.contains("simi") && 
+                         !farmaciaPrecio.contains("ahumada") && !farmaciaPrecio.contains("salco") && !farmaciaPrecio.contains("simi")) {
+                    mismaCadena = true; // Farmacias Independientes
+                }
+
+                if (mismaCadena) {
+                    // Clonamos el precio y el bioequivalente, pero le ponemos la ubicación real de ESTA sucursal
+                    Map<String, Object> datoExpandido = new HashMap<>(p);
+                    datoExpandido.put("farmacia", sucursal.getNombre_sucursal());
+                    datoExpandido.put("lat", sucursal.getLatitud());
+                    datoExpandido.put("lng", sucursal.getLongitud());
+                    respuestaExpandida.add(datoExpandido);
+                    break; // Pasamos a la siguiente sucursal
+                }
+            }
+        }
+        
+        System.out.println("🗺️ Expandiendo " + preciosBase.size() + " precios a " + respuestaExpandida.size() + " sucursales en el mapa.");
+        
+        // Si por alguna razón la BD de sucursales está vacía, devolvemos los 4 originales
+        return respuestaExpandida.isEmpty() ? preciosBase : respuestaExpandida;
     }
 }

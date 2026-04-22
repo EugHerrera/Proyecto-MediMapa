@@ -42,8 +42,8 @@ public class SecurityConfig {
                 // 2. 🔥 PERMITIMOS LAS PETICIONES PREFLIGHT DEL NAVEGADOR
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() 
                 
-                // 🔥 Dejamos que cualquier persona pueda usar el buscador público
-                .requestMatchers("/api/buscador/**").permitAll()
+                // 🔥 AQUÍ ESTÁ LA MAGIA: Agregamos /api/scraper/** a la lista pública VIP
+                .requestMatchers("/api/buscador/**", "/api/scraper/**").permitAll()
 
                 // 🔥 NUEVO: Reglas VIP de Usuarios (Login, Registro y NUEVA Solicitud)
                 .requestMatchers("/api/usuarios/login", "/api/usuarios/registro", "/api/usuarios/solicitud-inscripcion").permitAll()
