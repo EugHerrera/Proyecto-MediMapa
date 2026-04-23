@@ -1,21 +1,29 @@
 package cl.duoc.medimapa.ms_usuarios.controller;
 
 import cl.duoc.medimapa.ms_usuarios.security.JwtUtil;
-import cl.duoc.medimapa.ms_usuarios.dto.LoginRequest;
 import cl.duoc.medimapa.ms_usuarios.model.Usuario;
 import cl.duoc.medimapa.ms_usuarios.repository.UsuarioRepository;
 import cl.duoc.medimapa.ms_usuarios.service.ExcelService;
 import cl.duoc.medimapa.ms_usuarios.repository.PrecioVigenteRepository;
+import cl.duoc.medimapa.ms_usuarios.repository.SucursalFarmaciaRepository;
+import cl.duoc.medimapa.ms_usuarios.repository.MedicamentoRepository;
+import cl.duoc.medimapa.ms_usuarios.repository.SolicitudInscripcionRepository;
+
+import cl.duoc.medimapa.ms_usuarios.model.Medicamento;
 import cl.duoc.medimapa.ms_usuarios.model.PrecioVigente;
-import cl.duoc.medimapa.ms_usuarios.model.SolicitudInscripcion; // 🔥 Importación necesaria
+import cl.duoc.medimapa.ms_usuarios.model.PrecioVigenteId;
+import cl.duoc.medimapa.ms_usuarios.model.SolicitudInscripcion; 
+import cl.duoc.medimapa.ms_usuarios.model.SucursalFarmacia;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional; // 🔥 ESTE ES EL MAGO
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,25 +35,16 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = "*")
 public class UsuarioController {
 
-    @Autowired
-    private PrecioVigenteRepository precioVigenteRepo;
+    @Autowired private PrecioVigenteRepository precioVigenteRepo;
+    @Autowired private UsuarioRepository usuarioRepository;
+    @Autowired private SucursalFarmaciaRepository sucursalFarmaciaRepository;
+    @Autowired private MedicamentoRepository medicamentoRepository;
+    @Autowired private SolicitudInscripcionRepository solicitudRepo;
+    @Autowired private PasswordEncoder passwordEncoder; 
+    @Autowired private JwtUtil jwtUtil; 
+    @Autowired private ExcelService excelService; 
+    @Autowired private cl.duoc.medimapa.ms_usuarios.repository.CorridaActualizacionRepository corridaRepo;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder; 
-
-    @Autowired
-    private JwtUtil jwtUtil; 
-
-    @Autowired
-    private ExcelService excelService; 
-    
-    @Autowired
-    private cl.duoc.medimapa.ms_usuarios.repository.SolicitudInscripcionRepository solicitudRepo;
-
-    // --- REGISTRO Y LOGIN (Intactos) ---
     @PostMapping("/registro")
     public ResponseEntity<String> registrarUsuario(@RequestBody Usuario nuevoUsuario) {
         String hash = passwordEncoder.encode(nuevoUsuario.getPasswordHash());
@@ -73,7 +72,6 @@ public class UsuarioController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
-    // --- SUBIDA DE INVENTARIO CONECTADA AL SERVICIO ---
     @PostMapping("/inventario/subir")
     public ResponseEntity<String> subirInventario(
             @RequestParam("archivo") MultipartFile archivo,
@@ -92,7 +90,6 @@ public class UsuarioController {
         }
     }
 
-    // --- 1. ENDPOINT PARA LEER EL INVENTARIO REAL Y MANDARLO A LA TABLA ---
     @GetMapping("/inventario/listar/{idSucursal}")
     public ResponseEntity<List<Map<String, Object>>> obtenerInventarioReal(@PathVariable Long idSucursal) {
         List<PrecioVigente> inventario = precioVigenteRepo.buscarPorSucursal(idSucursal);
@@ -100,7 +97,7 @@ public class UsuarioController {
         List<Map<String, Object>> respuesta = inventario.stream().map(precio -> {
             Map<String, Object> map = new HashMap<>();
             map.put("id", precio.getMedicamento().getId_medicamento()); 
-            map.put("nombre", precio.getMedicamento().getNombreCanonico());
+            map.put("nombre", precio.getMedicamento().getNombre_canonico());
             map.put("precio", precio.getPrecio_max_vta());
             return map;
         }).collect(Collectors.toList());
@@ -108,7 +105,6 @@ public class UsuarioController {
         return ResponseEntity.ok(respuesta);
     }
 
-    // --- 2. ENDPOINT PARA GUARDAR EL NUEVO PRECIO MANUAL ---
     @PutMapping("/inventario/actualizar-precio")
     public ResponseEntity<String> actualizarPrecioManual(
             @RequestParam("idSucursal") Long idSucursal,
@@ -127,38 +123,27 @@ public class UsuarioController {
                 .orElse(ResponseEntity.badRequest().body("❌ No se encontró el medicamento en esta sucursal."));
     }
 
-    // =====================================================================
-    // 🔥 LÓGICA DE GESTIÓN DE SOLICITUDES DE FARMACIAS INDEPENDIENTES 🔥
-    // =====================================================================
-
-    // A. RECIBIR FORMULARIO PÚBLICO
     @PostMapping("/solicitud-inscripcion")
     public ResponseEntity<String> recibirSolicitud(@RequestBody SolicitudInscripcion nuevaSolicitud) {
         try {
             nuevaSolicitud.setEstado_solicitud("PENDIENTE");
             nuevaSolicitud.setFecha_solicitud(java.time.OffsetDateTime.now());
-            
             if (nuevaSolicitud.getAcepta_ley_21719() == null || !nuevaSolicitud.getAcepta_ley_21719()) {
                 return ResponseEntity.badRequest().body("❌ Error: Debe aceptar la Ley 21.719 para procesar los datos.");
             }
-
             solicitudRepo.save(nuevaSolicitud);
-            return ResponseEntity.ok("✅ Solicitud enviada con éxito. Será revisada por un administrador.");
+            return ResponseEntity.ok("✅ Solicitud enviada con éxito.");
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("❌ Error al guardar la solicitud: " + e.getMessage());
         }
     }
 
-    // B. TRAER SOLICITUDES PENDIENTES AL ADMIN
     @GetMapping("/solicitudes/pendientes")
     public ResponseEntity<List<SolicitudInscripcion>> obtenerSolicitudesPendientes() {
-        List<SolicitudInscripcion> pendientes = solicitudRepo.buscarPorEstado("PENDIENTE");
-        return ResponseEntity.ok(pendientes);
+        return ResponseEntity.ok(solicitudRepo.buscarPorEstado("PENDIENTE"));
     }
 
-    // C. APROBAR SOLICITUD
     @PatchMapping("/solicitudes/{id}/aprobar")
     public ResponseEntity<String> aprobarSolicitud(@PathVariable Long id) {
         return solicitudRepo.findById(id).map(solicitud -> {
@@ -168,7 +153,6 @@ public class UsuarioController {
         }).orElse(ResponseEntity.badRequest().body("❌ Solicitud no encontrada."));
     }
 
-    // D. RECHAZAR SOLICITUD
     @PatchMapping("/solicitudes/{id}/rechazar")
     public ResponseEntity<String> rechazarSolicitud(@PathVariable Long id) {
         return solicitudRepo.findById(id).map(solicitud -> {
@@ -176,5 +160,99 @@ public class UsuarioController {
             solicitudRepo.save(solicitud);
             return ResponseEntity.ok("🗑️ La farmacia " + solicitud.getNombre_fantasia() + " ha sido RECHAZADA.");
         }).orElse(ResponseEntity.badRequest().body("❌ Solicitud no encontrada."));
+    }
+
+    @PostMapping("/inventario/agregar-manual")
+    public ResponseEntity<?> agregarMedicamentoManual(@RequestBody Map<String, Object> payload) {
+        try {
+            Long idSucursal = Long.valueOf(payload.get("idSucursal").toString());
+            String nombre = payload.get("nombre").toString();
+            String laboratorio = payload.get("laboratorio").toString();
+            BigDecimal precio = new BigDecimal(payload.get("precio").toString());
+
+            SucursalFarmacia sucursal = sucursalFarmaciaRepository.findById(idSucursal)
+                    .orElseThrow(() -> new RuntimeException("Sucursal no encontrada"));
+
+            Medicamento medicamento = medicamentoRepository.findByNombreCanonico(nombre).orElse(null);
+            
+            if (medicamento == null) {
+                medicamento = new Medicamento();
+                medicamento.setNombre_canonico(nombre);
+                medicamento.setPrincipio_activo(nombre); 
+                medicamento.setOrigen_catalogo("MANUAL");
+                medicamento = medicamentoRepository.save(medicamento);
+            }
+
+            PrecioVigenteId id = new PrecioVigenteId();
+            id.setId_sucursal(sucursal.getId_sucursal());
+            id.setTexto_busqueda(medicamento.getNombre_canonico());
+
+            cl.duoc.medimapa.ms_usuarios.model.CorridaActualizacion corrida = new cl.duoc.medimapa.ms_usuarios.model.CorridaActualizacion();
+            corrida.setId_fuente(idSucursal);
+            corrida.setInicio(java.time.OffsetDateTime.now());
+            corrida.setEstado("manual");
+            corrida = corridaRepo.save(corrida);
+
+            PrecioVigente pv = new PrecioVigente();
+            pv.setId(id);
+            pv.setSucursal(sucursal);
+            pv.setMedicamento(medicamento);
+            pv.setPrecio_max_vta(precio);
+            pv.setMoneda("CLP");
+            pv.setVigente_desde(java.time.OffsetDateTime.now());
+            pv.setCorrida(corrida);
+
+            precioVigenteRepo.save(pv);
+
+            return ResponseEntity.ok("Medicamento guardado exitosamente");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error al guardar: " + e.getMessage());
+        }
+    }
+
+  @DeleteMapping("/inventario/eliminar")
+    @Transactional // 🔥 Esto es como el "Commit" automático
+    public ResponseEntity<?> eliminarMedicamentoInventario(
+            @RequestParam Long idSucursal, 
+            @RequestParam String nombreMedicamento) {
+        try {
+            // 1. Borramos la relación en la farmacia (PrecioVigente)
+            // Usamos una query manual para asegurar que se borre por texto exacto o parecido
+            PrecioVigenteId idRelacion = new PrecioVigenteId();
+            idRelacion.setId_sucursal(idSucursal);
+            idRelacion.setTexto_busqueda(nombreMedicamento);
+            
+            if (precioVigenteRepo.existsById(idRelacion)) {
+                precioVigenteRepo.deleteById(idRelacion);
+                precioVigenteRepo.flush(); // 🔥 Obligamos a PostgreSQL a borrarlo YA
+            }
+
+            // 2. Borramos el medicamento del catálogo global
+            // Lo buscamos usando la nueva query insensible a mayúsculas
+            Optional<Medicamento> medOpt = medicamentoRepository.findByNombreCanonico(nombreMedicamento);
+            
+            if (medOpt.isPresent()) {
+                medicamentoRepository.delete(medOpt.get());
+                medicamentoRepository.flush(); // 🔥 Golpe final a la base de datos
+                return ResponseEntity.ok("Aniquilado con éxito de todos lados");
+            }
+
+            return ResponseEntity.ok("Se eliminó de la farmacia, pero no se encontró en el catálogo global para borrarlo.");
+            
+        } catch (Exception e) {
+            // Si sale un error de "Llave Foránea", es porque otra farmacia lo tiene.
+            // En ese caso, es mejor solo borrarlo de TU farmacia y no del sistema.
+            return ResponseEntity.status(500).body("Aviso: " + e.getMessage());
+        }
+    }
+
+    public static class LoginRequest {
+        private String correo;
+        private String password;
+
+        public String getCorreo() { return correo; }
+        public void setCorreo(String correo) { this.correo = correo; }
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
     }
 }
