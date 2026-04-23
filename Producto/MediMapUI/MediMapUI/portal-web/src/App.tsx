@@ -9,6 +9,8 @@ import FAQ from './Pages/FAQ';
 import Catalogo from './Pages/Catalogo';
 import RedFarmacias from './Pages/RedFarmacias'; 
 import AdminPanel from './Pages/AdminPanel'; 
+// 🔥 1. IMPORTAMOS TU COMPONENTE AQUÍ ARRIBA
+import Bioequivalentes from './Pages/Bioequivalentes';
 
 function App() {
   return (
@@ -40,17 +42,11 @@ function App() {
           {/* Preguntas Frecuentes (FAQ) */}
           <Route path="/faq" element={<FAQ />} />
 
-          {/* CATÁLOGO REAL: Eliminamos la versión "en construcción" para que use tu componente */}
+          {/* CATÁLOGO REAL */}
           <Route path="/catalogo" element={<Catalogo />} />
 
-          {/* Bioequivalentes: Por ahora lo dejamos como aviso, 
-              pero puedes crear un 'Bioequivalentes.tsx' similar al catálogo más adelante */}
-          <Route path="/bioequivalentes" element={
-            <div style={{padding: '100px', textAlign: 'center'}}>
-              <h2>✨ Sección de Bioequivalentes en desarrollo</h2>
-              <p>Aquí mostraremos solo las alternativas certificadas por el ISP.</p>
-            </div>
-          } />
+          {/* 🔥 2. RUTA CORREGIDA: Ahora sí carga tu archivo Bioequivalentes.tsx */}
+          <Route path="/bioequivalentes" element={<Bioequivalentes />} />
           
         </Routes>
       </div>

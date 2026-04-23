@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Catalogo.css'; 
 
+// Importamos el sello que acabas de crear
+import SelloBioequivalente from '../assets/sello-bioequivalente.svg';
+
 interface MedicamentoResponseDTO {
   idMedicamento: number;
   nombreCanonico: string;
@@ -16,13 +19,12 @@ const Bioequivalentes: React.FC = () => {
   const [medicamentos, setMedicamentos] = useState<MedicamentoResponseDTO[]>([]);
   const [cargando, setCargando] = useState(false);
 
-  // Llamada a tu backend en Spring Boot (Puerto 8081)
+  // Conexión al microservicio de catálogo (Puerto 8081)
   useEffect(() => {
     const fetchMedicamentos = async () => {
       setCargando(true);
       try {
         let url = 'http://localhost:8081/api/medicamentos';
-
         if (busqueda.trim() !== '') {
           url = `http://localhost:8081/api/medicamentos/buscar?q=${busqueda}`;
         }
@@ -31,68 +33,75 @@ const Bioequivalentes: React.FC = () => {
         if (respuesta.ok) {
           const data = await respuesta.json();
           setMedicamentos(data);
-        } else {
-          console.error("Error al obtener datos del servidor");
         }
       } catch (error) {
-        console.error("Error de conexión:", error);
+        console.error("Error de conexión con el catálogo:", error);
       } finally {
         setCargando(false);
       }
     };
 
-    const timeoutId = setTimeout(() => {
-      fetchMedicamentos();
-    }, 300);
-
+    const timeoutId = setTimeout(fetchMedicamentos, 300);
     return () => clearTimeout(timeoutId);
-
   }, [busqueda]);
 
-  // Filtro forzado a Bioequivalentes
-  const bioequivalentesFiltrados = medicamentos.filter((med) => med.esBioequivalente === true);
+  // Filtramos para mostrar solo los certificados
+  const bioequivalentesFiltrados = medicamentos.filter((med) => med.esBioequivalente);
 
   return (
     <div className="catalogo-container">
       
-      {/* BANNER ESPECÍFICO DE BIOEQUIVALENTES */}
-      <div className="catalogo-banner" style={{ background: 'linear-gradient(90deg, #0f766e 0%, #059669 100%)' }}>
+      {/* Banner Principal con Identidad Visual Dorada */}
+      <div className="catalogo-banner" style={{ background: 'linear-gradient(90deg, #ca8a04 0%, #059669 100%)' }}>
         <div className="banner-content">
-          <div className="banner-title">
-            <span className="banner-icon">🛡️</span>
-            <h2>Alternativas Bioequivalentes (ISP)</h2>
-          </div>
-          <div className="banner-meta">
-            <span>Solo medicamentos certificados por el Ministerio de Salud</span>
+          <div className="banner-title" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            <img src={SelloBioequivalente} alt="Sello Bio" style={{ height: '60px', width: 'auto' }} />
+            <div>
+              <h2 style={{ margin: 0 }}>Alternativas Bioequivalentes</h2>
+              <p style={{ margin: 0, opacity: 0.9, fontSize: '0.9rem' }}>Certificación oficial del Instituto de Salud Pública (ISP)</p>
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Cuadro Educativo sobre Bioequivalencia */}
+      <div className="catalogo-disclaimer" style={{ borderLeftColor: '#ca8a04', backgroundColor: '#fefce8' }}>
+        <div className="disclaimer-icon">💡</div>
+        <div className="disclaimer-text">
+          <h4 style={{ color: '#854d0e', margin: '0 0 5px 0' }}>¿Por qué elegir un Bioequivalente?</h4>
+          <p style={{ margin: 0, fontSize: '0.9rem', color: '#713f12' }}>
+            Son fármacos que contienen el mismo principio activo y han demostrado científicamente tener la 
+            <strong> misma eficacia y seguridad</strong> que el medicamento de marca, pero a un precio 
+            considerablemente menor.
+          </p>
+        </div>
+      </div>
+
+      {/* Buscador Específico */}
       <div className="catalogo-search-section" style={{ marginTop: '2rem' }}>
         <div className="search-box">
-          <label>Buscar bioequivalente</label>
+          <label style={{ color: '#ca8a04' }}>Buscar por Principio Activo</label>
           <div className="input-with-icon">
             <span className="search-icon">🔍</span>
             <input 
               type="text" 
-              placeholder="Escribe el principio activo (ej. Paracetamol)..." 
+              placeholder="Ej: Paracetamol, Losartán, Atorvastatina..." 
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
+              style={{ borderColor: '#fde047' }}
             />
           </div>
         </div>
       </div>
 
-      {/* TABLA DE RESULTADOS */}
+      {/* Tabla de Resultados con Interacción */}
       <div className="catalogo-resultados">
         {cargando ? (
-           <div style={{ padding: '20px', textAlign: 'center', color: '#059669', fontWeight: 'bold' }}>
-             Consultando registros del ISP...
-           </div>
+           <div style={{ padding: '40px', textAlign: 'center', color: '#ca8a04' }}>Consultando registros...</div>
         ) : bioequivalentesFiltrados.length === 0 ? (
            <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
-             <h3>No encontramos resultados</h3>
-             <p>No hay alternativas bioequivalentes registradas para esta búsqueda actual.</p>
+             <h3>No se encontraron bioequivalentes</h3>
+             <p>Intenta buscar por el componente principal del medicamento.</p>
            </div>
         ) : (
           <table className="tabla-catalogo">
@@ -101,7 +110,7 @@ const Bioequivalentes: React.FC = () => {
                 <th>Principio Activo</th>
                 <th>Nombre Comercial</th>
                 <th>Categoría</th>
-                <th>Certificación</th>
+                <th>Sello Calidad</th>
               </tr>
             </thead>
             <tbody>
@@ -109,17 +118,26 @@ const Bioequivalentes: React.FC = () => {
                 <tr 
                   key={med.idMedicamento}
                   onClick={() => navigate(`/resultados?q=${encodeURIComponent(med.nombreCanonico)}`)}
-                  style={{ cursor: 'pointer', transition: 'background 0.2s' }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0fdf4'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  style={{ cursor: 'pointer' }}
                 >
                   <td><strong>{med.principioActivo || med.nombreCanonico}</strong></td>
                   <td>{med.nombreCanonico}</td>
-                  <td>{med.categoria || 'Sin clasificar'}</td>
+                  <td>{med.categoria || 'General'}</td>
                   <td>
-                    <span className="badge bio" style={{ backgroundColor: '#10b981', color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: '0.85rem' }}>
-                      ✓ Certificado (ISP)
-                    </span>
+                    <div style={{ 
+                      display: 'inline-flex', 
+                      alignItems: 'center', 
+                      backgroundColor: '#fef08a', 
+                      padding: '4px 12px', 
+                      borderRadius: '20px', 
+                      fontSize: '0.75rem', 
+                      fontWeight: 'bold',
+                      color: '#854d0e',
+                      border: '1px solid #ca8a04'
+                    }}>
+                      <img src={SelloBioequivalente} alt="B" style={{ height: '14px', marginRight: '6px' }} />
+                      BIOEQUIVALENTE
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -127,7 +145,6 @@ const Bioequivalentes: React.FC = () => {
           </table>
         )}
       </div>
-
     </div>
   );
 };
