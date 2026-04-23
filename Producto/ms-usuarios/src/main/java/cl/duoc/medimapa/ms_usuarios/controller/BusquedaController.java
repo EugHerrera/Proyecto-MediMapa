@@ -27,7 +27,10 @@ public class BusquedaController {
         // Transformamos los datos complejos de la BD a algo simple para React
         List<Map<String, Object>> respuestaLista = resultados.stream().map(precio -> {
             Map<String, Object> mapa = new HashMap<>();
-            mapa.put("medicamento", precio.getMedicamento().getNombreCanonico());
+            
+            // 🔥 CORRECCIÓN AQUÍ: Usar getNombre_canonico() que es el getter que existe
+            mapa.put("medicamento", precio.getMedicamento().getNombre_canonico());
+            
             mapa.put("precio", precio.getPrecio_max_vta());
             mapa.put("sucursal", precio.getSucursal() != null ? precio.getSucursal().getNombre_sucursal() : "Farmacia Independiente");
             mapa.put("fechaActualizacion", precio.getVigente_desde());
