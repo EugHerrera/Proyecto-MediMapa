@@ -1,7 +1,9 @@
 package cl.duoc.medimapa;
 
-import cl.duoc.medimapa.model.*;
-import cl.duoc.medimapa.repository.*;
+import cl.duoc.medimapa.model.CorridaActualizacion;
+import cl.duoc.medimapa.repository.CorridaActualizacionRepository;
+import cl.duoc.medimapa.repository.MedicamentoRepository;
+import cl.duoc.medimapa.repository.SucursalFarmaciaRepository;
 import cl.duoc.medimapa.service.ScraperService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -20,7 +22,7 @@ public class MedimapaApplication {
     }
 
     @Bean
-    public CommandLineRunner probarScraper(
+    public CommandLineRunner iniciarScraperAutomático(
             ScraperService scraperService,
             SucursalFarmaciaRepository sucursalRepo,
             MedicamentoRepository medicamentoRepo,
@@ -28,47 +30,39 @@ public class MedimapaApplication {
         
         return args -> {
             System.out.println("\n======================================");
-            System.out.println("🛠️ PREPARANDO AMBIENTE MULTI-FARMACIA (3 CADENAS)");
+            System.out.println("🚀 INICIANDO SISTEMA MEDIMAPA");
             System.out.println("======================================");
 
-            // 1. SUCURSALES (Data Seeding)
-            // Ya no creamos sucursales aquí. Las sucursales físicas de La Florida
-            // ya fueron cargadas directamente en PostgreSQL por el script SQL.
-            System.out.println("✅ Leyendo sucursales reales de La Florida desde la Base de Datos...");
+            System.out.println("✅ Leyendo sucursales y catálogo de medicamentos desde PostgreSQL...");
 
-            // 2. CREAMOS UNA NUEVA CORRIDA (Protegida contra el ck_corrida_estado)
+            // 1. Registramos el inicio del trabajo del robot
             System.out.println("📝 Registrando nueva corrida de actualización masiva...");
             CorridaActualizacion corrida = new CorridaActualizacion();
-            corrida.setId_fuente(0L); // 0 indica que fue una corrida general (multi-fuente)
+            corrida.setId_fuente(0L); // 0 = Corrida general multi-fuente
             corrida.setInicio(OffsetDateTime.now());
-            
-            // ¡ESTADO CORREGIDO AQUÍ!
             corrida.setEstado("parcial"); 
 
             try {
                 corrida = corridaRepo.save(corrida);
-                System.out.println("✅ Corrida guardada en BD con estado 'parcial'. Despertando al robot...");
+                System.out.println("✅ Corrida guardada. Despertando al robot para actualizar los medicamentos...");
             } catch (Exception e) {
-                System.err.println("⚠️ Advertencia BD: No se pudo guardar la corrida por restricción de estado. Ejecutando en memoria...");
+                System.err.println("⚠️ Advertencia BD: No se pudo guardar la corrida inicial. Ejecutando en memoria...");
             }
 
-            // 3. EL ROBOT INICIA SU TRABAJO AUTÓNOMO
+            // 2. El robot hace su trabajo con los medicamentos que ya tienes en la BD
             try {
-                // Pasamos la corrida al robot para que haga su magia
                 scraperService.ejecutarScrapingAutomatico(corrida);
                 
-                // ¡ESTADO CORREGIDO AQUÍ!
                 corrida.setEstado("ok");
                 corrida.setFin(OffsetDateTime.now());
                 
                 try {
                     corridaRepo.save(corrida);
-                } catch (Exception ignored) {} // Ignoramos si la BD vuelve a rechazar el estado
+                } catch (Exception ignored) {} 
                 
-                System.out.println("🎉 ¡Corrida de las 3 Farmacias terminada con éxito!");
+                System.out.println("🎉 ¡Actualización de base de datos terminada con éxito!");
                 
             } catch (Exception e) {
-                // ¡ESTADO CORREGIDO AQUÍ!
                 corrida.setEstado("error");
                 corrida.setDetalle_error(e.getMessage());
                 corrida.setFin(OffsetDateTime.now());
@@ -77,7 +71,7 @@ public class MedimapaApplication {
                     corridaRepo.save(corrida);
                 } catch (Exception ignored) {}
                 
-                System.err.println("❌ Error crítico en el scraper: " + e.getMessage());
+                System.err.println("❌ Error crítico en el scraper al iniciar: " + e.getMessage());
             }
 
             System.out.println("======================================\n");

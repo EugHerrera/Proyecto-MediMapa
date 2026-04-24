@@ -1,12 +1,14 @@
+
 package cl.duoc.medimapa.strategy;
 
-import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 public class SalcobrandScraper implements FarmaciaScraper {
@@ -15,42 +17,43 @@ public class SalcobrandScraper implements FarmaciaScraper {
 
     @Override
     public String generarUrl(String nombreMedicamento) {
-        try {
-            return "https://salcobrand.cl/search_result?query=" + URLEncoder.encode(nombreMedicamento, StandardCharsets.UTF_8);
-        } catch (Exception e) { return ""; }
+        try { return "https://salcobrand.cl/search_result?query=" + URLEncoder.encode(nombreMedicamento, StandardCharsets.UTF_8); } 
+        catch (Exception e) { return ""; }
     }
 
     @Override
     public BigDecimal extraerMenorPrecio(Page page) {
-        try { page.waitForLoadState(com.microsoft.playwright.options.LoadState.NETWORKIDLE, new Page.WaitForLoadStateOptions().setTimeout(8000)); } catch (Exception e) { page.waitForTimeout(3000); }
-        Locator precios = page.locator("[class*='price'], [class*='Precio'], .bestPrice").filter(new Locator.FilterOptions().setHasText("$"));
-        if (precios.count() > 0) {
-            List<String> textos = precios.allInnerTexts();
+        try { 
+            page.waitForLoadState();
+            page.waitForTimeout(4000); // Salcobrand suele ser pesado de cargar
+            
+            List<String> tarjetas = page.locator(".product-card, .product, .vitrine").allInnerTexts();
             BigDecimal minPrecio = null;
-            for (String t : textos) {
-                String limpio = t.split("[\\n\\s]+")[0].replaceAll("[^\\d]", "");
-                if (!limpio.isEmpty()) {
+            
+            for (String texto : tarjetas) {
+                // Atrapa el $1499 y el $999, y la lógica se quedará con el menor
+                Matcher m = Pattern.compile("\\$\\s*(\\d[\\d\\.]*)").matcher(texto);
+                while (m.find()) {
+                    String limpio = m.group(1).replace(".", "");
                     try {
-                        int valor = Integer.parseInt(limpio);
-                        if (valor > 550 && valor != 5000 && valor != 10000 && valor != 15000 && valor != 20000 && valor != 25000) {
-                            BigDecimal actual = new BigDecimal(limpio);
-                            if (minPrecio == null || actual.compareTo(minPrecio) < 0) minPrecio = actual;
+                        BigDecimal actual = new BigDecimal(limpio);
+                        if (actual.compareTo(new BigDecimal(150)) > 0) {
+                            if (minPrecio == null || actual.compareTo(minPrecio) < 0) {
+                                minPrecio = actual;
+                            }
                         }
                     } catch (Exception e) {}
                 }
             }
             return minPrecio;
-        }
-        return null;
+        } catch (Exception e) { return null; }
     }
 
-    // 🔥 EL NUEVO RADAR BIOEQUIVALENTE
     @Override
     public boolean esBioequivalente(Page page) {
         try {
-            return page.locator("img[src*='bioequivalente' i], img[alt*='bioequivalente' i], [class*='bioequivalente' i]").count() > 0;
-        } catch (Exception e) {
-            return false;
-        }
+            return page.getByText(Pattern.compile("bioequivalente", Pattern.CASE_INSENSITIVE)).count() > 0 ||
+                   page.locator("img[src*='bioeq' i]").count() > 0;
+        } catch (Exception e) { return false; }
     }
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -31,24 +31,31 @@ function Resultados() {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || ''; 
   
-  const [preciosTarjetas, setPreciosTarjetas] = useState<any[]>([]); // Los 4 campeones
-  const [todasLasSucursales, setTodasLasSucursales] = useState<any[]>([]); // TODOS los pines
+  const [preciosTarjetas, setPreciosTarjetas] = useState<any[]>([]); 
+  const [todasLasSucursales, setTodasLasSucursales] = useState<any[]>([]); 
   
   const [cargando, setCargando] = useState<boolean>(false);
   const [ubicacion, setUbicacion] = useState<{lat: number, lng: number} | null>(null);
   const [estadoUbicacion, setEstadoUbicacion] = useState<string>("");
-  
-  // 🔥 NUEVO ESTADO: Radio de búsqueda en Kilómetros
   const [radioKm, setRadioKm] = useState<number>(3); 
 
-  useEffect(() => {
+  // 🔥 NUEVA FUNCIÓN SEPARADA PARA PODER REFRESCAR MANUALMENTE
+  const buscarMedicamentos = (forzarRefresh = false) => {
     if (!query) return;
     setCargando(true);
-    fetch(`http://localhost:8082/api/scraper/buscar?query=${encodeURIComponent(query)}`)
+    
+    if (forzarRefresh) {
+      setPreciosTarjetas([]); // Vaciamos para dar feedback visual de que está buscando de nuevo
+    }
+
+    // Le pasamos el parámetro extra al backend para que ignore la base de datos y raspe de nuevo
+    const url = `http://localhost:8082/api/scraper/buscar?query=${encodeURIComponent(query)}${forzarRefresh ? '&forceRefresh=true' : ''}`;
+
+    fetch(url)
       .then(r => r.json())
       .then(data => {
         const mejores: Record<string, any> = {};
-        const pinesMapa: any[] = []; // Guardaremos TODOS aquí
+        const pinesMapa: any[] = []; 
 
         data.forEach((item: any) => {
           const cadena = (item.farmacia?.toLowerCase().includes("ahumada")) ? "Farmacias Ahumada" : 
@@ -68,19 +75,26 @@ function Resultados() {
 
           const sucursalLista = { ...item, lat, lng, cadenaOficial: cadena };
           
-          // 1. Guardamos TODO para el mapa
           pinesMapa.push(sucursalLista);
 
-          // 2. Filtramos solo los 4 más baratos para las tarjetas
           if (!mejores[cadena] || item.precio < mejores[cadena].precio) {
             mejores[cadena] = sucursalLista;
           }
         });
 
         setPreciosTarjetas(Object.values(mejores));
-        setTodasLasSucursales(pinesMapa); // Enviamos los 16+ pines al mapa
+        setTodasLasSucursales(pinesMapa); 
+        setCargando(false);
+      })
+      .catch(error => {
+        console.error("Error al buscar:", error);
         setCargando(false);
       });
+  };
+
+  // Se ejecuta automáticamente al cargar la página
+  useEffect(() => {
+    buscarMedicamentos(false);
   }, [query]);
 
   const pedirUbicacion = () => {
@@ -105,9 +119,8 @@ function Resultados() {
   const mapLng = ubicacion ? ubicacion.lng : -70.5973;
   const fechaHoy = new Date().toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-  // 🔥 LÓGICA DEL RADAR: Filtramos las sucursales que están dentro del radio elegido
   const sucursalesEnRango = todasLasSucursales.filter(p => {
-    if (!ubicacion) return true; // Si no hay GPS, las mostramos todas
+    if (!ubicacion) return true; 
     const distancia = calcularDistanciaKm(ubicacion.lat, ubicacion.lng, p.lat, p.lng);
     return distancia <= radioKm;
   });
@@ -115,31 +128,70 @@ function Resultados() {
   return (
     <div style={{ padding: '2rem', fontFamily: 'Inter, sans-serif', maxWidth: '1000px', margin: '0 auto' }}>
       <Link to="/" style={{ textDecoration: 'none', color: '#059669', fontWeight: 'bold' }}>⬅ Volver</Link>
-      <h1 style={{ color: '#0f172a' }}>🏥 Resultados para: "{query}"</h1>
       
-      {cargando && <p style={{ color: '#059669', fontWeight: 'bold', textAlign: 'center' }}>⏳ Buscando precios y ubicaciones...</p>}
+      {/* 🔥 TÍTULO Y BOTÓN DE REFRESH EN LA MISMA LÍNEA */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginTop: '10px' }}>
+        <h1 style={{ color: '#0f172a', margin: 0 }}>🏥 Resultados para: "{query}"</h1>
+        <button 
+          onClick={() => buscarMedicamentos(true)} 
+          disabled={cargando}
+          style={{ 
+            backgroundColor: cargando ? '#cbd5e1' : '#f59e0b', 
+            color: 'white', 
+            border: 'none', 
+            padding: '10px 15px', 
+            borderRadius: '8px', 
+            cursor: cargando ? 'not-allowed' : 'pointer', 
+            fontWeight: 'bold',
+            transition: 'background 0.3s'
+          }}
+        >
+          {cargando ? '🔄 Extrayendo...' : '🔄 Forzar Búsqueda Fresca'}
+        </button>
+      </div>
+      
+      {cargando && <p style={{ color: '#059669', fontWeight: 'bold', textAlign: 'center', marginTop: '20px' }}>⏳ Conectando con farmacias y actualizando precios al instante...</p>}
       
       {!cargando && preciosTarjetas.length > 0 && (
-        <div style={{ marginTop: '1rem' }}>
+        <div style={{ marginTop: '2rem' }}>
           <h3 style={{ color: '#1e293b' }}>✅ Precios más bajos por cadena:</h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
             {preciosTarjetas.map((item, i) => (
-              <div key={i} style={{ border: '1px solid #bbf7d0', padding: '1.5rem', borderRadius: '16px', backgroundColor: '#f0fdf4', position: 'relative' }}>
+              
+              // 🔥 TARJETA CON FLEXBOX PARA EVITAR QUE SE MONTEN LOS TEXTOS
+              <div key={i} style={{ border: '1px solid #bbf7d0', padding: '1.5rem', borderRadius: '16px', backgroundColor: '#f0fdf4', display: 'flex', flexDirection: 'column' }}>
+                
+                {/* LA ETIQUETA AHORA TIENE SU PROPIO ESPACIO ARRIBA */}
                 {item.esBioequivalente && (
-                  <div style={{ backgroundColor: '#fde047', color: '#854d0e', fontSize: '0.6rem', padding: '3px 8px', borderRadius: '10px', fontWeight: '900', position: 'absolute', top: '10px', right: '10px', border: '1px solid #ca8a04' }}>
+                  <span style={{ 
+                    alignSelf: 'flex-start', 
+                    backgroundColor: '#fde047', 
+                    color: '#854d0e', 
+                    fontSize: '0.65rem', 
+                    padding: '4px 10px', 
+                    borderRadius: '12px', 
+                    fontWeight: '900', 
+                    border: '1px solid #ca8a04',
+                    marginBottom: '10px' 
+                  }}>
                     BIOEQUIVALENTE
-                  </div>
+                  </span>
                 )}
-                <h4 style={{ margin: '0 0 0.5rem 0', color: '#166534' }}>💊 {item.medicamento}</h4>
-                <p style={{ fontSize: '0.9rem' }}><strong>🏪 {item.farmacia}</strong></p>
-                <p style={{ margin: '0.2rem 0', color: '#16a34a', fontSize: '0.8rem' }}>✓ Stock: <strong>{fechaHoy}</strong></p>
-                <p style={{ fontSize: '1.5rem', fontWeight: '800', color: '#166534', marginTop: '10px' }}>${item.precio?.toLocaleString('es-CL')} CLP</p>
+                
+                <h4 style={{ margin: '0 0 0.5rem 0', color: '#166534', fontSize: '1.1rem' }}>💊 {item.medicamento}</h4>
+                <p style={{ fontSize: '0.9rem', margin: '0' }}><strong>🏪 {item.farmacia}</strong></p>
+                <p style={{ margin: '0.5rem 0 0 0', color: '#16a34a', fontSize: '0.8rem' }}>✓ Stock revisado hoy</p>
+                
+                {/* EL PRECIO SE EMPUJA SIEMPRE HACIA EL FONDO DE LA TARJETA */}
+                <p style={{ fontSize: '1.8rem', fontWeight: '800', color: '#166534', marginTop: 'auto', paddingTop: '15px' }}>
+                  ${item.precio?.toLocaleString('es-CL')} CLP
+                </p>
               </div>
+
             ))}
           </div>
 
           <div style={{ marginTop: '3rem', borderTop: '2px solid #e2e8f0', paddingTop: '2rem' }}>
-            
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
               <div>
                 <h3 style={{ color: '#1e293b', margin: '0 0 5px 0' }}>📍 Farmacias cercanas a tu ubicación</h3>
@@ -152,7 +204,6 @@ function Resultados() {
               </button>
             </div>
 
-            {/* 🔥 CONTROL DEL RADAR (Rango de búsqueda) */}
             {ubicacion && (
               <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                 <label style={{ fontWeight: 'bold', color: '#334155', display: 'block', marginBottom: '10px' }}>
@@ -175,7 +226,6 @@ function Resultados() {
                 <VolarAlCentro lat={mapLat} lng={mapLng} />
                 <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
                 
-                {/* Dibuja un círculo azul tenue alrededor del usuario para mostrar el área de búsqueda */}
                 {ubicacion && (
                   <>
                     <Marker position={[ubicacion.lat, ubicacion.lng]}>
@@ -185,7 +235,6 @@ function Resultados() {
                   </>
                 )}
 
-                {/* Dibuja solo las sucursales que pasaron el filtro del radar */}
                 {sucursalesEnRango.map((p, i) => (
                   <Marker key={`pin-${i}`} position={[p.lat, p.lng]}>
                     <Popup>
@@ -197,7 +246,6 @@ function Resultados() {
                 ))}
               </MapContainer>
             </div>
-            
           </div>
         </div>
       )}
@@ -205,4 +253,4 @@ function Resultados() {
   );
 }
 
-export default Resultados;
+export default Resultados;  
