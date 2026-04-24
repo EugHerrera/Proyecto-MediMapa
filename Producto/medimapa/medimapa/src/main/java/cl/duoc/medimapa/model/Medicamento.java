@@ -24,16 +24,18 @@ public class Medicamento {
     @Column(nullable = false)
     private Boolean activo = true; 
 
-    // 🔥 Agregamos el campo para la base de datos
     @Column(name = "es_bioequivalente")
     private Boolean es_bioequivalente = false;
 
-    // Getters y Setters manuales para asegurar compatibilidad total
+    // 🔥 Getters y Setters manuales a prueba de fallos del IDE
     public String getNombre_canonico() { return nombre_canonico; }
     public void setNombre_canonico(String nombre_canonico) { this.nombre_canonico = nombre_canonico; }
     
     public String getPrincipio_activo() { return principio_activo; }
     public void setPrincipio_activo(String principio_activo) { this.principio_activo = principio_activo; }
+
+    public String getOrigen_catalogo() { return origen_catalogo; }
+    public void setOrigen_catalogo(String origen_catalogo) { this.origen_catalogo = origen_catalogo; }
 
     public Boolean getEs_bioequivalente() { return es_bioequivalente; }
     public void setEs_bioequivalente(Boolean es_bioequivalente) { this.es_bioequivalente = es_bioequivalente; }

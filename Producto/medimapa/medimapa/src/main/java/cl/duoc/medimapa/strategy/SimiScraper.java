@@ -1,12 +1,13 @@
 package cl.duoc.medimapa.strategy;
 
-import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 public class SimiScraper implements FarmaciaScraper {
@@ -16,41 +17,45 @@ public class SimiScraper implements FarmaciaScraper {
     @Override
     public String generarUrl(String nombreMedicamento) {
         try {
-            String busquedaEncoded = URLEncoder.encode(nombreMedicamento, StandardCharsets.UTF_8);
-            return "https://www.drsimi.cl/" + busquedaEncoded + "?_q=" + busquedaEncoded + "&map=ft&order=OrderByPriceASC";
+            String encoded = URLEncoder.encode(nombreMedicamento, StandardCharsets.UTF_8);
+            return "https://www.drsimi.cl/" + encoded + "?_q=" + encoded + "&map=ft&order=OrderByPriceASC";
         } catch (Exception e) { return ""; }
     }
 
     @Override
     public BigDecimal extraerMenorPrecio(Page page) {
-        try { page.waitForLoadState(com.microsoft.playwright.options.LoadState.NETWORKIDLE, new Page.WaitForLoadStateOptions().setTimeout(8000)); } catch (Exception e) { page.waitForTimeout(3000); }
-        Locator precios = page.locator("[class*='price'], [class*='Precio']").filter(new Locator.FilterOptions().setHasText("$"));
-        if (precios.count() > 0) {
-            List<String> textos = precios.allInnerTexts();
+        try { 
+            page.waitForLoadState();
+            // 🔥 SCROLL MAGICO: Obligamos a la página a bajar para que cargue los precios
+            page.evaluate("window.scrollBy(0, 800)");
+            page.waitForTimeout(4500); // Le damos tiempo a que aparezcan
+            
+            List<String> textos = page.locator("body").allInnerTexts();
             BigDecimal minPrecio = null;
-            for (String t : textos) {
-                String limpio = t.split("[\\n\\s]+")[0].replaceAll("[^\\d]", "");
-                if (!limpio.isEmpty()) {
+            
+            for (String texto : textos) {
+                // Regex para atrapar todo lo que sea $100, $1.000, etc.
+                Matcher m = Pattern.compile("\\$\\s*(\\d[\\d\\.]*)").matcher(texto);
+                while (m.find()) {
+                    String limpio = m.group(1).replace(".", "");
                     try {
                         BigDecimal actual = new BigDecimal(limpio);
-                        if (actual.compareTo(new BigDecimal(100)) > 0) {
-                            if (minPrecio == null || actual.compareTo(minPrecio) < 0) minPrecio = actual;
+                        if (actual.compareTo(new BigDecimal(150)) > 0) { // Evita basura menor a $150
+                            if (minPrecio == null || actual.compareTo(minPrecio) < 0) {
+                                minPrecio = actual;
+                            }
                         }
                     } catch (Exception e) {}
                 }
             }
             return minPrecio;
-        }
-        return null;
+        } catch (Exception e) { return null; }
     }
 
-    // 🔥 EL NUEVO RADAR BIOEQUIVALENTE
     @Override
     public boolean esBioequivalente(Page page) {
         try {
-            return page.locator("img[src*='bioequivalente' i], img[alt*='bioequivalente' i], [class*='bioequivalente' i]").count() > 0;
-        } catch (Exception e) {
-            return false;
-        }
+            return page.getByText(Pattern.compile("bioequivalente", Pattern.CASE_INSENSITIVE)).count() > 0;
+        } catch (Exception e) { return false; }
     }
 }
