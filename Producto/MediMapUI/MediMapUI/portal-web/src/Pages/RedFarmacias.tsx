@@ -33,9 +33,9 @@ const crearIconoCircular = (logoUrl: string, borderColor: string) => {
   });
 };
 
-const ahumadaIcon = crearIconoCircular(logoAhumada, '#c41e3a');
-const salcobrandIcon = crearIconoCircular(logoSalcobrand, '#0066cc');
-const drsimiIcon = crearIconoCircular(logoSimi, '#0066cc');
+const ahumadaIcon = crearIconoCircular(logotipoAhumada, '#c41e3a');
+const salcobrandIcon = crearIconoCircular(logotipoSalcobrand, '#0066cc');
+const drsimiIcon = crearIconoCircular(logotipoDrSimi, '#0066cc');
 
 const getIconoFarmacia = (cadenaNombre: string) => {
   switch (cadenaNombre) {
