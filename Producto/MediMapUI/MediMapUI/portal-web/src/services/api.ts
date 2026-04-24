@@ -10,6 +10,10 @@ export const apiScraper = axios.create({
   baseURL: import.meta.env.VITE_API_SCRAPER,
 });
 
+// 3. Instancia para el microservicio de Geolocalización (Gateway /api/geo)
+export const apiGeo = axios.create({
+  baseURL: import.meta.env.VITE_API_GEO || 'http://localhost:8083/api',
+});
 // 🔥 EL INTERCEPTOR MÁGICO 🔥
 // Este código atrapa CADA petición que sale hacia tu backend de Usuarios antes de que viaje
 apiUsuarios.interceptors.request.use(
