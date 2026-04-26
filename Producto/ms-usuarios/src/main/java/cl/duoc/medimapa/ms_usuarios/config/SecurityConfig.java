@@ -34,24 +34,29 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // 1. 🔥 ACTIVAMOS EL CORS A NIVEL DE SEGURIDAD
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf.disable()) // APAGAMOS LA PROTECCIÓN CSRF PARA PERMITIR POST/PUT/DELETE
+            .csrf(csrf -> csrf.disable()) 
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // 2. 🔥 PERMITIMOS LAS PETICIONES PREFLIGHT DEL NAVEGADOR
+                // Permitimos peticiones de control del navegador (Preflight)
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() 
                 
-                // Rutas públicas de búsqueda y scraping
+                // Rutas públicas de búsqueda
                 .requestMatchers("/api/buscador/**", "/api/scraper/**").permitAll()
 
-                // Reglas VIP de Usuarios (Login, Registro y Solicitud)
-                .requestMatchers("/api/usuarios/login", "/api/usuarios/registro", "/api/usuarios/solicitud-inscripcion").permitAll()
+                // 🔥 RUTAS VIP: Añadimos "/error" para que no te mienta con un 403 cuando algo falle en Java
+                .requestMatchers(
+                    "/api/usuarios/login", 
+                    "/api/usuarios/registro", 
+                    "/api/usuarios/solicitud-inscripcion", 
+                    "/api/usuarios/admin/subir-isp", 
+                    "/error"
+                ).permitAll()
                 
-                // 🔥 LA SOLUCIÓN NUCLEAR: Permiso absoluto a TODAS las rutas de inventario
+                // Permitir rutas de inventario temporalmente para pruebas
                 .requestMatchers("/api/usuarios/inventario/**").permitAll()
                 
-                // Todo lo demás requiere token
+                // Cualquier otra ruta requiere el token JWT
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
@@ -59,11 +64,11 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // 3. 🔥 CONFIGURACIÓN EXACTA DE QUIÉN PUEDE ENTRAR Y CON QUÉ
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:5174")); 
+        // Permitimos el puerto de React (5173) y el del Gateway (8080)
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:8080")); 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);

@@ -13,9 +13,9 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    // Esta es tu firma secreta. En producción esto debería ir en un archivo .properties o .env
-    // ¡Nadie más que tu backend debe conocer esta llave!
-    private static final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    // 🔥 CORRECCIÓN CRÍTICA: Llave estática para que los tokens sobrevivan a los reinicios del servidor.
+    private static final String SECRET_PASS = "MediMapa2026DuocUCProyectoFinalArquitecturaSoftware";
+    private static final Key SECRET_KEY = Keys.hmacShaKeyFor(SECRET_PASS.getBytes());
     
     // Tiempo de validez del Token: 10 horas
     private static final long TIEMPO_EXPIRACION = 1000 * 60 * 60 * 10;

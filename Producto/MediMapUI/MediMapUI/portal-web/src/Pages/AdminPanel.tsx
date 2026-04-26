@@ -21,6 +21,9 @@ const AdminPanel = () => {
   // --- Estados para Admin ---
   const [solicitudes, setSolicitudes] = useState<any[]>([]);
   
+  // 🔥 NUEVOS ESTADOS PARA EL EXCEL DEL ISP (SÚPER ADMIN)
+  const [archivoIsp, setArchivoIsp] = useState<File | null>(null);
+
   useEffect(() => {
     const rolGuardado = localStorage.getItem('usuarioRol');
     if (!rolGuardado) {
@@ -67,6 +70,33 @@ const AdminPanel = () => {
       cargarSolicitudesPendientes(); 
     } catch (err) {
       alert("Error al rechazar la farmacia.");
+    }
+  };
+
+  // ==========================================
+  // 🔥 LÓGICA DE SÚPER ADMIN (ISP)
+  // ==========================================
+  const manejarSeleccionIsp = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) setArchivoIsp(e.target.files[0]);
+  };
+
+  const subirExcelIsp = async () => {
+    if (!archivoIsp) return;
+    setCargando(true);
+    const formData = new FormData();
+    formData.append('archivo', archivoIsp);
+    
+    try {
+      const respuesta = await apiUsuarios.post('/usuarios/admin/subir-isp', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      alert(respuesta.data); 
+      setArchivoIsp(null);
+    } catch (err: any) {
+      const serverMsg = err?.response?.data || err?.message || "Error desconocido";
+      alert(`❌ Error al subir Excel ISP: ${serverMsg}`);
+    } finally {
+      setCargando(false);
     }
   };
 
@@ -175,6 +205,30 @@ const AdminPanel = () => {
   // --- VISTAS ---
   const renderVistaAdmin = () => (
     <div className="admin-dashboard-grid">
+      
+      {/* 🔥 LA NUEVA CAJA PARA EL EXCEL DEL ISP */}
+      <div className="admin-card" style={{ gridColumn: '1 / -1', borderLeft: '4px solid #ca8a04', backgroundColor: '#fefce8' }}>
+        <h2 style={{ color: '#854d0e', marginTop: 0 }}>📜 Certificación Bioequivalentes (ISP)</h2>
+        <p style={{ color: '#713f12', fontSize: '0.9rem', marginBottom: '15px' }}>
+          Sube el Excel oficial del Instituto de Salud Pública para marcar automáticamente los medicamentos con el sello de bioequivalencia.
+        </p>
+        <div className="dropzone" style={{ borderColor: '#fde047', backgroundColor: '#fffbeb', marginBottom: '15px' }}>
+          <span className="dropzone-icon">📊</span>
+          <div className="dropzone-text" style={{ color: '#854d0e' }}>
+            {archivoIsp ? `Listo para procesar: ${archivoIsp.name}` : 'Seleccionar Excel del ISP (.xlsx)'}
+          </div>
+          <input type="file" accept=".xlsx, .xls" onChange={manejarSeleccionIsp} />
+        </div>
+        <button 
+          className="btn-upload" 
+          onClick={subirExcelIsp} 
+          disabled={!archivoIsp || cargando}
+          style={{ backgroundColor: '#ca8a04', color: 'white', opacity: (!archivoIsp || cargando) ? 0.6 : 1 }}
+        >
+          {cargando ? 'Analizando filas...' : 'Certificar Catálogo'}
+        </button>
+      </div>
+
       <div className="admin-card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2>🤖 Estado del Motor Scraper</h2>

@@ -4,6 +4,7 @@ import cl.duoc.medimapa.ms_usuarios.security.JwtUtil;
 import cl.duoc.medimapa.ms_usuarios.model.Usuario;
 import cl.duoc.medimapa.ms_usuarios.repository.UsuarioRepository;
 import cl.duoc.medimapa.ms_usuarios.service.ExcelService;
+import cl.duoc.medimapa.ms_usuarios.service.IspExcelService;
 import cl.duoc.medimapa.ms_usuarios.repository.PrecioVigenteRepository;
 import cl.duoc.medimapa.ms_usuarios.repository.SucursalFarmaciaRepository;
 import cl.duoc.medimapa.ms_usuarios.repository.MedicamentoRepository;
@@ -19,7 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.transaction.annotation.Transactional; // 🔥 ESTE ES EL MAGO
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -43,6 +44,10 @@ public class UsuarioController {
     @Autowired private PasswordEncoder passwordEncoder; 
     @Autowired private JwtUtil jwtUtil; 
     @Autowired private ExcelService excelService; 
+    
+    // 🔥 AQUÍ INYECTAMOS TU NUEVO SERVICIO PARA EL ISP
+    @Autowired private IspExcelService ispExcelService; 
+    
     @Autowired private cl.duoc.medimapa.ms_usuarios.repository.CorridaActualizacionRepository corridaRepo;
 
     @PostMapping("/registro")
@@ -211,38 +216,48 @@ public class UsuarioController {
     }
 
   @DeleteMapping("/inventario/eliminar")
-    @Transactional // 🔥 Esto es como el "Commit" automático
+    @Transactional
     public ResponseEntity<?> eliminarMedicamentoInventario(
             @RequestParam Long idSucursal, 
             @RequestParam String nombreMedicamento) {
         try {
-            // 1. Borramos la relación en la farmacia (PrecioVigente)
-            // Usamos una query manual para asegurar que se borre por texto exacto o parecido
             PrecioVigenteId idRelacion = new PrecioVigenteId();
             idRelacion.setId_sucursal(idSucursal);
             idRelacion.setTexto_busqueda(nombreMedicamento);
             
             if (precioVigenteRepo.existsById(idRelacion)) {
                 precioVigenteRepo.deleteById(idRelacion);
-                precioVigenteRepo.flush(); // 🔥 Obligamos a PostgreSQL a borrarlo YA
+                precioVigenteRepo.flush();
             }
 
-            // 2. Borramos el medicamento del catálogo global
-            // Lo buscamos usando la nueva query insensible a mayúsculas
             Optional<Medicamento> medOpt = medicamentoRepository.findByNombreCanonico(nombreMedicamento);
             
             if (medOpt.isPresent()) {
                 medicamentoRepository.delete(medOpt.get());
-                medicamentoRepository.flush(); // 🔥 Golpe final a la base de datos
+                medicamentoRepository.flush(); 
                 return ResponseEntity.ok("Aniquilado con éxito de todos lados");
             }
 
             return ResponseEntity.ok("Se eliminó de la farmacia, pero no se encontró en el catálogo global para borrarlo.");
             
         } catch (Exception e) {
-            // Si sale un error de "Llave Foránea", es porque otra farmacia lo tiene.
-            // En ese caso, es mejor solo borrarlo de TU farmacia y no del sistema.
             return ResponseEntity.status(500).body("Aviso: " + e.getMessage());
+        }
+    }
+
+    // 🔥 ESTE ES EL NUEVO ENDPOINT EXCLUSIVO PARA SUBIR EL EXCEL DEL ISP
+    @PostMapping("/admin/subir-isp")
+    public ResponseEntity<String> subirExcelIsp(@RequestParam("archivo") MultipartFile archivo) {
+        if (archivo.isEmpty()) {
+            return ResponseEntity.badRequest().body("Error: El archivo Excel está vacío.");
+        }
+        try {
+            String resultado = ispExcelService.sincronizarBioequivalentes(archivo);
+            return ResponseEntity.ok("✅ Éxito: " + resultado);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("❌ Error procesando el Excel del ISP: " + e.getMessage());
         }
     }
 
