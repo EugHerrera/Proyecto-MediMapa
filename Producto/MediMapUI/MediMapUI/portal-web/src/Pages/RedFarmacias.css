@@ -1,42 +1,57 @@
-/* Contenedor Principal con ajuste para Navbar fija */
+/* Contenedor Principal */
 .red-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 110px 1rem 3rem 1rem; /* Padding superior para evitar solapamiento */
+  padding: 60px 1rem 3rem 1rem;
   font-family: 'Inter', -apple-system, sans-serif;
   color: #1e293b;
 }
 
-/* Cabecera y Grilla de Logos */
-.red-header {
+/* 🔥 NUEVO BANNER PREMIUM (Acorde a FAQ y Catálogo) 🔥 */
+.red-banner {
+  background: linear-gradient(90deg, #ca8a04 0%, #059669 100%);
+  color: white;
+  padding: 40px 30px;
+  border-radius: 12px;
   text-align: center;
-  margin-bottom: 3.5rem;
+  margin-bottom: 50px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  position: relative;
+  overflow: hidden;
 }
 
-.red-header h1 {
-  color: #0f172a;
-  font-size: 2.2rem;
+.red-banner h1 {
+  color: white;
+  font-size: 2.5rem;
   font-weight: 800;
   margin-bottom: 0.75rem;
+  position: relative;
+  z-index: 2;
 }
 
-.red-header p {
-  color: #64748b;
+.red-banner p {
+  color: rgba(255, 255, 255, 0.9);
   max-width: 700px;
   margin: 0 auto 2rem auto;
+  font-size: 1.1rem;
+  position: relative;
+  z-index: 2;
 }
 
+/* Grilla de Logos dentro del banner */
 .logos-grid {
   display: flex;
   justify-content: center;
   gap: 1.5rem;
   flex-wrap: wrap;
+  position: relative;
+  z-index: 2;
 }
 
-/* Tarjetas de Logos y Efectos Hover */
+/* Tarjetas de Logos */
 .logo-card {
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.95); /* Fondo blanco un poco translúcido */
+  border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 12px;
   padding: 1.2rem;
   width: 200px;
@@ -44,7 +59,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -55,8 +70,8 @@
 
 .link-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 12px 20px -5px rgba(5, 150, 105, 0.1); /* Sombra verde */
-  border-color: #059669; /* Borde verde clínico */
+  box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.3); 
+  border-color: #ca8a04; /* Borde dorado al pasar el mouse */
 }
 
 .logo-card img {
@@ -66,12 +81,12 @@
 }
 
 .independiente-card {
-  background: #f0fdf4; /* Fondo verde claro */
+  background: #fefce8; /* Fondo amarillo clarito */
   flex-direction: column;
-  color: #047857; /* Verde oscuro */
+  color: #854d0e; /* Texto dorado oscuro */
   font-weight: 700;
   font-size: 0.8rem;
-  border: 1px dashed #059669; /* Borde punteado verde */
+  border: 1px dashed #ca8a04; /* Borde punteado dorado */
 }
 
 .independiente-icon {
@@ -80,8 +95,8 @@
 }
 
 .independiente-card small {
-  color: #059669; /* Verde clínico */
-  font-weight: 400;
+  color: #ca8a04;
+  font-weight: 600;
   margin-top: 4px;
 }
 
@@ -101,13 +116,14 @@
   height: fit-content;
   position: sticky;
   top: 100px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
 }
 
 .red-sidebar h3 {
   margin-top: 0;
-  color: #059669; /* Título verde clínico */
+  color: #ca8a04; /* Título Dorado */
   font-size: 1.2rem;
-  border-bottom: 2px solid #dcfce7; /* Línea separadora verde clara */
+  border-bottom: 2px solid #fef08a; /* Línea separadora amarilla */
   padding-bottom: 12px;
   margin-bottom: 1.8rem;
 }
@@ -119,13 +135,13 @@
 }
 
 .filter-group label {
-  font-weight: 600;
-  margin-bottom: 6px;
+  font-weight: 700;
+  margin-bottom: 8px;
   font-size: 0.85rem;
-  color: #475569;
+  color: #059669; /* Verde esmeralda */
 }
 
-.filter-group select, .filter-group input {
+.filter-group select, .filter-group input[type="text"] {
   padding: 12px;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
@@ -135,8 +151,8 @@
 
 .filter-group input:focus, .filter-group select:focus {
   outline: none;
-  border-color: #059669;
-  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+  border-color: #ca8a04;
+  box-shadow: 0 0 0 2px rgba(202, 138, 4, 0.2);
 }
 
 .ubicacion-mode {
@@ -149,29 +165,37 @@
   border: 1px solid #cbd5e1;
   background: #f8fafc;
   color: #334155;
-  border-radius: 10px;
-  padding: 0.9rem 1rem;
+  border-radius: 8px;
+  padding: 0.8rem 0.5rem;
   cursor: pointer;
   font-weight: 700;
+  font-size: 0.85rem;
   transition: all 0.2s ease;
 }
 
 .ubicacion-mode button.active {
-  background: #059669;
+  background: #059669; /* Verde */
   color: white;
   border-color: #059669;
 }
 
-.btn-buscar-direccion {
+/* 🔥 BOTONES CON DEGRADADO 🔥 */
+.btn-buscar-direccion, .btn-ubicacion {
   margin-top: 0.75rem;
   width: 100%;
   padding: 12px;
-  border-radius: 10px;
-  background: #059669;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #ca8a04 0%, #059669 100%);
   color: white;
   border: none;
   cursor: pointer;
   font-weight: 700;
+  transition: opacity 0.3s, transform 0.1s;
+}
+
+.btn-buscar-direccion:hover, .btn-ubicacion:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
 }
 
 .chain-selector {
@@ -188,22 +212,6 @@
   color: #334155;
 }
 
-.btn-limpiar {
-  width: 100%;
-  padding: 12px;
-  background: transparent;
-  border: 1.5px solid #ef4444;
-  color: #ef4444;
-  border-radius: 8px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.btn-limpiar:hover {
-  background: #fef2f2;
-}
-
 /* Resultados y Mapa */
 .red-results {
   display: flex;
@@ -216,52 +224,13 @@
   min-height: 420px;
   border-radius: 20px;
   overflow: hidden;
-  border: 2px solid #bbf7d0;
+  border: 2px solid #ca8a04; /* Borde dorado alrededor del mapa */
   box-shadow: 0 10px 20px rgba(15, 23, 42, 0.05);
 }
 
 .mapa-real .leaflet-container {
   width: 100%;
   height: 100%;
-}
-
-.user-location-icon span,
-.farmacia-icon span {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  font-size: 1.35rem;
-  line-height: 1;
-}
-
-.farmacia-icon span {
-  background: #0f172a;
-  color: white;
-  border-radius: 50%;
-  box-shadow: 0 0 0 5px rgba(15, 23, 42, 0.18);
-}
-
-.mapa-placeholder {
-  width: 100%;
-  height: 420px;
-  background-color: #f0fdf4; /* Fondo del mapa verde claro */
-  background-image: radial-gradient(#86efac 0.5px, transparent 0.5px); /* Puntos verdes */
-  background-size: 20px 20px;
-  border-radius: 20px;
-  border: 2px solid #bbf7d0; /* Borde del mapa verde */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.mapa-overlay {
-  background: white;
-  padding: 2rem 4rem;
-  border-radius: 16px;
-  text-align: center;
-  box-shadow: 0 20px 25px -5px rgba(5, 150, 105, 0.1); /* Sombra verde */
 }
 
 /* Tabla Estilizada */
@@ -276,12 +245,12 @@
 }
 
 .tabla-farmacias th {
-  background: #f8fafc;
+  background: transparent;
   padding: 1.2rem;
   text-align: left;
   font-weight: 700;
-  color: #475569;
-  border-bottom: 2px solid #f1f5f9;
+  color: #854d0e; /* Dorado oscuro */
+  border-bottom: 2px solid #ca8a04; /* Separador dorado */
 }
 
 .tabla-farmacias td {
@@ -298,9 +267,9 @@
   text-transform: uppercase;
 }
 
-/* Colores de los badges ajustados a la nueva paleta */
-.badge.cadena { background: #e2e8f0; color: #475569; } /* Gris para cadenas regulares */
-.badge.independiente { background: #dcfce7; color: #15803d; } /* Verde para las pymes */
+/* Badges */
+.badge.cadena { background: #e2e8f0; color: #475569; } 
+.badge.independiente { background: #fef08a; color: #854d0e; border: 1px solid #ca8a04;} /* Pymes en dorado */
 
 @media (max-width: 900px) {
   .red-main-content { grid-template-columns: 1fr; }

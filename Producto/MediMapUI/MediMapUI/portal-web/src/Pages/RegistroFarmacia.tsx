@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { apiUsuarios } from '../services/api'; // 🔥 Importamos la conexión al backend
+import { apiUsuarios } from '../services/api'; 
 import './RegistroFarmacia.css';
 
 const RegistroFarmacia = () => {
@@ -8,7 +8,6 @@ const RegistroFarmacia = () => {
   const [aceptoTerminos, setAceptoTerminos] = useState(false);
   const [cargando, setCargando] = useState(false);
 
-  // 🔥 AGREGAMOS razonSocial y resolucionSeremi al estado
   const [datosEstablecimiento, setDatosEstablecimiento] = useState({
     nombre: '', razonSocial: '', rut: '', resolucionSeremi: '', region: '', comuna: '', direccion: ''
   });
@@ -27,7 +26,6 @@ const RegistroFarmacia = () => {
 
     setCargando(true);
     try {
-      // 🔥 Armamos el paquete de datos EXACTAMENTE como lo espera el Modelo de Java
       const payload = {
         nombre_fantasia: datosEstablecimiento.nombre,
         razon_social: datosEstablecimiento.razonSocial,
@@ -49,11 +47,10 @@ const RegistroFarmacia = () => {
         acepta_ley_21719: aceptoTerminos
       };
 
-      // 🔥 Enviamos la solicitud al endpoint que creamos en Java
       const respuesta = await apiUsuarios.post('/usuarios/solicitud-inscripcion', payload);
       
-      alert(respuesta.data); // Muestra el mensaje de éxito de Java
-      navigate('/'); // Lo mandamos al inicio tras enviar
+      alert(respuesta.data); 
+      navigate('/'); 
     } catch (error) {
       console.error(error);
       alert("Error al enviar el formulario. Verifica que el servidor Java esté encendido.");
@@ -65,7 +62,9 @@ const RegistroFarmacia = () => {
   return (
     <div className="registro-container">
       <div className="form-wrapper">
-        <header className="form-header">
+        
+        {/* 🔥 AQUÍ ESTÁ EL NUEVO BANNER PREMIUM 🔥 */}
+        <header className="registro-banner">
           <h1>Paso 1: Formulario de Afiliación</h1>
           <p>Complete los datos para unir su farmacia a la red MediMapa. Un administrador validará su SEREMI.</p>
         </header>
@@ -80,7 +79,6 @@ const RegistroFarmacia = () => {
                 <input type="text" required value={datosEstablecimiento.nombre} onChange={e => setDatosEstablecimiento({...datosEstablecimiento, nombre: e.target.value})} />
               </div>
               
-              {/* 🔥 NUEVO CAMPO: RAZÓN SOCIAL */}
               <div className="input-group">
                 <label>Razón Social (*)</label>
                 <input type="text" required value={datosEstablecimiento.razonSocial} onChange={e => setDatosEstablecimiento({...datosEstablecimiento, razonSocial: e.target.value})} />
@@ -91,7 +89,6 @@ const RegistroFarmacia = () => {
                 <input type="text" placeholder="12.345.678-5" required value={datosEstablecimiento.rut} onChange={e => setDatosEstablecimiento({...datosEstablecimiento, rut: e.target.value})} />
               </div>
 
-              {/* 🔥 NUEVO CAMPO: RESOLUCIÓN SEREMI */}
               <div className="input-group">
                 <label>N° Resolución SEREMI (*)</label>
                 <input type="text" required value={datosEstablecimiento.resolucionSeremi} onChange={e => setDatosEstablecimiento({...datosEstablecimiento, resolucionSeremi: e.target.value})} />
@@ -163,7 +160,7 @@ const RegistroFarmacia = () => {
           {/* CLÁUSULA LEY 21.719 */}
           <div className="ley-box">
             <label className="checkbox-label">
-              <input type="checkbox" checked={aceptoTerminos} onChange={e => setAceptoTerminos(e.target.checked)} />
+              <input type="checkbox" checked={aceptoTerminos} onChange={e => setAceptoTerminos(e.target.checked)} style={{marginTop: '3px'}} />
               <span>
                 <strong>Cumplimiento Ley 21.719:</strong> Acepto el tratamiento de mis datos personales y profesionales 
                 exclusivamente para fines de validación sanitaria y operativa de MediMapa.

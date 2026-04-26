@@ -1,64 +1,96 @@
 /* Contenedor Principal del Panel */
 .admin-container {
-  max-width: 1000px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 120px 20px 60px 20px;
   font-family: 'Inter', sans-serif;
   color: #1e293b;
+  min-height: calc(100vh - 70px);
 }
 
-.admin-header {
-  margin-bottom: 30px;
-  border-bottom: 2px solid #e2e8f0;
-  padding-bottom: 15px;
+/* 🔥 NUEVO BANNER PREMIUM 🔥 */
+.admin-banner {
+  background: linear-gradient(90deg, #ca8a04 0%, #059669 100%);
+  color: white;
+  padding: 40px 30px;
+  border-radius: 12px;
+  margin-bottom: 40px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  position: relative;
+  overflow: hidden;
 }
 
-.admin-header h1 {
-  color: #059669; /* Verde Clínico */
-  margin: 0 0 5px 0;
-  font-size: 2rem;
+.admin-banner h1 {
+  margin: 0 0 10px 0;
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: white;
+  position: relative;
+  z-index: 2;
 }
 
-.admin-header p {
-  color: #64748b;
+.admin-banner p {
   margin: 0;
+  font-size: 1.1rem;
+  opacity: 0.9;
+  color: white;
+  position: relative;
+  z-index: 2;
+}
+
+/* Decoración de fondo en el banner */
+.admin-banner::after {
+  content: "⚙️";
+  position: absolute;
+  right: 5%;
+  top: -30px;
+  font-size: 10rem;
+  opacity: 0.1;
+  transform: rotate(15deg);
 }
 
 /* Tarjetas de Sección */
 .admin-card {
   background: white;
   border-radius: 12px;
-  padding: 25px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   border: 1px solid #e2e8f0;
   margin-bottom: 30px;
+  transition: all 0.3s ease;
+}
+
+.admin-card:hover {
+  border-color: #ca8a04;
+  box-shadow: 0 10px 20px -5px rgba(202, 138, 4, 0.1);
 }
 
 .admin-card h2 {
   margin-top: 0;
   color: #0f172a;
-  font-size: 1.3rem;
-  margin-bottom: 20px;
+  font-size: 1.4rem;
+  margin-bottom: 25px;
   display: flex;
   align-items: center;
   gap: 10px;
+  border-bottom: 2px solid #fef08a; /* Línea dorada sutil */
+  padding-bottom: 10px;
 }
 
 /* Zona de Carga Masiva (Dropzone) */
 .dropzone {
   border: 2px dashed #cbd5e1;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 40px 20px;
   text-align: center;
   background-color: #f8fafc;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   cursor: pointer;
   position: relative;
 }
 
 .dropzone:hover {
-  border-color: #059669;
-  background-color: #f0fdf4;
+  border-color: #ca8a04; /* Borde dorado al pasar el mouse */
+  background-color: #fefce8;
 }
 
 .dropzone-icon {
@@ -68,9 +100,10 @@
 }
 
 .dropzone-text {
-  color: #475569;
-  font-weight: 500;
+  color: #854d0e;
+  font-weight: 700;
   margin-bottom: 5px;
+  font-size: 1.1rem;
 }
 
 .dropzone-hint {
@@ -78,7 +111,6 @@
   font-size: 0.85rem;
 }
 
-/* Ocultar el input real de archivo */
 .dropzone input[type="file"] {
   position: absolute;
   top: 0;
@@ -89,83 +121,80 @@
   cursor: pointer;
 }
 
-.btn-upload {
-  background-color: #059669;
+/* 🔥 BOTONES CON DEGRADADO PREMIUM 🔥 */
+.btn-premium {
+  background: linear-gradient(90deg, #ca8a04 0%, #059669 100%);
   color: white;
   border: none;
   padding: 12px 25px;
-  border-radius: 6px;
+  border-radius: 8px;
   font-weight: bold;
   font-size: 1rem;
   cursor: pointer;
   margin-top: 20px;
-  transition: background 0.2s;
+  transition: opacity 0.3s, transform 0.1s;
+  box-shadow: 0 4px 12px rgba(202, 138, 4, 0.2);
 }
 
-.btn-upload:hover:not(:disabled) {
-  background-color: #047857;
+.btn-premium:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-2px);
 }
 
-.btn-upload:disabled {
-  background-color: #94a3b8;
+.btn-premium:disabled {
+  background: #e2e8f0;
+  color: #94a3b8;
   cursor: not-allowed;
-}
-
-/* Buscador Manual */
-.admin-search {
-  width: 100%;
-  padding: 12px 15px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 1rem;
-  margin-bottom: 20px;
-}
-
-.admin-search:focus {
-  outline: none;
-  border-color: #059669;
-  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+  box-shadow: none;
 }
 
 /* Tabla de Inventario */
 .admin-table {
   width: 100%;
   border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .admin-table th {
-  background-color: #f1f5f9;
-  color: #475569;
+  background-color: transparent;
+  color: #854d0e; /* Dorado oscuro */
   text-align: left;
-  padding: 12px 15px;
-  font-weight: 600;
-  border-bottom: 2px solid #e2e8f0;
+  padding: 15px;
+  font-weight: 700;
+  border-bottom: 2px solid #ca8a04; /* Borde inferior dorado */
 }
 
 .admin-table td {
   padding: 15px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #f1f5f9;
   vertical-align: middle;
+  color: #334155;
 }
 
 .input-precio {
   width: 100px;
-  padding: 8px;
+  padding: 10px;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
   font-size: 1rem;
-  text-align: right;
+  font-weight: bold;
+  color: #059669;
+  background: #f8fafc;
 }
 
 .input-precio:focus {
   outline: none;
-  border-color: #059669;
+  border-color: #ca8a04; /* Borde dorado al editar */
+  box-shadow: 0 0 0 3px rgba(202, 138, 4, 0.15);
+  background: white;
 }
 
 .btn-guardar {
-  background-color: #f0fdf4;
-  color: #059669;
-  border: 1px solid #059669;
+  background-color: #fefce8;
+  color: #ca8a04;
+  border: 1px solid #ca8a04;
   padding: 8px 15px;
   border-radius: 6px;
   font-weight: bold;
@@ -174,6 +203,6 @@
 }
 
 .btn-guardar:hover {
-  background-color: #059669;
+  background-color: #ca8a04;
   color: white;
 }

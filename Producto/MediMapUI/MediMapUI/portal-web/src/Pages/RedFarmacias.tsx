@@ -264,9 +264,11 @@ const RedFarmacias: React.FC = () => {
 
   return (
     <div className="red-container">
-      <header className="red-header">
+      
+      {/* 🔥 AQUÍ ESTÁ EL CAMBIO PRINCIPAL: .red-banner para heredar el estilo Premium 🔥 */}
+      <header className="red-banner">
         <h1>Red de Farmacias MediMapa</h1>
-        <p>Usa tu ubicación para ver las farmacias más cercanas en un mapa Leaflet + PostGIS.</p>
+        <p>Usa tu ubicación para ver las farmacias más cercanas en un mapa interactivo.</p>
 
         <div className="logos-grid">
           <a href="https://www.farmaciasahumada.cl/" target="_blank" rel="noopener noreferrer" className="logo-card link-card">
@@ -387,7 +389,7 @@ const RedFarmacias: React.FC = () => {
                   <Marker position={[ubicacion.lat, ubicacion.lng]} icon={DefaultIcon}>
                     <Popup>Tú estás aquí</Popup>
                   </Marker>
-                  <Circle center={[ubicacion.lat, ubicacion.lng]} radius={radioMetros} pathOptions={{ color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.12 }} />
+                  <Circle center={[ubicacion.lat, ubicacion.lng]} radius={radioMetros} pathOptions={{ color: '#ca8a04', fillColor: '#ca8a04', fillOpacity: 0.1 }} />
                 </>
               )}
 
