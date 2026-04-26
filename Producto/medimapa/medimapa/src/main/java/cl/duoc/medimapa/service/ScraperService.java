@@ -35,11 +35,14 @@ public class ScraperService {
                         page.waitForTimeout(3000); 
                         BigDecimal precio = estrategia.extraerMenorPrecio(page);
                         if (precio != null) {
-                            boolean esBio = estrategia.esBioequivalente(page);
-                            if (esBio) {
-                                medicamento.setEs_bioequivalente(true);
-                                medicamentoRepository.save(medicamento);
-                            }
+
+                            //AHORA SE CERTIFICARÁ SEGÚN EL EXCEL DEL GOBIERNO
+                            //boolean esBio = estrategia.esBioequivalente(page);
+                            //if (esBio) {
+                            //    medicamento.setEs_bioequivalente(true);
+                            //    medicamentoRepository.save(medicamento);
+                            //}
+                            
                             PrecioVigente pv = new PrecioVigente();
                             PrecioVigenteId id = new PrecioVigenteId();
                             id.setId_sucursal(sucursal.getId_sucursal()); 

@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Optional;
+import java.util.List;
 
 @Service
 public class IspExcelService {
@@ -16,45 +16,79 @@ public class IspExcelService {
     private MedicamentoRepository medicamentoRepo;
 
     public String sincronizarBioequivalentes(MultipartFile file) throws Exception {
-        // 🔥 WorkbookFactory lee automáticamente .xls y .xlsx sin reventar
         Workbook workbook = WorkbookFactory.create(file.getInputStream());
         Sheet sheet = workbook.getSheetAt(0);
+        
+        // 🔥 MAGIA: Traemos tu catálogo de 50 medicamentos a la memoria
+        List<Medicamento> catalogo = medicamentoRepo.findAll();
         int totalActualizados = 0;
 
         int colNombre = -1;
+        int colPrincipio = -1;
         Row headerRow = sheet.getRow(0); 
+        
+        // Buscamos dinámicamente las columnas clave del ISP
         for (Cell cell : headerRow) {
-            if (cell.getStringCellValue().toLowerCase().contains("nombre producto")) {
-                colNombre = cell.getColumnIndex();
-                break;
+            if (cell != null && cell.getCellType() == CellType.STRING) {
+                String valorCelda = cell.getStringCellValue().trim().toLowerCase();
+                if (valorCelda.equals("nombre") || valorCelda.contains("nombre producto")) {
+                    colNombre = cell.getColumnIndex();
+                }
+                if (valorCelda.contains("principio activo") || valorCelda.equals("principio")) {
+                    colPrincipio = cell.getColumnIndex();
+                }
             }
         }
 
         if (colNombre == -1) {
             workbook.close();
-            throw new Exception("No se encontró la columna 'Nombre Producto' en el Excel.");
+            throw new Exception("No se encontró la columna de Nombres en el Excel del ISP.");
         }
 
+        // Recorremos las 3803 filas del gobierno
         for (int i = 1; i <= sheet.getLastRowNum(); i++) {
             Row row = sheet.getRow(i);
             if (row == null) continue;
-            Cell cell = row.getCell(colNombre);
-            if (cell == null) continue;
-
-            String nombreIsp = cell.getStringCellValue().trim();
-            Optional<Medicamento> medOpt = medicamentoRepo.findByNombreCanonico(nombreIsp);
             
-            if (medOpt.isPresent()) {
-                Medicamento m = medOpt.get();
+            Cell cellNombre = row.getCell(colNombre);
+            if (cellNombre == null) continue;
+
+            String textoIsp = "";
+            if (cellNombre.getCellType() == CellType.STRING) {
+                textoIsp += cellNombre.getStringCellValue().trim().toLowerCase();
+            } else if (cellNombre.getCellType() == CellType.NUMERIC) {
+                textoIsp += String.valueOf(cellNombre.getNumericCellValue()).trim().toLowerCase();
+            }
+
+            // Sumamos el principio activo del ISP para hacer una red de pesca más grande
+            if (colPrincipio != -1) {
+                Cell cellPrincipio = row.getCell(colPrincipio);
+                if (cellPrincipio != null && cellPrincipio.getCellType() == CellType.STRING) {
+                    textoIsp += " " + cellPrincipio.getStringCellValue().trim().toLowerCase();
+                }
+            }
+
+            if (textoIsp.isEmpty()) continue;
+
+            // 🔥 CRUCE INTELIGENTE: ¿El texto del gobierno contiene nuestras palabras?
+            for (Medicamento m : catalogo) {
+                // Solo revisamos los que aún no tienen el sello
                 if (!m.getEs_bioequivalente()) {
-                    m.setEs_bioequivalente(true);
-                    medicamentoRepo.save(m);
-                    totalActualizados++;
+                    String nomDb = m.getNombre_canonico() != null ? m.getNombre_canonico().toLowerCase() : "";
+                    String prinDb = m.getPrincipio_activo() != null ? m.getPrincipio_activo().toLowerCase() : "";
+
+                    if ((!nomDb.isEmpty() && textoIsp.contains(nomDb)) || 
+                        (!prinDb.isEmpty() && textoIsp.contains(prinDb))) {
+                        
+                        m.setEs_bioequivalente(true);
+                        medicamentoRepo.save(m);
+                        totalActualizados++;
+                    }
                 }
             }
         }
         
         workbook.close();
-        return "Sincronización completa. Se certificaron " + totalActualizados + " medicamentos.";
+        return "✅ Sincronización completa. Se certificaron " + totalActualizados + " medicamentos de tu catálogo.";
     }
 }

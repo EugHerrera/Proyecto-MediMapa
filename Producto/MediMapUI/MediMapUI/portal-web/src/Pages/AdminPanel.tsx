@@ -21,6 +21,9 @@ const AdminPanel = () => {
   // --- Estados para Admin ---
   const [solicitudes, setSolicitudes] = useState<any[]>([]);
   
+  // 🔥 ESTADOS RESCATADOS: Para el Excel del ISP 🔥
+  const [archivoIsp, setArchivoIsp] = useState<File | null>(null);
+
   useEffect(() => {
     const rolGuardado = localStorage.getItem('usuarioRol');
     if (!rolGuardado) {
@@ -70,9 +73,35 @@ const AdminPanel = () => {
   };
 
   // ==========================================
+  // 🔥 LÓGICA DE SÚPER ADMIN (ISP) RESCATADA 🔥
+  // ==========================================
+  const manejarSeleccionIsp = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) setArchivoIsp(e.target.files[0]);
+  };
+
+  const subirExcelIsp = async () => {
+    if (!archivoIsp) return;
+    setCargando(true);
+    const formData = new FormData();
+    formData.append('archivo', archivoIsp);
+    
+    try {
+      const respuesta = await apiUsuarios.post('/usuarios/admin/subir-isp', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      alert(respuesta.data); 
+      setArchivoIsp(null);
+    } catch (err: any) {
+      const serverMsg = err?.response?.data || err?.message || "Error desconocido";
+      alert(`❌ Error al subir Excel ISP: ${serverMsg}`);
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  // ==========================================
   // LÓGICA DE FARMACÉUTICO (CRUD LIMPIO)
   // ==========================================
-  
   const cargarInventarioReal = async () => {
     try {
       const respuesta = await apiUsuarios.get(`/usuarios/inventario/listar/${ID_SUCURSAL}`);
@@ -168,6 +197,33 @@ const AdminPanel = () => {
   // --- VISTAS ---
   const renderVistaAdmin = () => (
     <div className="admin-dashboard-grid">
+
+      {/* 🔥 LA CAJA DORADA DEL ISP RECARGADA CON EL ESTILO NUEVO 🔥 */}
+      <div className="admin-card" style={{ gridColumn: '1 / -1', borderLeft: '5px solid #ca8a04', backgroundColor: '#fefce8' }}>
+        <h2 style={{ color: '#854d0e', marginTop: 0, borderBottom: '2px solid #fde047', paddingBottom: '10px' }}>
+          📜 Certificación Bioequivalentes (ISP)
+        </h2>
+        <p style={{ color: '#713f12', fontSize: '0.95rem', marginBottom: '20px' }}>
+          Sube el Excel oficial del Instituto de Salud Pública para marcar automáticamente los medicamentos con el sello de bioequivalencia.
+        </p>
+        <div className="dropzone" style={{ borderColor: '#fde047', backgroundColor: '#fffbeb', marginBottom: '20px' }}>
+          <span className="dropzone-icon">📊</span>
+          <div className="dropzone-text" style={{ color: '#854d0e' }}>
+            {archivoIsp ? `Listo para procesar: ${archivoIsp.name}` : 'Seleccionar Excel del ISP (.xlsx)'}
+          </div>
+          <div className="dropzone-hint" style={{ color: '#a16207' }}>Haz clic o arrastra el archivo purificado.</div>
+          <input type="file" accept=".xlsx, .xls" onChange={manejarSeleccionIsp} />
+        </div>
+        <button 
+          className="btn-premium" 
+          onClick={subirExcelIsp} 
+          disabled={!archivoIsp || cargando}
+          style={{ width: '100%', fontSize: '1.1rem' }}
+        >
+          {cargando ? 'Analizando filas en el servidor...' : 'Certificar Catálogo'}
+        </button>
+      </div>
+
       <div className="admin-card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2>🤖 Estado del Motor Scraper</h2>
@@ -230,7 +286,6 @@ const AdminPanel = () => {
   const renderVistaFarmaceutico = () => (
     <>
       <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
-        {/* 🔥 ESTADÍSTICA EN TONO DORADO PREMIUM 🔥 */}
         <div style={{ backgroundColor: '#fefce8', border: '1px solid #fef08a', padding: '25px', borderRadius: '12px', flex: 1, display: 'flex', alignItems: 'center', gap: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
           <div style={{ fontSize: '3rem', backgroundColor: 'white', padding: '10px', borderRadius: '50%', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>📦</div>
           <div>
@@ -256,7 +311,6 @@ const AdminPanel = () => {
       <div className="admin-card">
         <h2>⚡ Ajuste Manual Rápido</h2>
         
-        {/* 🔥 FORMULARIO MANUAL CON FONDO SUTIL 🔥 */}
         <div style={{ backgroundColor: '#f8fafc', padding: '25px', borderRadius: '12px', marginBottom: '30px', border: '1px solid #e2e8f0' }}>
           <h3 style={{ margin: '0 0 15px 0', color: '#0f172a', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{color: '#ca8a04'}}>➕</span> Ingresar Nuevo Medicamento
@@ -357,7 +411,6 @@ const AdminPanel = () => {
         </Link>
       </div>
       
-      {/* 🔥 BANNER PRINCIPAL 🔥 */}
       <header className="admin-banner">
         <h1>{rolUsuario === 'ADMIN' ? 'Centro de Comando Súper Admin' : 'Panel de Gestión Farmacéutica'}</h1>
         <p>{rolUsuario === 'ADMIN' ? 'Monitoreo de sistema y aprobación de locales' : 'Actualiza tus precios y stock en tiempo real'}</p>

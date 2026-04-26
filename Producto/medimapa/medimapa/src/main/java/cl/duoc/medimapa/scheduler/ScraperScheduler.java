@@ -28,7 +28,7 @@ public class ScraperScheduler {
         CorridaActualizacion corrida = new CorridaActualizacion();
         corrida.setId_fuente(0L); 
         corrida.setInicio(OffsetDateTime.now());
-        corrida.setEstado("PROCESANDO_CRON");
+        corrida.setEstado("parcial");
         corrida = corridaRepo.save(corrida);
 
         try {
