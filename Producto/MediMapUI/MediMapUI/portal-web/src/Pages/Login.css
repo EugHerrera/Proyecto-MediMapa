@@ -21,14 +21,19 @@
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
   border: 1px solid #e2e8f0;
   text-align: center;
-  
-  /* Esto ayuda a compensar visualmente el peso del header */
+  border-top: 4px solid #ca8a04; /* 🔥 Toque elegante dorado en la parte superior */
   margin-top: -50px; 
 }
 
+/* 🔥 TEXTO DEL TÍTULO CON DEGRADADO DORADO A VERDE 🔥 */
 .login-card h1 {
-  color: #059669; /* Verde Clínico */
-  font-size: 2rem;
+  background: linear-gradient(90deg, #ca8a04 0%, #059669 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+  font-size: 2.2rem;
   font-weight: 800;
   margin-bottom: 10px;
 }
@@ -54,9 +59,9 @@
 }
 
 .input-group-login label {
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.85rem;
-  color: #475569;
+  color: #059669; /* Verde esmeralda para conectar con la marca */
 }
 
 .input-group-login input {
@@ -65,17 +70,18 @@
   border-radius: 8px;
   font-size: 1rem;
   transition: all 0.2s;
+  background-color: #f8fafc;
 }
 
 .input-group-login input:focus {
   outline: none;
-  border-color: #059669;
-  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+  border-color: #ca8a04; /* Borde dorado al hacer clic */
+  box-shadow: 0 0 0 3px rgba(202, 138, 4, 0.2);
 }
 
-/* Botón de Iniciar Sesión */
+/* 🔥 BOTÓN DE INICIAR SESIÓN CON DEGRADADO 🔥 */
 .btn-login-submit {
-  background-color: #059669;
+  background: linear-gradient(90deg, #ca8a04 0%, #059669 100%);
   color: white;
   border: none;
   padding: 14px;
@@ -84,11 +90,12 @@
   font-size: 1rem;
   cursor: pointer;
   margin-top: 10px;
-  transition: background 0.3s, transform 0.1s;
+  transition: opacity 0.3s, transform 0.1s;
+  box-shadow: 0 4px 12px rgba(202, 138, 4, 0.2);
 }
 
 .btn-login-submit:hover {
-  background-color: #047857;
+  opacity: 0.9;
   transform: translateY(-2px);
 }
 
@@ -99,10 +106,10 @@
   color: #64748b;
   text-decoration: none;
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
   transition: color 0.2s;
 }
 
 .btn-volver-buscador:hover {
-  color: #059669;
+  color: #ca8a04; /* Cambia a dorado al pasar el mouse */
 }

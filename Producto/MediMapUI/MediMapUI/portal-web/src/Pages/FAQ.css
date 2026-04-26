@@ -1,26 +1,49 @@
-
 .faq-container {
-  max-width: 800px;
+  max-width: 1000px; /* Un poco más ancho para que respire mejor */
   margin: 0 auto;
-  padding: 80px 20px 60px 20px;
+  padding: 60px 20px;
   font-family: 'Inter', sans-serif;
   color: #1e293b;
 }
 
-.faq-header {
+/* 🔥 NUEVO BANNER SUPERIOR 🔥 */
+.faq-banner {
+  background: linear-gradient(90deg, #ca8a04 0%, #059669 100%);
+  color: white;
+  padding: 40px 30px;
+  border-radius: 12px;
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 50px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  position: relative;
+  overflow: hidden;
 }
 
-.faq-header h2 {
-  font-size: 2.2rem;
-  color: #0f172a;
-  margin-bottom: 10px;
+.faq-banner h2 {
+  font-size: 2.5rem;
+  margin: 0 0 10px 0;
+  font-weight: 800;
+  position: relative;
+  z-index: 2;
 }
 
-.faq-header p {
-  color: #64748b;
+.faq-banner p {
   font-size: 1.1rem;
+  opacity: 0.9;
+  margin: 0;
+  position: relative;
+  z-index: 2;
+}
+
+/* Figura decorativa de fondo */
+.faq-banner::after {
+  content: "❓";
+  position: absolute;
+  right: 5%;
+  top: -20px;
+  font-size: 8rem;
+  opacity: 0.1;
+  transform: rotate(15deg);
 }
 
 /* Contenedor del Acordeón */
@@ -28,6 +51,8 @@
   display: flex;
   flex-direction: column;
   gap: 15px;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .faq-item {
@@ -35,16 +60,20 @@
   border-radius: 8px;
   background-color: #ffffff;
   overflow: hidden;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .faq-item:hover {
-  border-color: #cbd5e1;
+  border-color: #ca8a04;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(202, 138, 4, 0.05);
 }
 
+/* 🔥 ESTADO ACTIVO EN DORADO 🔥 */
 .faq-item.activo {
-  border-color: #0ea5e9;
-  box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.1);
+  border-color: #ca8a04;
+  box-shadow: 0 4px 12px rgba(202, 138, 4, 0.15);
+  background-color: #fefce8; /* Fondo amarillo clarito sutil */
 }
 
 /* Botón de la pregunta */
@@ -62,10 +91,23 @@
   justify-content: space-between;
   align-items: center;
   transition: color 0.2s ease;
+  gap: 15px;
 }
 
 .faq-item.activo .faq-question {
-  color: #0ea5e9;
+  color: #854d0e; /* Texto en tono mostaza oscuro */
+}
+
+/* Contenedor del título e ícono de la pregunta */
+.faq-question-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.faq-question-icon {
+  color: #059669; /* Verde para los iconos de las preguntas */
+  font-size: 1.2rem;
 }
 
 .faq-icon {
@@ -73,21 +115,30 @@
   font-weight: 400;
   color: #94a3b8;
   transition: transform 0.3s ease;
+  background: #f1f5f9;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
 }
 
 .faq-item.activo .faq-icon {
-  color: #0ea5e9;
+  color: white;
+  background-color: #ca8a04;
+  transform: rotate(180deg);
 }
 
 /* Respuesta desplegable */
 .faq-answer-wrapper {
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.3s ease-in-out;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .faq-item.activo .faq-answer-wrapper {
-  max-height: 200px; /* Suficiente espacio para que el texto baje suavemente */
+  max-height: 300px; /* Aumentado por si hay respuestas largas */
 }
 
 .faq-answer {
@@ -98,6 +149,7 @@
 }
 
 .faq-item.activo .faq-answer {
-  border-top-color: #f1f5f9;
+  border-top-color: #fef08a; /* Línea divisoria suave */
   padding-top: 15px;
+  margin: 0 20px;
 }

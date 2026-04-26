@@ -56,18 +56,18 @@ const Navbar = () => {
             // 🔥 SI EL USUARIO ESTÁ LOGUEADO: Mostrar su Rol, Botón al Panel y Cerrar Sesión
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
               <span style={{ 
-                backgroundColor: '#dcfce7', 
-                color: '#166534', 
+                backgroundColor: '#fefce8', 
+                color: '#854d0e', 
                 padding: '6px 14px', 
                 borderRadius: '20px', 
                 fontWeight: 'bold', 
                 fontSize: '0.85rem',
-                border: '1px solid #bbf7d0'
+                border: '1px solid #ca8a04'
               }}>
                 👤 {rolUsuario.toUpperCase()}
               </span>
               
-              <Link to="/admin" className="nav-login-btn" style={{ backgroundColor: '#f8fafc', color: '#0ea5e9', border: '1px solid #e2e8f0' }}>
+              <Link to="/admin" className="nav-login-btn" style={{ backgroundColor: '#f8fafc', color: '#0ea5e9', border: '1px solid #e2e8f0', padding: '6px 12px', borderRadius: '6px' }}>
                 Ir al Panel
               </Link>
               
