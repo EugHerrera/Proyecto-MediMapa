@@ -15,23 +15,48 @@
   box-shadow: 0 4px 20px rgba(0,0,0,0.05);
 }
 
-.form-header h1 { color: #059669; margin-bottom: 8px; } /* Verde Clínico */
-.form-header p { color: #64748b; margin-bottom: 32px; }
+/* 🔥 NUEVO BANNER PREMIUM 🔥 */
+.registro-banner {
+  background: linear-gradient(90deg, #ca8a04 0%, #059669 100%);
+  color: white;
+  padding: 40px 30px;
+  border-radius: 12px;
+  text-align: center;
+  margin-bottom: 40px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  margin-top: -10px; /* Para que quede bien pegado arriba dentro de la caja blanca */
+}
+
+.registro-banner h1 { 
+  margin: 0 0 10px 0; 
+  font-size: 2.2rem; 
+  font-weight: 800; 
+  color: white; 
+}
+
+.registro-banner p { 
+  margin: 0; 
+  font-size: 1.1rem; 
+  opacity: 0.9; 
+  color: white; 
+}
 
 .form-section {
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   padding: 24px;
-  margin-bottom: 24px;
+  margin-bottom: 30px;
 }
 
+/* 🔥 TÍTULOS DE SECCIÓN CON DEGRADADO 🔥 */
 .section-title {
-  background: #059669; /* Verde Clínico */
+  background: linear-gradient(90deg, #ca8a04 0%, #059669 100%);
   color: white;
   margin: -24px -24px 20px -24px;
-  padding: 12px 24px;
+  padding: 15px 24px;
   border-radius: 8px 8px 0 0;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
+  font-weight: 700;
 }
 
 .grid-container {
@@ -41,63 +66,94 @@
 }
 
 .input-group { display: flex; flex-direction: column; gap: 6px; }
-.input-group label { font-size: 0.9rem; font-weight: 600; color: #1e293b; }
+
+/* 🔥 ETIQUETAS EN TONO DORADO OSCURO 🔥 */
+.input-group label { 
+  font-size: 0.9rem; 
+  font-weight: 700; 
+  color: #854d0e; 
+}
+
 .input-group input, .input-group select {
-  padding: 10px;
+  padding: 12px;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
   outline: none;
+  background-color: #f8fafc;
+  font-size: 0.95rem;
   transition: all 0.2s ease;
 }
 
-/* Efecto verde al escribir en los inputs */
+/* Efecto dorado al escribir en los inputs */
 .input-group input:focus, .input-group select:focus {
-  border-color: #059669;
-  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+  border-color: #ca8a04;
+  box-shadow: 0 0 0 3px rgba(202, 138, 4, 0.15);
+  background-color: white;
 }
 
 .full-width { grid-column: span 2; }
 
-/* Caja de advertencia legal */
+/* 🔥 CAJA DE ADVERTENCIA LEGAL (Estilo Disclaimer) 🔥 */
 .ley-box {
-  background: #f0fdf4; /* Fondo verde clarito */
-  padding: 16px;
+  background: #fefce8; 
+  padding: 20px;
   border-radius: 8px;
-  border-left: 4px solid #059669; /* Borde lateral verde clínico */
+  border: 1px solid #fef08a;
+  border-left: 5px solid #ca8a04; 
   margin-bottom: 30px;
 }
 
 .checkbox-label { display: flex; gap: 12px; cursor: pointer; align-items: flex-start; }
-.checkbox-label span { font-size: 0.85rem; color: #064e3b; line-height: 1.5; } /* Texto en verde oscuro */
 
+.checkbox-label span { 
+  font-size: 0.9rem; 
+  color: #713f12; 
+  line-height: 1.5; 
+}
+
+/* Acciones del Formulario */
 .form-actions { display: flex; gap: 20px; align-items: center; }
 
-/* Botón Guardar principal */
+/* 🔥 BOTÓN GUARDAR CON DEGRADADO 🔥 */
 .btn-save {
-  background: #059669; /* Verde Clínico Principal */
+  background: linear-gradient(90deg, #ca8a04 0%, #059669 100%);
   color: white;
   padding: 14px 28px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-weight: bold;
+  font-size: 1rem;
   cursor: pointer;
-  transition: background 0.3s, transform 0.1s;
+  transition: opacity 0.3s, transform 0.1s;
+  box-shadow: 0 4px 12px rgba(202, 138, 4, 0.2);
 }
 
 .btn-save:hover:not(:disabled) { 
-  background: #047857; /* Verde oscuro al pasar el mouse */
+  opacity: 0.9;
   transform: translateY(-2px);
 }
 
-.btn-save:disabled { background: #94a3b8; cursor: not-allowed; transform: none; }
+.btn-save:disabled { 
+  background: #e2e8f0; 
+  color: #94a3b8;
+  cursor: not-allowed; 
+  transform: none; 
+  box-shadow: none;
+}
 
 .btn-back { 
   color: #64748b; 
   text-decoration: none; 
-  font-size: 0.9rem; 
+  font-size: 0.95rem;
+  font-weight: 600; 
   transition: color 0.2s ease;
 }
 
 .btn-back:hover { 
-  color: #059669; 
+  color: #ca8a04; 
+}
+
+@media (max-width: 768px) {
+  .grid-container { grid-template-columns: 1fr; }
+  .full-width { grid-column: span 1; }
 }

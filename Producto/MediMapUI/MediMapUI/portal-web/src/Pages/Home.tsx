@@ -27,7 +27,8 @@ const Home = () => {
           <div className="badge-modern">Nueva plataforma web Informativa y Geolocalizada</div>
           
           <h1 className="hero-title">
-            Encuentra tu medicamento al <span className="highlight-green">mejor precio</span> en La Florida
+            {/* 🔥 AQUÍ ESTÁ EL CAMBIO: highlight-premium para el degradado 🔥 */}
+            Encuentra tu medicamento al <span className="highlight-premium">mejor precio</span> en La Florida
           </h1>
           
           <p className="hero-subtitle">
@@ -82,7 +83,7 @@ const Home = () => {
 
       </div>
 
-      {/* NUEVA SECCIÓN: LAS 3 TARJETAS CLÍNICAS */}
+      {/* SECCIÓN: LAS 3 TARJETAS CLÍNICAS CON ESTILO PREMIUM */}
       <div className="home-cards-section">
         <Link to="/catalogo" className="action-card">
           <div className="card-icon-wrapper">

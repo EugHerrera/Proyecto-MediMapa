@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Catalogo.css';
 
-// 1. ESPEJO DEL DTO DE JAVA
 interface MedicamentoResponseDTO {
   idMedicamento: number;
   nombreCanonico: string;
@@ -16,13 +15,11 @@ const Catalogo: React.FC = () => {
   const [categoriaActiva, setCategoriaActiva] = useState('Todas');
   const [busqueda, setBusqueda] = useState('');
   
-  // Estado para el filtro del menú desplegable
   const [filtroTipo, setFiltroTipo] = useState('Todos los disponibles'); 
 
   const [medicamentos, setMedicamentos] = useState<MedicamentoResponseDTO[]>([]);
   const [cargando, setCargando] = useState(false);
 
-  // Categorías basadas en la imagen de referencia
   const categorias = [
     'Seleccionar todo',
     'Antibióticos y antibacterianos',
@@ -44,7 +41,6 @@ const Catalogo: React.FC = () => {
     'Urológico y próstata'
   ];
 
-  // Llamada a tu backend en Spring Boot (Puerto 8081)
   useEffect(() => {
     const fetchMedicamentos = async () => {
       setCargando(true);
@@ -62,8 +58,6 @@ const Catalogo: React.FC = () => {
         if (respuesta.ok) {
           const data = await respuesta.json();
           setMedicamentos(data);
-        } else {
-          console.error("Error al obtener datos del servidor");
         }
       } catch (error) {
         console.error("Error de conexión:", error);
@@ -85,7 +79,6 @@ const Catalogo: React.FC = () => {
     setBusqueda(''); 
   };
 
-  // Lógica de filtrado en memoria (Frontend)
   const medicamentosFiltrados = medicamentos.filter((med) => {
     if (filtroTipo === 'Solo Bioequivalentes (ISP)') {
       return med.esBioequivalente === true;
@@ -102,7 +95,6 @@ const Catalogo: React.FC = () => {
   return (
     <div className="catalogo-container">
       
-      {/* BANNER PRINCIPAL */}
       <div className="catalogo-banner">
         <div className="banner-content">
           <div className="banner-title">
@@ -115,7 +107,6 @@ const Catalogo: React.FC = () => {
         </div>
       </div>
 
-      {/* CUADRO DE ADVERTENCIA / LEGAL */}
       <div className="catalogo-disclaimer">
         <div className="disclaimer-icon">💡</div>
         <div className="disclaimer-text">
@@ -129,7 +120,6 @@ const Catalogo: React.FC = () => {
         </div>
       </div>
 
-      {/* SECCIÓN DE CATEGORÍAS (GRILLA) */}
       <div className="catalogo-categorias">
         <h3 className="section-title">Categoría Terapéutica</h3>
         <div className="categorias-grid">
@@ -145,7 +135,6 @@ const Catalogo: React.FC = () => {
         </div>
       </div>
 
-      {/* SECCIÓN DE BÚSQUEDA Y RESULTADOS */}
       <div className="catalogo-search-section">
         <div className="search-box">
           <label>Buscador de medicamento</label>
@@ -160,7 +149,6 @@ const Catalogo: React.FC = () => {
           </div>
         </div>
 
-        {/* MENÚ DESPLEGABLE CONECTADO AL ESTADO */}
         <div className="select-box">
           <label>Listado de medicamentos</label>
           <select 
@@ -175,10 +163,9 @@ const Catalogo: React.FC = () => {
         </div>
       </div>
 
-      {/* TABLA DE RESULTADOS DINÁMICA */}
       <div className="catalogo-resultados">
         {cargando ? (
-           <div style={{ padding: '20px', textAlign: 'center', color: '#059669', fontWeight: 'bold' }}>
+           <div style={{ padding: '20px', textAlign: 'center', color: '#ca8a04', fontWeight: 'bold' }}>
              Cargando catálogo...
            </div>
         ) : medicamentosFiltrados.length === 0 ? (
@@ -192,17 +179,16 @@ const Catalogo: React.FC = () => {
                 <th>Principio Activo</th>
                 <th>Nombre Comercial (Ejemplo)</th>
                 <th>Categoría</th>
-                <th>Bioequivalente</th>
+                <th>Sello Calidad</th>
               </tr>
             </thead>
             <tbody>
-              {/* ITERAMOS SOBRE EL ARREGLO FILTRADO */}
               {medicamentosFiltrados.map((med) => (
                 <tr 
                   key={med.idMedicamento}
                   onClick={() => navigate(`/resultados?q=${encodeURIComponent(med.nombreCanonico)}`)}
                   style={{ cursor: 'pointer', transition: 'background 0.2s' }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0fdf4'}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fefce8'}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
                   <td><strong>{med.principioActivo || med.nombreCanonico}</strong></td>
@@ -210,7 +196,10 @@ const Catalogo: React.FC = () => {
                   <td>{med.categoria || 'Sin clasificar'}</td>
                   <td>
                     {med.esBioequivalente ? (
-                      <span className="badge bio">Sí (ISP)</span>
+                      /* 🔥 EL NUEVO SELLO DORADO CON LA LETRA B 🔥 */
+                      <span className="badge bio-gold">
+                        <span className="icon-b">B</span> BIOEQUIVALENTE
+                      </span>
                     ) : (
                       <span style={{color: '#94a3b8', fontSize: '0.85rem'}}>-</span>
                     )}
