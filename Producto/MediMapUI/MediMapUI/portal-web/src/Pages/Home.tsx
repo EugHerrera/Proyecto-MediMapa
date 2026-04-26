@@ -27,13 +27,29 @@ const Home = () => {
           <div className="badge-modern">Nueva plataforma web Informativa y Geolocalizada</div>
           
           <h1 className="hero-title">
-            {/* 🔥 AQUÍ ESTÁ EL CAMBIO: highlight-premium para el degradado 🔥 */}
             Encuentra tu medicamento al <span className="highlight-premium">mejor precio</span> en La Florida
           </h1>
           
           <p className="hero-subtitle">
             Comparamos los valores entre las principales cadenas y farmacias independientes para que cuides tu salud y tu bolsillo en segundos.
           </p>
+
+          {/* 🔥 NUEVO INDICADOR DE VERSIÓN 2.0 (Próximamente) 🔥 */}
+          <div style={{ marginTop: '-20px', marginBottom: '35px' }}>
+            <span style={{
+              display: 'inline-block',
+              backgroundColor: '#fefce8',
+              color: '#ca8a04',
+              border: '1px dashed #ca8a04',
+              padding: '6px 16px',
+              borderRadius: '20px',
+              fontSize: '0.85rem',
+              fontWeight: '700',
+              boxShadow: '0 2px 4px rgba(202, 138, 4, 0.1)'
+            }}>
+              🚀 Próximamente en nuevas comunas 
+            </span>
+          </div>
 
           <form onSubmit={manejarBusqueda} className="modern-search-form">
             <div className="modern-input-wrapper" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
