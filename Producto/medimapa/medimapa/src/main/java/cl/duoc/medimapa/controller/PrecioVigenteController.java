@@ -4,10 +4,12 @@ import cl.duoc.medimapa.model.*;
 import cl.duoc.medimapa.repository.*;
 import cl.duoc.medimapa.service.ScraperService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional; // 🔥 VITAL PARA BORRAR Y GUARDAR
+import org.springframework.transaction.annotation.Transactional; 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,7 +17,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/scraper")
-@CrossOrigin(origins = "*") 
 public class PrecioVigenteController {
 
     @Autowired private PrecioVigenteRepository precioRepo;
@@ -119,9 +120,9 @@ public class PrecioVigenteController {
         System.out.println("💾 Guardando los nuevos precios en la Base de Datos...");
         CorridaActualizacion corrida = new CorridaActualizacion();
         corrida.setId_fuente(0L); 
-        corrida.setInicio(java.time.OffsetDateTime.now());
+        corrida.setInicio(OffsetDateTime.now());
         corrida.setEstado("ok");
-        corrida.setFin(java.time.OffsetDateTime.now());
+        corrida.setFin(OffsetDateTime.now());
         corrida = corridaRepo.save(corrida);
 
         for (Map<String, Object> dato : respuestaExpandida) {
@@ -137,6 +138,7 @@ public class PrecioVigenteController {
                 med.setPrincipio_activo(nombreMed);
                 med.setOrigen_catalogo("SCRAPER_VIVO");
                 med.setEs_bioequivalente(esBio);
+                med.setActivo(true);
                 med = medicamentoRepo.save(med);
             } else if (esBio && !med.getEs_bioequivalente()) {
                 med.setEs_bioequivalente(true);
@@ -145,8 +147,6 @@ public class PrecioVigenteController {
 
             PrecioVigenteId pvId = new PrecioVigenteId();
             pvId.setId_sucursal(sucursal.getId_sucursal());
-            
-            // 🔥 Guardamos con el nombre exacto de la búsqueda del usuario
             pvId.setTexto_busqueda(query); 
 
             PrecioVigente pv = new PrecioVigente();
@@ -155,7 +155,7 @@ public class PrecioVigenteController {
             pv.setMedicamento(med);
             pv.setPrecio_max_vta(precio);
             pv.setMoneda("CLP");
-            pv.setVigente_desde(java.time.OffsetDateTime.now());
+            pv.setVigente_desde(OffsetDateTime.now());
             pv.setCorrida(corrida);
 
             precioRepo.save(pv);
@@ -166,5 +166,37 @@ public class PrecioVigenteController {
 
         System.out.println("✅ Actualización y Autolimpieza completadas con éxito.");
         return respuestaExpandida;
+    }
+
+    // =========================================================
+    // CAMINO 4: BOTÓN ADMIN - SCRAPING MASIVO DE TODO EL CATÁLOGO
+    // =========================================================
+    @PostMapping("/forzar-masivo")
+    public ResponseEntity<String> forzarScrapingMasivo() {
+        System.out.println("🚀 [ADMIN] Iniciando Scraping Masivo Manual de todo el Catálogo...");
+        
+        CorridaActualizacion corrida = new CorridaActualizacion();
+        corrida.setId_fuente(0L); // 0 = Todo el sistema
+        corrida.setInicio(OffsetDateTime.now());
+        corrida.setEstado("PROCESANDO_MANUAL");
+        corrida = corridaRepo.save(corrida);
+
+        try {
+            // Esto llamará a tu Service, el cual leerá los medicamentos del DataLoader
+            // y buscará sus precios en la web para todas las farmacias.
+            scraperService.ejecutarScrapingAutomatico(corrida);
+
+            corrida.setEstado("ok");
+            corrida.setFin(OffsetDateTime.now());
+            corridaRepo.save(corrida);
+            return ResponseEntity.ok("✅ Scraping masivo de catálogo finalizado correctamente.");
+            
+        } catch (Exception e) {
+            corrida.setEstado("error");
+            corrida.setDetalle_error(e.getMessage());
+            corrida.setFin(OffsetDateTime.now());
+            corridaRepo.save(corrida);
+            return ResponseEntity.internalServerError().body("❌ Error en scraping masivo: " + e.getMessage());
+        }
     }
 }

@@ -70,6 +70,27 @@ const AdminPanel = () => {
   };
 
   // ==========================================
+  // 🔥 NUEVA LÓGICA: SCRAPING MASIVO PARA ADMIN
+  // ==========================================
+  const manejarScrapingMasivo = async () => {
+    if (!window.confirm("⚠️ ¿Iniciar extracción masiva de TODOS los medicamentos? Esto abrirá el navegador en el servidor y tomará varios minutos.")) return;
+    
+    setCargando(true);
+    try {
+      // Asegúrate de que el puerto coincida con tu microservicio de Scraping (ej. 8082)
+      const respuesta = await fetch('http://localhost:8082/api/scraper/forzar-masivo', {
+        method: 'POST'
+      });
+      const mensaje = await respuesta.text();
+      alert(mensaje);
+    } catch (error) {
+      alert("❌ Error al contactar al motor de Scraping. Verifica que el servidor de Scraping esté encendido.");
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  // ==========================================
   // LÓGICA DE FARMACÉUTICO (CRUD LIMPIO)
   // ==========================================
   
@@ -171,8 +192,14 @@ const AdminPanel = () => {
       <div className="admin-card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2>🤖 Estado del Motor Scraper</h2>
-          <button className="btn-premium" style={{ margin: 0, padding: '8px 15px' }}>
-            ⚡ Forzar Actualización
+          {/* 🔥 BOTÓN CONECTADO A LA FUNCIÓN manejarScrapingMasivo 🔥 */}
+          <button 
+            className="btn-premium" 
+            style={{ margin: 0, padding: '8px 15px' }}
+            onClick={manejarScrapingMasivo}
+            disabled={cargando}
+          >
+            {cargando ? '⏳ Procesando catálogo...' : '⚡ Forzar Actualización Masiva'}
           </button>
         </div>
         <div style={{ display: 'flex', gap: '15px', marginTop: '20px' }}>
