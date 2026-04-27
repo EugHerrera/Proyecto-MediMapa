@@ -2,18 +2,21 @@ server:
   port: 8080 # El Gateway SIEMPRE es el 8080
 
 spring:
-  application:
-    name: api-gateway
   cloud:
     gateway:
+      httpclient:
+        connect-timeout: 5000 # 5 segundos máximo para conectar
+        response-timeout: 5s  # 5 segundos máximo esperando la respuesta
       globalcors:
         cors-configurations:
           '[/**]':
-            allowedOrigins: "*"
+            allowedOrigins: 
+              - "http://localhost:5173" # La URL de tu React
             allowedMethods:
               - GET
               - POST
               - PUT
+              - PATCH
               - DELETE
               - OPTIONS
             allowedHeaders: "*"
@@ -40,4 +43,4 @@ spring:
         - id: ms-usuarios-route
           uri: http://localhost:8085
           predicates:
-            - Path=/api/usuarios/**
+            - Path=/api/usuarios/**, /api/buscador/**

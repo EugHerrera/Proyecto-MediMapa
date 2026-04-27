@@ -13,7 +13,6 @@ import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/buscador")
-@CrossOrigin(origins = "*") // Permitimos que React entre sin problemas
 public class BusquedaController {
 
     @Autowired
