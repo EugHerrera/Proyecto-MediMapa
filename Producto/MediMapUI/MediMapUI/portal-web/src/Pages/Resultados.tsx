@@ -88,7 +88,7 @@ function Resultados() {
       setPreciosTarjetas([]); 
     }
 
-    const url = `http://localhost:8082/api/scraper/buscar?query=${encodeURIComponent(query)}${forzarRefresh ? '&forceRefresh=true' : ''}`;
+    const url = `http://localhost:8080/api/scraper/buscar?query=${encodeURIComponent(query)}${forzarRefresh ? '&forceRefresh=true' : ''}`;
 
     fetch(url)
       .then(r => r.json())
