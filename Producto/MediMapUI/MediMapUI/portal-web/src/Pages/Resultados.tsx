@@ -28,7 +28,7 @@ const crearIconoCircular = (logoUrl: string, borderColor: string) => {
     iconSize: [40, 40],
     iconAnchor: [20, 40],
   });
-};
+};  
 
 // 3. GENERAMOS LOS 3 ICONOS DE LAS CADENAS Y EL DE INDEPENDIENTES
 const ahumadaIcon = crearIconoCircular(logotipoAhumada, '#c41e3a'); 

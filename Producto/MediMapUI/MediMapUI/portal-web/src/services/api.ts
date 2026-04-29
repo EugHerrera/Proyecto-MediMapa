@@ -1,31 +1,27 @@
 import axios from 'axios';
 
-// 1. Instancia para el microservicio de Usuarios (Puerto 8085)
+// 🔥 CORRECCIÓN: Agregamos el /api al final para que el Gateway reconozca las rutas
+const GATEWAY_URL = 'http://localhost:8080/api';
+
 export const apiUsuarios = axios.create({
-  baseURL: import.meta.env.VITE_API_USUARIOS,
+  baseURL: GATEWAY_URL,
 });
 
-// 2. Instancia para el microservicio del Scraper (Puerto 8080)
 export const apiScraper = axios.create({
-  baseURL: import.meta.env.VITE_API_SCRAPER,
+  baseURL: GATEWAY_URL,
 });
 
-// 3. Instancia para el microservicio de Geolocalización (Gateway /api/geo)
 export const apiGeo = axios.create({
-  baseURL: import.meta.env.VITE_API_GEO || 'http://localhost:8083/api',
+  baseURL: GATEWAY_URL,
 });
-// 🔥 EL INTERCEPTOR MÁGICO 🔥
-// Este código atrapa CADA petición que sale hacia tu backend de Usuarios antes de que viaje
+
+// Interceptor para inyectar el Token JWT en ms-usuarios
 apiUsuarios.interceptors.request.use(
   (config) => {
-    // Busca el pasaporte en el almacenamiento local de React
     const token = localStorage.getItem('token');
-    
-    // Si hay un pasaporte guardado, lo inyecta en la cabecera (Header) de seguridad
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
     return config;
   },
   (error) => {

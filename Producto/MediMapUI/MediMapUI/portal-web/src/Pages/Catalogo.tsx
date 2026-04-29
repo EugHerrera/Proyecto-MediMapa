@@ -45,13 +45,13 @@ const Catalogo: React.FC = () => {
     const fetchMedicamentos = async () => {
       setCargando(true);
       try {
-        let url = 'http://localhost:8081/api/medicamentos';
+        let url = 'http://localhost:8080/api/medicamentos';
 
         if (busqueda.trim() !== '') {
-          url = `http://localhost:8081/api/medicamentos/buscar?q=${busqueda}`;
+          url = `http://localhost:8080/api/medicamentos/buscar?q=${busqueda}`;
         } 
         else if (categoriaActiva !== 'Todas') {
-          url = `http://localhost:8081/api/medicamentos/categoria?nombre=${categoriaActiva}`;
+          url = `http://localhost:8080/api/medicamentos/categoria?nombre=${categoriaActiva}`;
         }
 
         const respuesta = await fetch(url);

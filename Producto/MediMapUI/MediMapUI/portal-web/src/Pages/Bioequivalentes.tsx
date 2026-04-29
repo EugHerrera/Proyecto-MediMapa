@@ -19,14 +19,14 @@ const Bioequivalentes: React.FC = () => {
   const [medicamentos, setMedicamentos] = useState<MedicamentoResponseDTO[]>([]);
   const [cargando, setCargando] = useState(false);
 
-  // Conexión al microservicio de catálogo (Puerto 8081)
+  // Conexión al microservicio a través del Gateway (Puerto 8080)
   useEffect(() => {
     const fetchMedicamentos = async () => {
       setCargando(true);
       try {
-        let url = 'http://localhost:8081/api/medicamentos';
+        let url = 'http://localhost:8080/api/medicamentos';
         if (busqueda.trim() !== '') {
-          url = `http://localhost:8081/api/medicamentos/buscar?q=${busqueda}`;
+          url = `http://localhost:8080/api/medicamentos/buscar?q=${busqueda}`;
         }
 
         const respuesta = await fetch(url);

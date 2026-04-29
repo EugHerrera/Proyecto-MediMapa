@@ -5,13 +5,13 @@ spring:
   cloud:
     gateway:
       httpclient:
-        connect-timeout: 5000 # 5 segundos máximo para conectar
-        response-timeout: 5s  # 5 segundos máximo esperando la respuesta
+        connect-timeout: 5000
+        response-timeout: 5s
       globalcors:
         cors-configurations:
           '[/**]':
             allowedOrigins: 
-              - "http://localhost:5173" # La URL de tu React
+              - "http://localhost:5173"
             allowedMethods:
               - GET
               - POST
@@ -21,11 +21,11 @@ spring:
               - OPTIONS
             allowedHeaders: "*"
       routes:
-        # RUTA 1: MICROSERVICIO CATÁLOGO
+        # RUTA 1: MICROSERVICIO CATÁLOGO (Responde a medicamentos y sucursales)
         - id: ms-catalogo-route
           uri: http://localhost:8081
           predicates:
-            - Path=/api/catalogo/**
+            - Path=/api/medicamentos/**, /api/sucursales/**
 
         # RUTA 2: SCRAPER
         - id: medimapa-scraper-route
@@ -37,9 +37,9 @@ spring:
         - id: ms-geo-route
           uri: http://localhost:8083
           predicates:
-            - Path=/api/geo/**
+            - Path=/api/v1/geolocalizacion/**
 
-        # RUTA 4: MICROSERVICIO USUARIOS
+        # RUTA 4: MICROSERVICIO USUARIOS (y Buscador en Vivo)
         - id: ms-usuarios-route
           uri: http://localhost:8085
           predicates:

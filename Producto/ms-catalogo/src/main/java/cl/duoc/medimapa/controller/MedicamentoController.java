@@ -1,4 +1,5 @@
 package cl.duoc.medimapa.controller;
+
 import cl.duoc.medimapa.dto.MedicamentoResponseDTO;
 import cl.duoc.medimapa.service.MedicamentoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/medicamentos")
-@CrossOrigin(origins = "http://localhost:5173") // <-- ESTA ES LA LLAVE QUE DEJA ENTRAR A REACT
+// 🔥 CORRECCIÓN: Se eliminó @CrossOrigin porque el Gateway ahora gestiona los permisos
 public class MedicamentoController {
 
     @Autowired
