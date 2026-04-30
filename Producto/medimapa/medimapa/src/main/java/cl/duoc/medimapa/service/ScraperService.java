@@ -6,6 +6,7 @@ import cl.duoc.medimapa.repository.*;
 import cl.duoc.medimapa.strategy.FarmaciaScraper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -26,37 +27,36 @@ public class ScraperService {
         try (Playwright playwright = Playwright.create()) {
             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
             Page page = browser.newPage();
+            
             for (Medicamento medicamento : catalogo) {
                 for (FarmaciaScraper estrategia : estrategiasFarmacias) {
                     try {
-                        SucursalFarmacia sucursal = sucursalRepo.findById(estrategia.getIdFuente()).orElse(null);
-                        if (sucursal == null) continue;
+                        List<SucursalFarmacia> sucursales = sucursalRepo.findByFarmacia_Id(estrategia.getIdFuente());
+                        if (sucursales.isEmpty()) continue;
+
                         page.navigate(estrategia.generarUrl(medicamento.getNombre_canonico()));
                         page.waitForTimeout(3000); 
-                        BigDecimal precio = estrategia.extraerMenorPrecio(page);
+                        
+                        // 🔥 Pasamos el nombre para que el scraper valide
+                        BigDecimal precio = estrategia.extraerMenorPrecio(page, medicamento.getNombre_canonico());
+                        
                         if (precio != null) {
-
-                            //AHORA SE CERTIFICARÁ SEGÚN EL EXCEL DEL GOBIERNO
-                            //boolean esBio = estrategia.esBioequivalente(page);
-                            //if (esBio) {
-                            //    medicamento.setEs_bioequivalente(true);
-                            //    medicamentoRepository.save(medicamento);
-                            //}
-                            
-                            PrecioVigente pv = new PrecioVigente();
-                            PrecioVigenteId id = new PrecioVigenteId();
-                            id.setId_sucursal(sucursal.getId_sucursal()); 
-                            id.setTexto_busqueda(medicamento.getNombre_canonico());
-                            pv.setId(id);
-                            pv.setPrecio_max_vta(precio);
-                            pv.setMoneda("CLP");
-                            pv.setVigente_desde(OffsetDateTime.now());
-                            pv.setSucursal(sucursal);
-                            pv.setMedicamento(medicamento);
-                            pv.setCorrida(corrida);
-                            precioVigenteRepository.save(pv);
+                            for (SucursalFarmacia sucursal : sucursales) {
+                                PrecioVigente pv = new PrecioVigente();
+                                pv.setTextoBusqueda(medicamento.getNombre_canonico());
+                                pv.setPrecio_max_vta(precio);
+                                pv.setMoneda("CLP");
+                                pv.setVigente_desde(OffsetDateTime.now());
+                                pv.setSucursal(sucursal);
+                                pv.setMedicamento(medicamento);
+                                pv.setCorrida(corrida);
+                                
+                                precioVigenteRepository.save(pv);
+                            }
                         }
-                    } catch (Exception e) { System.err.println("Error en Batch"); }
+                    } catch (Exception e) { 
+                        System.err.println("Error en Batch para " + estrategia.getNombreFarmacia()); 
+                    }
                 }
             }
         } catch (Exception e) {}
@@ -68,7 +68,6 @@ public class ScraperService {
             Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(true));
             Page page = browser.newPage();
             
-            // 🔥 Filtro de aceleración: Permitimos imágenes para detectar sellos
             page.route("**/*", route -> {
                 String tipo = route.request().resourceType();
                 if ("stylesheet".equals(tipo) || "font".equals(tipo) || "media".equals(tipo)) {
@@ -82,7 +81,10 @@ public class ScraperService {
                 try {
                     page.navigate(estrategia.generarUrl(terminoBusqueda));
                     page.waitForLoadState(com.microsoft.playwright.options.LoadState.DOMCONTENTLOADED);
-                    BigDecimal precio = estrategia.extraerMenorPrecio(page);
+                    
+                    // 🔥 Pasamos la búsqueda exacta
+                    BigDecimal precio = estrategia.extraerMenorPrecio(page, terminoBusqueda);
+                    
                     if (precio != null) {
                         boolean esBio = estrategia.esBioequivalente(page);
                         Map<String, Object> dato = new HashMap<>();

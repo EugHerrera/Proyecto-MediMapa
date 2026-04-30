@@ -90,7 +90,7 @@ function Resultados() {
       setRawData([]);
     }
 
-    const url = `http://localhost:8080/api/scraper/buscar?query=${encodeURIComponent(query)}${forzarRefresh ? '&forceRefresh=true' : ''}`;
+    const url = `http://localhost:8082/api/scraper/buscar?query=${encodeURIComponent(query)}${forzarRefresh ? '&forceRefresh=true' : ''}`;
 
     fetch(url)
       .then(r => r.json())
@@ -108,7 +108,7 @@ function Resultados() {
     buscarMedicamentos(false);
   }, [query]);
 
-  // 🔥 NUEVA LÓGICA: FILTRA POR DISTANCIA (CERCANÍA) Y NO POR PRECIO 🔥
+  // 🔥 NUEVA LÓGICA: FILTRA POR DISTANCIA Y ELIMINA PINES DUPLICADOS 🔥
   useEffect(() => {
     if (rawData.length === 0) return;
 
@@ -116,7 +116,9 @@ function Resultados() {
     const baseLng = ubicacion ? ubicacion.lng : -70.5973;
 
     const farmaciasMasCercanas: Record<string, any> = {};
-    const pinesMapa: any[] = []; 
+    
+    // 🔥 Usamos un Map en lugar de un Array vacío para asegurar sucursales únicas
+    const pinesUnicos = new Map(); 
 
     rawData.forEach((item: any) => {
       const cadena = (item.farmacia?.toLowerCase().includes("ahumada")) ? "Farmacias Ahumada" : 
@@ -134,21 +136,27 @@ function Resultados() {
         else { lat = baseLat - 0.0030; lng = baseLng + 0.0015; }
       }
 
-      // 🔥 Calculamos qué tan lejos está esta farmacia específica de ti
+      // Calculamos qué tan lejos está esta farmacia específica de ti
       const distanciaKm = calcularDistanciaKm(baseLat, baseLng, lat, lng);
       const sucursalLista = { ...item, lat, lng, cadenaOficial: cadena, distancia: distanciaKm };
       
-      pinesMapa.push(sucursalLista);
+      // 🔥 LÓGICA ANTI-DUPLICADOS PARA EL MAPA: 
+      // Si el Map aún no tiene esta sucursal (ej: 'Dr. Simi - La Florida 9660'), la guardamos.
+      // Si ya la tiene, la ignora, evitando que se dibujen dos pines en el mismo lugar.
+      if (!pinesUnicos.has(item.farmacia)) {
+        pinesUnicos.set(item.farmacia, sucursalLista);
+      }
 
-      // 🔥 LÓGICA DE CERCANÍA: Si no tengo farmacia guardada para esta cadena, la guardo.
-      // Si YA tengo una, pero ESTA nueva está MÁS CERCA, la reemplazo.
+      // LÓGICA DE TARJETAS (CERCANÍA): Mantenemos la que esté más cerca
       if (!farmaciasMasCercanas[cadena] || distanciaKm < farmaciasMasCercanas[cadena].distancia) {
         farmaciasMasCercanas[cadena] = sucursalLista;
       }
     });
 
     setPreciosTarjetas(Object.values(farmaciasMasCercanas));
-    setTodasLasSucursales(pinesMapa); 
+    
+    // 🔥 Convertimos el Map limpio de vuelta a un arreglo para que React lo dibuje
+    setTodasLasSucursales(Array.from(pinesUnicos.values())); 
 
   }, [rawData, ubicacion]); 
 
@@ -199,7 +207,6 @@ function Resultados() {
       
       {!cargando && preciosTarjetas.length > 0 && (
         <div className="seccion-precios">
-          {/* 🔥 CAMBIAMOS EL TÍTULO PARA QUE TENGA SENTIDO 🔥 */}
           <h3>📍 Farmacias más cercanas a ti con stock:</h3>
           
           <div className="precios-grid">
@@ -215,7 +222,6 @@ function Resultados() {
                 <h4>💊 {item.medicamento}</h4>
                 <p className="farmacia-nombre">🏪 {item.farmacia}</p>
                 
-                {/* 🔥 AGREGAMOS LA DISTANCIA EN LA TARJETA 🔥 */}
                 <p style={{ color: '#059669', fontWeight: 'bold', margin: '5px 0' }}>
                   🚗 A {item.distancia.toFixed(2)} km de distancia
                 </p>

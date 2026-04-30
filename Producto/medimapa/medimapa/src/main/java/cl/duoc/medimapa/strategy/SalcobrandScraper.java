@@ -1,4 +1,3 @@
-
 package cl.duoc.medimapa.strategy;
 
 import com.microsoft.playwright.Page;
@@ -17,22 +16,31 @@ public class SalcobrandScraper implements FarmaciaScraper {
 
     @Override
     public String generarUrl(String nombreMedicamento) {
-        try { return "https://salcobrand.cl/search_result?query=" + URLEncoder.encode(nombreMedicamento, StandardCharsets.UTF_8); } 
+        try { 
+            // 🔥 MAGIA: Junta el número con el "mg" automáticamente
+            String queryAjustado = nombreMedicamento.trim().replaceAll("(\\d)\\s+([a-zA-Z])", "$1$2");
+            // Salcobrand usa el signo '+' para separar las palabras, no lo cambiamos
+            return "https://salcobrand.cl/search_result?query=" + URLEncoder.encode(queryAjustado, StandardCharsets.UTF_8); 
+        } 
         catch (Exception e) { return ""; }
     }
 
     @Override
-    public BigDecimal extraerMenorPrecio(Page page) {
+    public BigDecimal extraerMenorPrecio(Page page, String nombreMedicamento) {
         try { 
             page.waitForLoadState();
-            page.waitForTimeout(4000); // Salcobrand suele ser pesado de cargar
+            page.waitForTimeout(4000); 
             
-            List<String> tarjetas = page.locator(".product-card, .product, .vitrine").allInnerTexts();
+            List<String> tarjetas = page.locator(".product-card, .product, .vitrine, article").allInnerTexts();
+            System.out.println("👉 Salcobrand encontró " + tarjetas.size() + " tarjetas de producto.");
+            
             BigDecimal minPrecio = null;
+            Pattern pattern = Pattern.compile("\\$\\s*(\\d[\\d\\.]*)");
             
-            for (String texto : tarjetas) {
-                // Atrapa el $1499 y el $999, y la lógica se quedará con el menor
-                Matcher m = Pattern.compile("\\$\\s*(\\d[\\d\\.]*)").matcher(texto);
+            for (String textoTarjeta : tarjetas) {
+                if (!esCoincidenciaValida(textoTarjeta, nombreMedicamento)) continue;
+
+                Matcher m = pattern.matcher(textoTarjeta);
                 while (m.find()) {
                     String limpio = m.group(1).replace(".", "");
                     try {

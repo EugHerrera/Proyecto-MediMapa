@@ -2,25 +2,17 @@ package cl.duoc.medimapa.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.locationtech.jts.geom.Point;
 
 @Entity
-@Table(name = "farmacias")
+@Table(name = "farmacias") // Podrías llamarle 'cadenas_farmacia' en un futuro para más claridad
 @Data
-
 public class Farmacia {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String nombre;
+    @Column(nullable = false, unique = true)
+    private String nombre; // Ej: "Salcobrand", "Cruz Verde"
 
-    @Column(nullable = false)
-    private String direccion;
-
-    // ¡Aquí está la magia de PostGIS para guardar la latitud y longitud en el mapa!
-    @Column(columnDefinition = "geometry(Point, 4326)")
-    private Point ubicacion;
-    
 }
