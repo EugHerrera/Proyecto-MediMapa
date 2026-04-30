@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiUsuarios } from '../services/api';
@@ -10,7 +9,7 @@ const AdminPanel = () => {
   const [cargando, setCargando] = useState(false);
   
   // ==========================================
-  // ESTADOS DEL FARMACÉUTICO (Tus estados)
+  // ESTADOS DEL FARMACÉUTICO
   // ==========================================
   const [inventario, setInventario] = useState<any[]>([]);
   const [totalMedicamentos, setTotalMedicamentos] = useState(0);
@@ -21,7 +20,7 @@ const AdminPanel = () => {
   const ID_SUCURSAL = 99; // ID simulado para el farmacéutico
 
   // ==========================================
-  // ESTADOS DEL SÚPER ADMIN (De tu compañero)
+  // ESTADOS DEL SÚPER ADMIN
   // ==========================================
   const [solicitudes, setSolicitudes] = useState<any[]>([]);
   const [sucursalesMaster, setSucursalesMaster] = useState<any[]>([]);
@@ -122,8 +121,29 @@ const AdminPanel = () => {
     } catch (err) { alert("Error al actualizar sello."); }
   };
 
+  // 🔥 NUEVA FUNCIÓN: ENVIAR EXCEL DEL ISP 🔥
+  const manejarSubidaIsp = async () => {
+    if (!archivoIsp) return;
+    setCargando(true);
+    const formData = new FormData();
+    formData.append('archivo', archivoIsp);
+    try {
+      const respuesta = await apiUsuarios.post('/usuarios/admin/subir-isp', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      alert(respuesta.data); 
+      setArchivoIsp(null); 
+      cargarDatosAdmin(); // Refresca los datos para ver los nuevos bioequivalentes
+    } catch (error) {
+      console.error("Error al subir archivo ISP:", error);
+      alert("❌ Error al procesar el archivo Excel. Revisa la consola de Java.");
+    } finally {
+      setCargando(false);
+    }
+  };
+
   // ==========================================
-  // FUNCIONES DEL FARMACÉUTICO (Tus funciones)
+  // FUNCIONES DEL FARMACÉUTICO
   // ==========================================
   const manejarSeleccionArchivo = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) setArchivo(e.target.files[0]);
@@ -168,12 +188,11 @@ const AdminPanel = () => {
   };
 
   // ==========================================
-  // VISTA 1: SÚPER ADMIN (Exactamente como la Foto 1)
+  // VISTA 1: SÚPER ADMIN
   // ==========================================
   const renderVistaAdmin = () => (
     <div className="admin-dashboard-grid" style={{ display: 'grid', gap: '20px' }}>
       
-      {/* ⚡ BOTÓN SCRAPER (Agregado sutilmente arriba para el backend Java) */}
       <div className="admin-card" style={{ gridColumn: '1 / -1', padding: '15px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3 style={{margin: 0}}>🤖 Motor Scraper</h3>
@@ -183,16 +202,18 @@ const AdminPanel = () => {
         </div>
       </div>
 
-      {/* 1. SECCIÓN ISP Y CATÁLOGO (Código de tu compañero intacto) */}
       <div className="admin-card" style={{ gridColumn: '1 / -1', borderLeft: '5px solid #ca8a04', backgroundColor: '#fefce8' }}>
         <h2 style={{ color: '#854d0e' }}>📘 Gestión del Catálogo Maestro</h2>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
           <div>
             <p><strong>Certificación ISP (Masiva):</strong></p>
             <input type="file" accept=".xlsx" onChange={(e) => e.target.files && setArchivoIsp(e.target.files[0])} />
-            <button className="btn-premium" onClick={() => {}} disabled={!archivoIsp || cargando} style={{ marginTop: '10px', width: '100%' }}>
+            
+            {/* 🔥 AQUÍ ESTÁ EL BOTÓN CONECTADO A LA FUNCIÓN 🔥 */}
+            <button className="btn-premium" onClick={manejarSubidaIsp} disabled={!archivoIsp || cargando} style={{ marginTop: '10px', width: '100%' }}>
               {cargando ? 'Procesando...' : 'Actualizar Sellos con Excel'}
             </button>
+            
           </div>
           <div style={{ borderLeft: '1px solid #fde047', paddingLeft: '30px' }}>
             <p><strong>Estadísticas de Salud:</strong></p>
@@ -204,7 +225,6 @@ const AdminPanel = () => {
         </div>
       </div>
 
-      {/* 2. TABLA DE MEDICAMENTOS */}
       <div className="admin-card" style={{ gridColumn: '1 / -1' }}>
         <h2>🔍 Buscador y Edición de Fármacos</h2>
         <div style={{ maxHeight: '400px', overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
@@ -240,7 +260,6 @@ const AdminPanel = () => {
         </div>
       </div>
 
-      {/* 3. SOLICITUDES Y SUCURSALES */}
       <div className="admin-card">
         <h2>📋 Solicitudes Pendientes ({solicitudes.length})</h2>
         <table className="admin-table">
@@ -278,7 +297,7 @@ const AdminPanel = () => {
   );
 
   // ==========================================
-  // VISTA 2: FARMACÉUTICO (Exactamente como las Fotos 2 y 3)
+  // VISTA 2: FARMACÉUTICO
   // ==========================================
   const renderVistaFarmaceutico = () => (
     <>
@@ -369,7 +388,7 @@ const AdminPanel = () => {
         <p>{rolUsuario === 'ADMIN' ? 'Control total del Catálogo Maestro y Red de Farmacias' : 'Actualiza tus precios y stock en tiempo real'}</p>
       </header>
 
-      {/* 🔥 AQUÍ ESTÁ LA MAGIA QUE FALTABA: EL RENDERIZADO CONDICIONAL 🔥 */}
+      {/* RENDERIZADO CONDICIONAL */}
       {rolUsuario === 'ADMIN' ? renderVistaAdmin() : null}
       {rolUsuario === 'FARMACEUTICO' ? renderVistaFarmaceutico() : null}
 

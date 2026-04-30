@@ -148,12 +148,45 @@ public class UsuarioController {
         return ResponseEntity.ok(solicitudRepo.buscarPorEstado("PENDIENTE"));
     }
 
+    // 🔥 EL MÉTODO APROBAR CORREGIDO Y DEFINITIVO 🔥
     @PatchMapping("/solicitudes/{id}/aprobar")
+    @Transactional // Hace los 3 pasos de forma segura
     public ResponseEntity<String> aprobarSolicitud(@PathVariable Long id) {
         return solicitudRepo.findById(id).map(solicitud -> {
+            
+            // 1. Cambiamos el estado de la solicitud
             solicitud.setEstado_solicitud("APROBADA");
             solicitudRepo.save(solicitud);
-            return ResponseEntity.ok("✅ La farmacia " + solicitud.getNombre_fantasia() + " ha sido APROBADA.");
+
+            // 2. CREAMOS LA SUCURSAL REAL en la base de datos
+            SucursalFarmacia nuevaSucursal = new SucursalFarmacia();
+            nuevaSucursal.setNombre_sucursal(solicitud.getNombre_fantasia());
+            // Juntamos la dirección con la comuna para el mapa
+            nuevaSucursal.setDireccion(solicitud.getDireccion() + ", " + solicitud.getComuna()); 
+            
+            // Reparado: usando BigDecimal y CamelCase
+            nuevaSucursal.setLatitud(java.math.BigDecimal.ZERO); 
+            nuevaSucursal.setLongitud(java.math.BigDecimal.ZERO);
+            nuevaSucursal.setActivo(true);
+            nuevaSucursal.setCreadoEn(java.time.OffsetDateTime.now());
+            nuevaSucursal.setActualizadoEn(java.time.OffsetDateTime.now());
+            
+            sucursalFarmaciaRepository.save(nuevaSucursal);
+
+            // 3. CREAMOS LA CUENTA DE USUARIO para el farmacéutico
+            Usuario nuevoUsuario = new Usuario();
+            nuevoUsuario.setCorreo(solicitud.getQuimico_correo());
+            nuevoUsuario.setPasswordHash(passwordEncoder.encode(solicitud.getQuimico_rut())); 
+            nuevoUsuario.setRol("FARMACEUTICO");
+            
+            usuarioRepository.save(nuevoUsuario);
+
+            // Le avisamos a React que todo fue un éxito y le pasamos los datos de acceso
+            return ResponseEntity.ok("✅ Farmacia " + solicitud.getNombre_fantasia() + " creada con éxito.\n\n" +
+                                     "🔐 Credenciales generadas:\n" +
+                                     "Correo: " + solicitud.getQuimico_correo() + "\n" +
+                                     "Contraseña: " + solicitud.getQuimico_rut());
+                                     
         }).orElse(ResponseEntity.badRequest().body("❌ Solicitud no encontrada."));
     }
 
@@ -214,12 +247,11 @@ public class UsuarioController {
         }
     }
 
-@DeleteMapping("/inventario/eliminar")
+    @DeleteMapping("/inventario/eliminar")
     public ResponseEntity<?> eliminarMedicamentoInventario(
             @RequestParam Long idSucursal, 
             @RequestParam String nombreMedicamento) {
         try {
-            // 1. Buscamos el inventario local para identificar qué medicamento quieres borrar
             List<PrecioVigente> inventarioLocal = precioVigenteRepo.buscarPorSucursal(idSucursal);
             PrecioVigente precioLocal = inventarioLocal.stream()
                 .filter(p -> {
@@ -241,27 +273,22 @@ public class UsuarioController {
             Medicamento medVinculado = precioLocal.getMedicamento();
             PrecioVigenteId idCompuestoLocal = precioLocal.getId();
 
-            // 2. LA OPCIÓN NUCLEAR: Si el origen es "MANUAL", lo borramos de TODA la base de datos
             if (medVinculado != null && "MANUAL".equalsIgnoreCase(medVinculado.getOrigen_catalogo())) {
                 
-                // Buscamos TODOS los precios huérfanos o de otras sucursales que usen este ID
                 List<PrecioVigente> todasLasDependencias = precioVigenteRepo.findAll().stream()
                     .filter(p -> p.getMedicamento() != null && 
                                  p.getMedicamento().getId_medicamento().equals(medVinculado.getId_medicamento()))
                     .collect(Collectors.toList());
                 
-                // Primero aniquilamos todas las referencias en la tabla precio_vigente
                 precioVigenteRepo.deleteAll(todasLasDependencias);
                 precioVigenteRepo.flush();
 
-                // Ahora que PostgreSQL nos da permiso (0 referencias), destruimos el Medicamento
                 medicamentoRepository.deleteById(medVinculado.getId_medicamento());
                 medicamentoRepository.flush();
 
                 return ResponseEntity.ok("✅ Medicamento MANUAL y todos sus precios asociados fueron borrados de raíz.");
                 
             } else {
-                // 3. Si es Nacional (Catálogo oficial), SOLO borramos el precio de tu sucursal
                 precioVigenteRepo.deleteById(idCompuestoLocal);
                 precioVigenteRepo.flush();
                 return ResponseEntity.ok("✅ Eliminado de tu local (El Catálogo Nacional se mantuvo protegido).");

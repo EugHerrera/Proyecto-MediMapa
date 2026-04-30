@@ -3,9 +3,9 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import './Resultados.css'; // 🔥 IMPORTAMOS EL NUEVO ESTILO PREMIUM
+import './Resultados.css'; 
 
-// IMPORTS DE LAS IMÁGENES DE TU COMPAÑERO
+// IMPORTS DE LOGOS
 import logotipoAhumada from '../assets/logotipoahumada.png';
 import logotipoDrSimi from '../assets/logotipodrsimi.png';
 import logotipoSalcobrand from '../assets/logotiposalcobrand.png';
@@ -41,7 +41,7 @@ const independienteIcon = L.divIcon({
   iconAnchor: [17, 35],
 });
 
-// 4. FUNCIÓN PARA DECIDIR QUÉ ICONO PONER SEGÚN EL NOMBRE
+// 4. FUNCIÓN PARA DECIDIR QUÉ ICONO PONER
 const getIconoFarmacia = (nombreFarmacia: string) => {
   const nombre = nombreFarmacia.toLowerCase();
   if (nombre.includes('ahumada')) return ahumadaIcon;
@@ -72,6 +72,7 @@ function Resultados() {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || ''; 
   
+  const [rawData, setRawData] = useState<any[]>([]); 
   const [preciosTarjetas, setPreciosTarjetas] = useState<any[]>([]); 
   const [todasLasSucursales, setTodasLasSucursales] = useState<any[]>([]); 
   
@@ -86,6 +87,7 @@ function Resultados() {
     
     if (forzarRefresh) {
       setPreciosTarjetas([]); 
+      setRawData([]);
     }
 
     const url = `http://localhost:8080/api/scraper/buscar?query=${encodeURIComponent(query)}${forzarRefresh ? '&forceRefresh=true' : ''}`;
@@ -93,34 +95,7 @@ function Resultados() {
     fetch(url)
       .then(r => r.json())
       .then(data => {
-        const mejores: Record<string, any> = {};
-        const pinesMapa: any[] = []; 
-
-        data.forEach((item: any) => {
-          const cadena = (item.farmacia?.toLowerCase().includes("ahumada")) ? "Farmacias Ahumada" : 
-                         (item.farmacia?.toLowerCase().includes("salco")) ? "Salcobrand" : 
-                         (item.farmacia?.toLowerCase().includes("simi")) ? "Dr. Simi" : "Independiente";
-
-          let lat = item.lat;
-          let lng = item.lng;
-
-          if (!lat || !lng) {
-            if (cadena === "Farmacias Ahumada") { lat = -33.5413; lng = -70.5630; }
-            else if (cadena === "Salcobrand") { lat = -33.5192; lng = -70.5975; }
-            else if (cadena === "Dr. Simi") { lat = -33.5188; lng = -70.5984; }
-            else { lat = -33.5255; lng = -70.5950; }
-          }
-
-          const sucursalLista = { ...item, lat, lng, cadenaOficial: cadena };
-          pinesMapa.push(sucursalLista);
-
-          if (!mejores[cadena] || item.precio < mejores[cadena].precio) {
-            mejores[cadena] = sucursalLista;
-          }
-        });
-
-        setPreciosTarjetas(Object.values(mejores));
-        setTodasLasSucursales(pinesMapa); 
+        setRawData(data);
         setCargando(false);
       })
       .catch(error => {
@@ -133,6 +108,50 @@ function Resultados() {
     buscarMedicamentos(false);
   }, [query]);
 
+  // 🔥 NUEVA LÓGICA: FILTRA POR DISTANCIA (CERCANÍA) Y NO POR PRECIO 🔥
+  useEffect(() => {
+    if (rawData.length === 0) return;
+
+    const baseLat = ubicacion ? ubicacion.lat : -33.5212; // La Florida por defecto
+    const baseLng = ubicacion ? ubicacion.lng : -70.5973;
+
+    const farmaciasMasCercanas: Record<string, any> = {};
+    const pinesMapa: any[] = []; 
+
+    rawData.forEach((item: any) => {
+      const cadena = (item.farmacia?.toLowerCase().includes("ahumada")) ? "Farmacias Ahumada" : 
+                     (item.farmacia?.toLowerCase().includes("salco")) ? "Salcobrand" : 
+                     (item.farmacia?.toLowerCase().includes("simi")) ? "Dr. Simi" : "Independiente";
+
+      let lat = item.lat;
+      let lng = item.lng;
+
+      // Si vienen sin coordenadas del backend, les asignamos unas temporales
+      if (!lat || !lng) {
+        if (cadena === "Farmacias Ahumada") { lat = baseLat + 0.0025; lng = baseLng + 0.0020; }
+        else if (cadena === "Salcobrand") { lat = baseLat - 0.0020; lng = baseLng - 0.0025; }
+        else if (cadena === "Dr. Simi") { lat = baseLat + 0.0015; lng = baseLng - 0.0030; }
+        else { lat = baseLat - 0.0030; lng = baseLng + 0.0015; }
+      }
+
+      // 🔥 Calculamos qué tan lejos está esta farmacia específica de ti
+      const distanciaKm = calcularDistanciaKm(baseLat, baseLng, lat, lng);
+      const sucursalLista = { ...item, lat, lng, cadenaOficial: cadena, distancia: distanciaKm };
+      
+      pinesMapa.push(sucursalLista);
+
+      // 🔥 LÓGICA DE CERCANÍA: Si no tengo farmacia guardada para esta cadena, la guardo.
+      // Si YA tengo una, pero ESTA nueva está MÁS CERCA, la reemplazo.
+      if (!farmaciasMasCercanas[cadena] || distanciaKm < farmaciasMasCercanas[cadena].distancia) {
+        farmaciasMasCercanas[cadena] = sucursalLista;
+      }
+    });
+
+    setPreciosTarjetas(Object.values(farmaciasMasCercanas));
+    setTodasLasSucursales(pinesMapa); 
+
+  }, [rawData, ubicacion]); 
+
   const pedirUbicacion = () => {
     setEstadoUbicacion("Buscando tu ubicación GPS... 🛰️");
     if (!navigator.geolocation) {
@@ -142,7 +161,7 @@ function Resultados() {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setUbicacion({ lat: position.coords.latitude, lng: position.coords.longitude });
-        setEstadoUbicacion("✅ Ubicación encontrada. Mapa actualizado.");
+        setEstadoUbicacion("✅ Ubicación encontrada. Calculando las más cercanas a ti...");
       },
       (error) => {
         console.error(error);
@@ -156,14 +175,12 @@ function Resultados() {
 
   const sucursalesEnRango = todasLasSucursales.filter(p => {
     if (!ubicacion) return true; 
-    const distancia = calcularDistanciaKm(ubicacion.lat, ubicacion.lng, p.lat, p.lng);
-    return distancia <= radioKm;
+    return p.distancia <= radioKm;
   });
 
   return (
     <div className="resultados-container">
       
-      {/* 🔥 BANNER PREMIUM 🔥 */}
       <div className="resultados-header">
         <div className="resultados-title-group">
           <Link to="/" className="resultados-volver">⬅ Volver</Link>
@@ -182,7 +199,8 @@ function Resultados() {
       
       {!cargando && preciosTarjetas.length > 0 && (
         <div className="seccion-precios">
-          <h3>✅ Precios más bajos por cadena:</h3>
+          {/* 🔥 CAMBIAMOS EL TÍTULO PARA QUE TENGA SENTIDO 🔥 */}
+          <h3>📍 Farmacias más cercanas a ti con stock:</h3>
           
           <div className="precios-grid">
             {preciosTarjetas.map((item, i) => (
@@ -196,6 +214,12 @@ function Resultados() {
                 
                 <h4>💊 {item.medicamento}</h4>
                 <p className="farmacia-nombre">🏪 {item.farmacia}</p>
+                
+                {/* 🔥 AGREGAMOS LA DISTANCIA EN LA TARJETA 🔥 */}
+                <p style={{ color: '#059669', fontWeight: 'bold', margin: '5px 0' }}>
+                  🚗 A {item.distancia.toFixed(2)} km de distancia
+                </p>
+                
                 <p className="stock-ok">✓ Stock revisado hoy</p>
                 
                 <p className="precio-valor">
@@ -208,7 +232,7 @@ function Resultados() {
           <div className="seccion-mapa">
             <div className="mapa-header">
               <div>
-                <h3>📍 Farmacias cercanas a tu ubicación</h3>
+                <h3>📍 Mapa de Cobertura</h3>
                 <p>Mostrando <strong>{sucursalesEnRango.length}</strong> sucursales a tu alrededor.</p>
               </div>
               <button className="btn-activar-gps" onClick={pedirUbicacion}>
@@ -232,7 +256,7 @@ function Resultados() {
             {estadoUbicacion && <p className="estado-gps">{estadoUbicacion}</p>}
             
             <div className="mapa-wrapper">
-              <MapContainer center={[mapLat, mapLng]} zoom={13} style={{ height: '100%' }}>
+              <MapContainer center={[mapLat, mapLng]} zoom={14} style={{ height: '100%' }}>
                 <VolarAlCentro lat={mapLat} lng={mapLng} />
                 <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
                 
@@ -246,9 +270,10 @@ function Resultados() {
                 )}
 
                 {sucursalesEnRango.map((p, i) => (
-                  <Marker key={`pin-${i}`} position={[p.lat, p.lng]} icon={getIconoFarmacia(p.farmacia)}>
+                  <Marker key={`pin-${i}`} position={[p.lat, p.lng]} icon={getIconoFarmacia(p.cadenaOficial)}>
                     <Popup>
                       <strong>{p.farmacia}</strong><br/>
+                      🚗 A {p.distancia.toFixed(2)} km<br/>
                       💊 {p.medicamento}<br/>
                       💵 <strong>${p.precio?.toLocaleString('es-CL')}</strong>
                     </Popup>
