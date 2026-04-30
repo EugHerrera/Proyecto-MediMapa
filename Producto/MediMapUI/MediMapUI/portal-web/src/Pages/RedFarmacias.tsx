@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { apiGeo } from '../services/api';
 import './RedFarmacias.css';
 
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -171,19 +170,14 @@ const RedFarmacias: React.FC = () => {
     setCargando(true);
     setError('');
 
-    apiGeo
-      .get('/v1/geolocalizacion/sucursales', {
-        params: {
-          lat: ubicacion.lat,
-          lon: ubicacion.lng,
-          radio: radioMetros,
-          cadenas: [filtroAhumada && 'Ahumada', filtroSalcobrand && 'Salcobrand', filtroDrSimi && 'Dr Simi']
-            .filter(Boolean)
-            .join(','),
-        },
+    const url = `http://localhost:8083/api/v1/geolocalizacion/sucursales?lat=${ubicacion.lat}&lon=${ubicacion.lng}&radio=${radioMetros}`;
+
+    fetch(url)
+      .then((response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
       })
-      .then((response: any) => {
-        const payload = response.data;
+      .then((payload) => {
         const lista = Array.isArray(payload)
           ? payload
           : Array.isArray(payload?.data)
@@ -200,11 +194,12 @@ const RedFarmacias: React.FC = () => {
         setCargando(false);
         setEstadoUbicacion('Mostrando sucursales cercanas en el mapa. No guardamos tu ubicación.');
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error('Error geolocalizacion:', err);
         setError('Error al cargar farmacias cercanas. Revisa la API de geolocalización.');
         setCargando(false);
       });
-  }, [ubicacion, radioMetros, filtroAhumada, filtroSalcobrand, filtroDrSimi]);
+  }, [ubicacion, radioMetros]);
 
   const cadenasSeleccionadas = useMemo(() => {
     const seleccionadas: string[] = [];
@@ -362,7 +357,7 @@ const RedFarmacias: React.FC = () => {
             <input
               type="range"
               min={1000}
-              max={10000}
+              max={7000}
               step={500}
               value={radioMetros}
               onChange={(e) => setRadioMetros(Number(e.target.value))}
