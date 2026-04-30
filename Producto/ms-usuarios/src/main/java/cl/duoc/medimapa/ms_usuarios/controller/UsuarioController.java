@@ -214,33 +214,63 @@ public class UsuarioController {
         }
     }
 
-  @DeleteMapping("/inventario/eliminar")
-    @Transactional
+@DeleteMapping("/inventario/eliminar")
     public ResponseEntity<?> eliminarMedicamentoInventario(
             @RequestParam Long idSucursal, 
             @RequestParam String nombreMedicamento) {
         try {
-            PrecioVigenteId idRelacion = new PrecioVigenteId();
-            idRelacion.setId_sucursal(idSucursal);
-            idRelacion.setTexto_busqueda(nombreMedicamento);
-            
-            if (precioVigenteRepo.existsById(idRelacion)) {
-                precioVigenteRepo.deleteById(idRelacion);
+            // 1. Buscamos el inventario local para identificar qué medicamento quieres borrar
+            List<PrecioVigente> inventarioLocal = precioVigenteRepo.buscarPorSucursal(idSucursal);
+            PrecioVigente precioLocal = inventarioLocal.stream()
+                .filter(p -> {
+                    boolean matchNombre = p.getMedicamento() != null && 
+                                          p.getMedicamento().getNombre_canonico() != null && 
+                                          p.getMedicamento().getNombre_canonico().equalsIgnoreCase(nombreMedicamento);
+                    boolean matchBusqueda = p.getId() != null && 
+                                            p.getId().getTexto_busqueda() != null && 
+                                            p.getId().getTexto_busqueda().equalsIgnoreCase(nombreMedicamento);
+                    return matchNombre || matchBusqueda;
+                })
+                .findFirst()
+                .orElse(null);
+
+            if (precioLocal == null) {
+                return ResponseEntity.badRequest().body("❌ El medicamento no fue encontrado en tu inventario.");
+            }
+
+            Medicamento medVinculado = precioLocal.getMedicamento();
+            PrecioVigenteId idCompuestoLocal = precioLocal.getId();
+
+            // 2. LA OPCIÓN NUCLEAR: Si el origen es "MANUAL", lo borramos de TODA la base de datos
+            if (medVinculado != null && "MANUAL".equalsIgnoreCase(medVinculado.getOrigen_catalogo())) {
+                
+                // Buscamos TODOS los precios huérfanos o de otras sucursales que usen este ID
+                List<PrecioVigente> todasLasDependencias = precioVigenteRepo.findAll().stream()
+                    .filter(p -> p.getMedicamento() != null && 
+                                 p.getMedicamento().getId_medicamento().equals(medVinculado.getId_medicamento()))
+                    .collect(Collectors.toList());
+                
+                // Primero aniquilamos todas las referencias en la tabla precio_vigente
+                precioVigenteRepo.deleteAll(todasLasDependencias);
                 precioVigenteRepo.flush();
-            }
 
-            Optional<Medicamento> medOpt = medicamentoRepository.findByNombreCanonico(nombreMedicamento);
-            
-            if (medOpt.isPresent()) {
-                medicamentoRepository.delete(medOpt.get());
-                medicamentoRepository.flush(); 
-                return ResponseEntity.ok("Aniquilado con éxito de todos lados");
-            }
+                // Ahora que PostgreSQL nos da permiso (0 referencias), destruimos el Medicamento
+                medicamentoRepository.deleteById(medVinculado.getId_medicamento());
+                medicamentoRepository.flush();
 
-            return ResponseEntity.ok("Se eliminó de la farmacia, pero no se encontró en el catálogo global para borrarlo.");
+                return ResponseEntity.ok("✅ Medicamento MANUAL y todos sus precios asociados fueron borrados de raíz.");
+                
+            } else {
+                // 3. Si es Nacional (Catálogo oficial), SOLO borramos el precio de tu sucursal
+                precioVigenteRepo.deleteById(idCompuestoLocal);
+                precioVigenteRepo.flush();
+                return ResponseEntity.ok("✅ Eliminado de tu local (El Catálogo Nacional se mantuvo protegido).");
+            }
             
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Aviso: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("❌ Error crítico en BD: " + e.getMessage());
         }
     }
 
