@@ -53,7 +53,6 @@ public class ExcelService {
                 Medicamento med = medicamentoRepo.findByNombreCanonico(nombreCanonico)
                         .orElseGet(() -> {
                             Medicamento nuevo = new Medicamento();
-                            // 🔥 CORRECCIÓN: Usamos el guion bajo
                             nuevo.setNombre_canonico(nombreCanonico);
                             nuevo.setActivo(true);
                             nuevo.setOrigen_catalogo("MANUAL"); 
@@ -61,11 +60,8 @@ public class ExcelService {
                         });
 
                 PrecioVigente precio = new PrecioVigente();
-                PrecioVigenteId idCompuesto = new PrecioVigenteId();
-                idCompuesto.setId_sucursal(idSucursal);
-                idCompuesto.setTexto_busqueda(nombreCanonico.toLowerCase());
-                
-                precio.setId(idCompuesto);
+                // 🔥 GUARDADO LIMPIO SIN LLAVE COMPUESTA
+                precio.setTextoBusqueda(nombreCanonico.toLowerCase());
                 precio.setMedicamento(med);
                 precio.setPrecio_max_vta(BigDecimal.valueOf(precioExcel));
                 precio.setCorrida(corrida);
