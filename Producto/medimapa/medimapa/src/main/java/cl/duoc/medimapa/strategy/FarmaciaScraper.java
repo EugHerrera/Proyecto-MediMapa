@@ -2,11 +2,36 @@ package cl.duoc.medimapa.strategy;
 
 import com.microsoft.playwright.Page;
 import java.math.BigDecimal;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public interface FarmaciaScraper {
-    Long getIdFuente(); // El ID de la farmacia en tu Base de Datos
-    String getNombreFarmacia(); // Para que los logs se vean bonitos
-    String generarUrl(String nombreMedicamento); // Cada página tiene su propia forma de buscar
-    BigDecimal extraerMenorPrecio(Page page); // El Modo Dios específico de cada HTML
+    Long getIdFuente(); 
+    String getNombreFarmacia(); 
+    String generarUrl(String nombreMedicamento); 
+    
+    // 🔥 1. Ahora exigimos el nombre del medicamento para poder validarlo
+    BigDecimal extraerMenorPrecio(Page page, String nombreMedicamento); 
+    
     boolean esBioequivalente(Page page);
+
+    // 🔥 2. EL FILTRO INTELIGENTE: Busca números en tu búsqueda y exige que estén en el producto
+    default boolean esCoincidenciaValida(String textoTarjeta, String busqueda) {
+        if (textoTarjeta == null || busqueda == null) return false;
+        
+        String tarjetaLower = textoTarjeta.toLowerCase();
+        String busquedaLower = busqueda.toLowerCase();
+
+        // Extrae números con comas o puntos (ej: "4", "0.5", "500")
+        Matcher m = Pattern.compile("\\d+[.,]?\\d*").matcher(busquedaLower);
+
+        while (m.find()) {
+            String numeroDosis = m.group();
+            // Si el número exacto NO está en la tarjeta del producto, lo rechazamos
+            if (!tarjetaLower.contains(numeroDosis)) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

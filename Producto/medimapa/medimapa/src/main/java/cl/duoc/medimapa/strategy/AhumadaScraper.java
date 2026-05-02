@@ -1,4 +1,3 @@
-
 package cl.duoc.medimapa.strategy;
 
 import com.microsoft.playwright.Page;
@@ -17,22 +16,46 @@ public class AhumadaScraper implements FarmaciaScraper {
 
     @Override
     public String generarUrl(String nombreMedicamento) {
-        try { return "https://www.farmaciasahumada.cl/search?q=" + URLEncoder.encode(nombreMedicamento, StandardCharsets.UTF_8); } 
+        try { 
+            String queryLimpio = nombreMedicamento.trim();
+            String encodedQuery = URLEncoder.encode(queryLimpio, StandardCharsets.UTF_8);
+            return "https://www.farmaciasahumada.cl/search?q=" + encodedQuery + "&search-button=&lang=null"; 
+        } 
         catch (Exception e) { return ""; }
     }
 
     @Override
-    public BigDecimal extraerMenorPrecio(Page page) {
+    public BigDecimal extraerMenorPrecio(Page page, String nombreMedicamento) {
         try { 
             page.waitForLoadState();
-            page.waitForTimeout(4000); 
+            page.evaluate("window.scrollBy(0, 1000)");
+            page.waitForTimeout(5000); 
             
-            List<String> textos = page.locator(".price, .price-wrapper, [class*='Price']").allInnerTexts();
+            String selectoresMasivos = "article, div[class*='product'], div[class*='Product'], div[class*='card'], div[class*='Card'], div[class*='item'], div[class*='Item']";
+            List<String> tarjetas = page.locator(selectoresMasivos).allInnerTexts();
+            
             BigDecimal minPrecio = null;
             Pattern pattern = Pattern.compile("\\$\\s*(\\d[\\d\\.]*)");
             
-            for (String texto : textos) {
-                Matcher m = pattern.matcher(texto);
+            String palabraClave = nombreMedicamento.split(" ")[0].toLowerCase();
+            
+            for (String textoTarjeta : tarjetas) {
+                String textoLimpio = textoTarjeta.replace("\n", " ").toLowerCase();
+                
+                if (!textoLimpio.contains(palabraClave) || !textoLimpio.contains("$")) {
+                    continue;
+                }
+
+                if (!esCoincidenciaValida(textoLimpio, nombreMedicamento)) {
+                    continue;
+                }
+
+                // 🔥 BORRADOR MÁGICO: Eliminamos el "precio por comprimido" (ej: "$ 183 x Comp.")
+                // Así evitamos que el robot crea que la caja entera cuesta 183 pesos.
+                String textoSinUnitario = textoTarjeta.replaceAll("(?i)\\$\\s*[\\d\\.]+\\s*x\\s*[a-z\\.]+", "");
+
+                // Ahora sí, buscamos los precios reales que quedaron
+                Matcher m = pattern.matcher(textoSinUnitario);
                 while (m.find()) {
                     String limpio = m.group(1).replace(".", "");
                     try {
@@ -46,24 +69,19 @@ public class AhumadaScraper implements FarmaciaScraper {
                 }
             }
             return minPrecio;
-        } catch (Exception e) { return null; } 
+        } catch (Exception e) { 
+            System.err.println("❌ Error interno en Ahumada: " + e.getMessage());
+            return null; 
+        } 
     }
 
-@Override
+    @Override
     public boolean esBioequivalente(Page page) {
         try {
-            // 1. Buscamos la palabra literal en cualquier texto visible
             boolean porTexto = page.getByText(Pattern.compile("bioequivalente", Pattern.CASE_INSENSITIVE)).count() > 0;
-            
-            // 2. Red ampliada: Buscamos en imágenes, textos alternativos (alt) y gráficos SVG
             boolean porAtributo = page.locator(
-                "img[src*='bio' i], " +           // Imágenes que tengan 'bio' en la ruta
-                "img[alt*='bio' i], " +           // Imágenes con texto oculto 'bio'
-                "[class*='bioeq' i], " +          // Etiquetas con clases CSS de bioequivalencia
-                "svg[aria-label*='bio' i], " +    // Gráficos modernos con etiquetas ocultas
-                "svg[class*='bio' i]"             // Gráficos modernos con clases CSS
+                "img[src*='bio' i], img[alt*='bio' i], [class*='bioeq' i], svg[aria-label*='bio' i], svg[class*='bio' i]"             
             ).count() > 0;
-
             return porTexto || porAtributo;
         } catch (Exception e) { return false; }
     }
