@@ -1,17 +1,14 @@
-# Usamos una versión ligera de Java 17 (Cámbialo a 21 si usas Java 21)
-FROM eclipse-temurin:17-jdk-alpine
+# Usamos una imagen oficial que ya tiene Maven y Java 17 integrados
+FROM maven:3.9.6-eclipse-temurin-21-alpine
 
 WORKDIR /app
 
-# Copiamos los archivos de compilación
-COPY mvnw .
-COPY .mvn ./.mvn
+# Copiamos SOLO tu código y el pom.xml
 COPY pom.xml .
 COPY src ./src
 
-# Le damos permisos a Maven y compilamos el proyecto
-RUN chmod +x ./mvnw
-RUN ./mvnw clean package -DskipTests
+# Compilamos usando el Maven nativo de la imagen (mvn en vez de ./mvnw)
+RUN mvn clean package -DskipTests
 
-# Ejecutamos el archivo .jar resultante
+# Ejecutamos el archivo .jar
 CMD ["sh", "-c", "java -jar target/*.jar"]

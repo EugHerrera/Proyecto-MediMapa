@@ -1,15 +1,15 @@
-# Etapa 1: Construcción (Node.js)
-FROM node:18-alpine as build
+# Etapa 1: Construcción (¡Actualizado a Node 20!)
+FROM node:20-alpine as build
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-# Asumiendo que usas Vite. Si usas Create React App, cambia "dist" a "build" abajo
+
+# Como ya arreglaste el TypeScript, podemos usar el comando original
 RUN npm run build 
 
 # Etapa 2: Servidor Web (Nginx)
 FROM nginx:alpine
-# Copiamos la carpeta 'dist' que generó Vite hacia Nginx
 COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
