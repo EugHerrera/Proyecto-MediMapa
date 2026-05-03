@@ -1,0 +1,17 @@
+# Usamos una versión ligera de Java 17 (Cámbialo a 21 si usas Java 21)
+FROM eclipse-temurin:17-jdk-alpine
+
+WORKDIR /app
+
+# Copiamos los archivos de compilación
+COPY mvnw .
+COPY .mvn ./.mvn
+COPY pom.xml .
+COPY src ./src
+
+# Le damos permisos a Maven y compilamos el proyecto
+RUN chmod +x ./mvnw
+RUN ./mvnw clean package -DskipTests
+
+# Ejecutamos el archivo .jar resultante
+CMD ["sh", "-c", "java -jar target/*.jar"]

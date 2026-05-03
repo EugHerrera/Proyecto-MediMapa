@@ -1,0 +1,16 @@
+# Imagen oficial de Playwright con Java preinstalado
+FROM mcr.microsoft.com/playwright.java:v1.43.0-jammy
+
+WORKDIR /app
+
+# Copiamos los archivos
+COPY mvnw .
+COPY .mvn ./.mvn
+COPY pom.xml .
+COPY src ./src
+
+RUN chmod +x ./mvnw
+RUN ./mvnw clean package -DskipTests
+
+# Comando para ejecutar tu scraper
+CMD ["sh", "-c", "java -jar target/*.jar"]

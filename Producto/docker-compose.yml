@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # 1. LA BASE DE DATOS
+  db-medimapa:
+    image: postgis/postgis:15-3.3
+    environment:
+      POSTGRES_DB: medimapa_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password_seguro_123
+    ports:
+      - "5432:5432" # Para que te conectes con DBeaver desde tu PC
+
+  # 2. TUS MICROSERVICIOS INTERNOS
+  ms-usuarios:
+    build: ./ms-usuarios
+    depends_on:
+      - db-medimapa
+
+  ms-catalogo:
+    build: ./ms-catalogo
+    depends_on:
+      - db-medimapa
+
+  ms-geocalizacion:
+    build: ./ms-geocalizacion
+    depends_on:
+      - db-medimapa
+
+  medimapa: # Tu Scraper con Playwright
+    build: ./medimapa
+    depends_on:
+      - db-medimapa
+
+  # 3. LA PUERTA AL MUNDO (API GATEWAY)
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "8080:8080" # Expone el puerto del backend a internet
+    depends_on:
+      - ms-usuarios
+      - ms-catalogo
+      - ms-geocalizacion
+      - medimapa
+
+  # 4. TU APLICACIÓN WEB (FRONTEND)
+  frontend:
+    build: ./MediMapUI
+    ports:
+      - "5173:80" # Tu PC entrará por el 5173, pero Nginx adentro usa el 80
