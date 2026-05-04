@@ -10,7 +10,7 @@ import cl.duoc.geocalizacion.model.SucursalFarmacia;
 import cl.duoc.geocalizacion.service.GeolocalizacionService;
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:5173")
+
 @RestController
 @RequestMapping("/api/v1/geolocalizacion")
 public class GeolocalizacionController {

@@ -8,6 +8,7 @@ services:
       POSTGRES_PASSWORD: 753691
     ports:
       - "5432:5432"
+  
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d medimapa_db"]
       interval: 5s
@@ -20,6 +21,12 @@ services:
     depends_on:
       db-medimapa:
         condition: service_healthy
+  
+  ms-geocalizacion:
+    build: ./ms-geocalizacion/geocalizacion
+    depends_on:
+      db-medimapa:
+        condition: service_healthy
 
   ms-catalogo:
     build: ./ms-catalogo
@@ -27,11 +34,7 @@ services:
       db-medimapa:
         condition: service_healthy
 
-  ms-geocalizacion:
-    build: ./ms-geocalizacion/geocalizacion
-    depends_on:
-      db-medimapa:
-        condition: service_healthy
+  
 
   medimapa: # Tu Scraper con Playwright
     build: ./medimapa/medimapa
