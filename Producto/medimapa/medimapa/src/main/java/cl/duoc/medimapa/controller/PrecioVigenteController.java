@@ -15,7 +15,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/scraper")
-@CrossOrigin(origins = "*")
+
 public class PrecioVigenteController {
 
     @Autowired private PrecioVigenteRepository precioRepo;

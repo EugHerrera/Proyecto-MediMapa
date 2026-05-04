@@ -22,8 +22,7 @@ public class SucursalService {
                     dto.setIdSucursal(suc.getId_sucursal()); 
                     dto.setNombreSucursal(suc.getNombre_sucursal()); 
                     dto.setDireccion(suc.getDireccion());
-                    dto.setLatitud(suc.getLatitud());
-                    dto.setLongitud(suc.getLongitud());
+                    dto.setUbicacion(suc.getUbicacion());
                     return dto;
                 }).collect(Collectors.toList());
     }
