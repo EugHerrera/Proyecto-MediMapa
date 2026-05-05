@@ -2,7 +2,7 @@ package cl.duoc.medimapa.ms_usuarios.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import java.math.BigDecimal;
+import org.geolatte.geom.Point;
 import java.time.OffsetDateTime;
 
 @Entity
@@ -20,11 +20,9 @@ public class SucursalFarmacia {
     @Column(nullable = false, length = 400)
     private String direccion; 
 
-    @Column(precision = 10, scale = 7, nullable = false)
-    private BigDecimal latitud; 
-
-    @Column(precision = 10, scale = 7, nullable = false)
-    private BigDecimal longitud; 
+    // 🔥 CAMBIO: Reemplazamos BigDecimal por Point nativo
+    @Column(columnDefinition = "geometry(Point, 4326)", nullable = false)
+    private Point ubicacion; 
 
     private Boolean activo = true; 
 
@@ -34,7 +32,6 @@ public class SucursalFarmacia {
     @Column(name = "actualizado_en")
     private OffsetDateTime actualizadoEn;
 
-    // 🔥 Agregamos esto para respetar tu tabla 'farmacias'
     @Column(name = "id_farmacia")
     private Long id_farmacia;
 }

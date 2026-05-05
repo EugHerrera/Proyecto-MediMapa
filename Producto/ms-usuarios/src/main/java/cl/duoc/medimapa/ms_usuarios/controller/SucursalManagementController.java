@@ -16,13 +16,11 @@ public class SucursalManagementController {
     @Autowired
     private SucursalFarmaciaRepository sucursalRepo;
 
-    // 1. LISTAR TODAS (Para el Admin)
     @GetMapping
     public List<SucursalFarmacia> listarTodas() {
         return sucursalRepo.findAll();
     }
 
-    // 2. CREAR NUEVA SUCURSAL
     @PostMapping
     public SucursalFarmacia crear(@RequestBody SucursalFarmacia sucursal) {
         sucursal.setCreadoEn(OffsetDateTime.now());
@@ -30,21 +28,19 @@ public class SucursalManagementController {
         return sucursalRepo.save(sucursal);
     }
 
-    // 3. ACTUALIZAR SUCURSAL EXISTENTE
     @PutMapping("/{id}")
     public ResponseEntity<SucursalFarmacia> actualizar(@PathVariable Long id, @RequestBody SucursalFarmacia datosNuevos) {
         return sucursalRepo.findById(id).map(sucursal -> {
             sucursal.setNombre_sucursal(datosNuevos.getNombre_sucursal());
             sucursal.setDireccion(datosNuevos.getDireccion());
-            sucursal.setLatitud(datosNuevos.getLatitud());
-            sucursal.setLongitud(datosNuevos.getLongitud());
+            // 🔥 CAMBIO: Actualizamos el objeto Point completo
+            sucursal.setUbicacion(datosNuevos.getUbicacion());
             sucursal.setActivo(datosNuevos.getActivo());
             sucursal.setActualizadoEn(OffsetDateTime.now());
             return ResponseEntity.ok(sucursalRepo.save(sucursal));
         }).orElse(ResponseEntity.notFound().build());
     }
 
-    // 4. ELIMINAR (O DESACTIVAR)
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         if (sucursalRepo.existsById(id)) {
