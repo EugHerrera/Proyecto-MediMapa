@@ -17,30 +17,35 @@ public class SimiScraper implements FarmaciaScraper {
     @Override
     public String generarUrl(String nombreMedicamento) {
         try {
-            String encoded = URLEncoder.encode(nombreMedicamento, StandardCharsets.UTF_8);
+            // 🔥 MAGIA: Junta el número con el "mg" automáticamente
+            String queryAjustado = nombreMedicamento.trim().replaceAll("(\\d)\\s+([a-zA-Z])", "$1$2");
+            String encoded = URLEncoder.encode(queryAjustado, StandardCharsets.UTF_8).replace("+", "%20");
             return "https://www.drsimi.cl/" + encoded + "?_q=" + encoded + "&map=ft&order=OrderByPriceASC";
         } catch (Exception e) { return ""; }
     }
 
     @Override
-    public BigDecimal extraerMenorPrecio(Page page) {
+    public BigDecimal extraerMenorPrecio(Page page, String nombreMedicamento) {
         try { 
             page.waitForLoadState();
-            // 🔥 SCROLL MAGICO: Obligamos a la página a bajar para que cargue los precios
             page.evaluate("window.scrollBy(0, 800)");
-            page.waitForTimeout(4500); // Le damos tiempo a que aparezcan
+            page.waitForTimeout(4500); 
             
-            List<String> textos = page.locator("body").allInnerTexts();
+            List<String> tarjetas = page.locator("[class*='product-summary'], [class*='galleryItem'], article").allInnerTexts();
+            System.out.println("👉 Dr. Simi encontró " + tarjetas.size() + " tarjetas de producto.");
+            
             BigDecimal minPrecio = null;
+            Pattern pattern = Pattern.compile("\\$\\s*(\\d[\\d\\.]*)");
             
-            for (String texto : textos) {
-                // Regex para atrapar todo lo que sea $100, $1.000, etc.
-                Matcher m = Pattern.compile("\\$\\s*(\\d[\\d\\.]*)").matcher(texto);
+            for (String textoTarjeta : tarjetas) {
+                if (!esCoincidenciaValida(textoTarjeta, nombreMedicamento)) continue;
+
+                Matcher m = pattern.matcher(textoTarjeta);
                 while (m.find()) {
                     String limpio = m.group(1).replace(".", "");
                     try {
                         BigDecimal actual = new BigDecimal(limpio);
-                        if (actual.compareTo(new BigDecimal(150)) > 0) { // Evita basura menor a $150
+                        if (actual.compareTo(new BigDecimal(150)) > 0) { 
                             if (minPrecio == null || actual.compareTo(minPrecio) < 0) {
                                 minPrecio = actual;
                             }

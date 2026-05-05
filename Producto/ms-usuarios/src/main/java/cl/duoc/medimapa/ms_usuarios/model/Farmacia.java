@@ -2,7 +2,7 @@ package cl.duoc.medimapa.ms_usuarios.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.locationtech.jts.geom.Point;
+
 
 @Entity
 @Table(name = "farmacias")
@@ -13,14 +13,9 @@ public class Farmacia {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String nombre;
 
-    @Column(nullable = false)
-    private String direccion;
 
-    // ¡Aquí está la magia de PostGIS para guardar la latitud y longitud en el mapa!
-    @Column(columnDefinition = "geometry(Point, 4326)")
-    private Point ubicacion;
-    
+
 }

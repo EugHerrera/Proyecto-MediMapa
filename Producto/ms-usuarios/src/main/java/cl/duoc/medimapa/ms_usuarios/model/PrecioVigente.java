@@ -10,17 +10,20 @@ import java.time.OffsetDateTime;
 @Data
 public class PrecioVigente {
 
-    @EmbeddedId
-    private PrecioVigenteId id; 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id; 
 
     @ManyToOne
-    @MapsId("id_sucursal")
-    @JoinColumn(name = "id_sucursal")
+    @JoinColumn(name = "id_sucursal", nullable = false)
     private SucursalFarmacia sucursal; 
 
     @ManyToOne
     @JoinColumn(name = "id_medicamento")
     private Medicamento medicamento; 
+
+    @Column(name = "texto_busqueda", length = 255)
+    private String textoBusqueda;
 
     @Column(precision = 12, scale = 2)
     private BigDecimal precio_max_vta; 

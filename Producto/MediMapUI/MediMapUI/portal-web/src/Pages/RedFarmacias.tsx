@@ -170,7 +170,7 @@ const RedFarmacias: React.FC = () => {
     setCargando(true);
     setError('');
 
-  const url = `http://localhost:8083/api/v1/geolocalizacion/sucursales?lat=${ubicacion.lat}&lon=${ubicacion.lng}&radio=${radioMetros}`;
+    const url = `http://localhost:8080/api/v1/geolocalizacion/sucursales?lat=${ubicacion.lat}&lon=${ubicacion.lng}&radio=${radioMetros}`;
 
     fetch(url)
       .then((response) => {

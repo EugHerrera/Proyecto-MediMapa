@@ -33,4 +33,8 @@ public class SucursalFarmacia {
 
     @Column(name = "actualizado_en")
     private OffsetDateTime actualizadoEn;
+
+    // 🔥 Agregamos esto para respetar tu tabla 'farmacias'
+    @Column(name = "id_farmacia")
+    private Long id_farmacia;
 }

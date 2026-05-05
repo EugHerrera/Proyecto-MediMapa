@@ -4,7 +4,7 @@ import cl.duoc.medimapa.model.*;
 import cl.duoc.medimapa.repository.*;
 import cl.duoc.medimapa.service.ScraperService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional; // 🔥 VITAL PARA BORRAR Y GUARDAR
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -15,6 +15,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/scraper")
+
 public class PrecioVigenteController {
 
     @Autowired private PrecioVigenteRepository precioRepo;
@@ -28,7 +29,6 @@ public class PrecioVigenteController {
         return precioRepo.findAll();
     }
 
-    // 🔥 TRANSACTIONAL ASEGURA QUE SE BORRE Y GUARDE SIN ERRORES
     @GetMapping("/buscar")
     @Transactional 
     public List<Map<String, Object>> buscarEnVivo(
@@ -37,9 +37,6 @@ public class PrecioVigenteController {
         
         System.out.println("\n🔎 Frontend solicitó buscar: " + query + " | Forzar Refresh: " + forceRefresh);
 
-        // =========================================================
-        // CAMINO 1: MODO CACHÉ (Búsqueda Rápida sin botón naranja)
-        // =========================================================
         if (!forceRefresh) {
             List<PrecioVigente> preciosEnBD = precioRepo.buscarPorNombreMedicamento(query);
             if (!preciosEnBD.isEmpty()) {
@@ -50,25 +47,22 @@ public class PrecioVigenteController {
                     Map<String, Object> dato = new HashMap<>();
                     dato.put("farmacia", pv.getSucursal() != null ? pv.getSucursal().getNombre_sucursal() : "Desconocida");
                     dato.put("precio", pv.getPrecio_max_vta());
-                    dato.put("medicamento", pv.getMedicamento() != null ? pv.getMedicamento().getNombre_canonico() : pv.getId().getTexto_busqueda());
+                    // 🔥 Aquí extraemos el texto correctamente
+                    dato.put("medicamento", pv.getMedicamento() != null ? pv.getMedicamento().getNombre_canonico() : pv.getTextoBusqueda());
                     
                     if (pv.getMedicamento() != null) {
                         dato.put("esBioequivalente", pv.getMedicamento().getEs_bioequivalente());
                     }
-                    if (pv.getSucursal() != null) {
-                        dato.put("lat", pv.getSucursal().getLatitud());
-                        dato.put("lng", pv.getSucursal().getLongitud());
+                    if (pv.getSucursal() != null && pv.getSucursal().getUbicacion() != null) {
+                        dato.put("lat", pv.getSucursal().getUbicacion().getY());
+                        dato.put("lng", pv.getSucursal().getUbicacion().getX());
                     }
                     respuestaCacheada.add(dato);
                 }
-                // RETORNO INMEDIATO: Ya está listo para React
                 return respuestaCacheada; 
             }
         }
 
-        // =========================================================
-        // CAMINO 2: MODO TURBO (El robot trabaja en vivo)
-        // =========================================================
         System.out.println("🚀 INICIANDO MODO TURBO (Playwright) para buscar precios frescos...");
         List<Map<String, Object>> preciosNacionales = scraperService.compararEnVivo(query);
 
@@ -77,43 +71,35 @@ public class PrecioVigenteController {
             return new ArrayList<>();
         }
 
-        // EXPANSIÓN A SUCURSALES (Solo con los datos frescos del robot)
         List<SucursalFarmacia> todasLasSucursales = sucursalRepo.findAll();
         List<Map<String, Object>> respuestaExpandida = new ArrayList<>();
 
-        for (SucursalFarmacia sucursal : todasLasSucursales) {
-            String nombreSuc = sucursal.getNombre_sucursal().toLowerCase();
-            for (Map<String, Object> p : preciosNacionales) {
-                String farmaciaPrecio = ((String) p.get("farmacia")).toLowerCase();
-                boolean mismaCadena = false;
-                
-                if (nombreSuc.contains("ahumada") && farmaciaPrecio.contains("ahumada")) mismaCadena = true;
-                else if (nombreSuc.contains("salco") && farmaciaPrecio.contains("salco")) mismaCadena = true;
-                else if (nombreSuc.contains("simi") && farmaciaPrecio.contains("simi")) mismaCadena = true;
-                else if (!nombreSuc.contains("ahumada") && !nombreSuc.contains("salco") && !nombreSuc.contains("simi") && 
-                         !farmaciaPrecio.contains("ahumada") && !farmaciaPrecio.contains("salco") && !farmaciaPrecio.contains("simi")) {
-                    mismaCadena = true; // Farmacias Independientes
-                }
+        for (Map<String, Object> precioScrapeado : preciosNacionales) {
+            String nombreCadenaScrapeada = (String) precioScrapeado.get("farmacia");
 
-                if (mismaCadena) {
-                    Map<String, Object> datoExpandido = new HashMap<>(p);
-                    datoExpandido.put("farmacia", sucursal.getNombre_sucursal());
-                    datoExpandido.put("lat", sucursal.getLatitud());
-                    datoExpandido.put("lng", sucursal.getLongitud());
+            for (SucursalFarmacia sucursal : todasLasSucursales) {
+                if (sucursal.getFarmacia() != null && 
+                    sucursal.getFarmacia().getNombre().equalsIgnoreCase(nombreCadenaScrapeada)) {
+                    
+                    Map<String, Object> datoExpandido = new HashMap<>(precioScrapeado);
+                    datoExpandido.put("cadenaFarmacia", sucursal.getFarmacia().getNombre());
+                    datoExpandido.put("farmacia", sucursal.getNombre_sucursal()); 
+                    
+                    if (sucursal.getUbicacion() != null) {
+                        datoExpandido.put("lat", sucursal.getUbicacion().getY());
+                        datoExpandido.put("lng", sucursal.getUbicacion().getX());
+                    }
+                    
                     datoExpandido.put("sucursalObj", sucursal); 
                     respuestaExpandida.add(datoExpandido);
-                    break; 
                 }
             }
         }
 
-        // =========================================================
-        // CAMINO 3: AUTOLIMPIEZA Y GUARDADO
-        // =========================================================
         System.out.println("🗑️ Borrando basura antigua de caché para: " + query);
         List<PrecioVigente> basuraAntigua = precioRepo.buscarPorNombreMedicamento(query);
         precioRepo.deleteAll(basuraAntigua);
-        precioRepo.flush(); // 🔥 Obligamos a PostgreSQL a borrar los datos viejos inmediatamente
+        precioRepo.flush(); 
 
         System.out.println("💾 Guardando los nuevos precios en la Base de Datos...");
         CorridaActualizacion corrida = new CorridaActualizacion();
@@ -142,14 +128,9 @@ public class PrecioVigenteController {
                 medicamentoRepo.save(med);
             }
 
-            PrecioVigenteId pvId = new PrecioVigenteId();
-            pvId.setId_sucursal(sucursal.getId_sucursal());
-            
-            // 🔥 Guardamos con el nombre exacto de la búsqueda del usuario
-            pvId.setTexto_busqueda(query); 
-
             PrecioVigente pv = new PrecioVigente();
-            pv.setId(pvId);
+            // 🔥 GUARDADO LIMPIO: Sin llaves compuestas
+            pv.setTextoBusqueda(query); 
             pv.setSucursal(sucursal);
             pv.setMedicamento(med);
             pv.setPrecio_max_vta(precio);
@@ -160,10 +141,9 @@ public class PrecioVigenteController {
             precioRepo.save(pv);
         }
         
-        // Limpiamos la sucursal para evitar el error de JSON en React
         respuestaExpandida.forEach(map -> map.remove("sucursalObj"));
 
-        System.out.println("✅ Actualización y Autolimpieza completadas con éxito.");
+        System.out.println("✅ Actualización completada sin errores de SQL.");
         return respuestaExpandida;
     }
 }

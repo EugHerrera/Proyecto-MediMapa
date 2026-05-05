@@ -9,12 +9,13 @@ import cl.duoc.medimapa.ms_usuarios.repository.PrecioVigenteRepository;
 import cl.duoc.medimapa.ms_usuarios.repository.SucursalFarmaciaRepository;
 import cl.duoc.medimapa.ms_usuarios.repository.MedicamentoRepository;
 import cl.duoc.medimapa.ms_usuarios.repository.SolicitudInscripcionRepository;
+import cl.duoc.medimapa.ms_usuarios.repository.CorridaActualizacionRepository;
 
 import cl.duoc.medimapa.ms_usuarios.model.Medicamento;
 import cl.duoc.medimapa.ms_usuarios.model.PrecioVigente;
-import cl.duoc.medimapa.ms_usuarios.model.PrecioVigenteId;
 import cl.duoc.medimapa.ms_usuarios.model.SolicitudInscripcion; 
 import cl.duoc.medimapa.ms_usuarios.model.SucursalFarmacia;
+import cl.duoc.medimapa.ms_usuarios.model.CorridaActualizacion;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,11 +45,12 @@ public class UsuarioController {
     @Autowired private PasswordEncoder passwordEncoder; 
     @Autowired private JwtUtil jwtUtil; 
     @Autowired private ExcelService excelService; 
-    
-    // 🔥 AQUÍ INYECTAMOS TU NUEVO SERVICIO PARA EL ISP
     @Autowired private IspExcelService ispExcelService; 
-    
-    @Autowired private cl.duoc.medimapa.ms_usuarios.repository.CorridaActualizacionRepository corridaRepo;
+    @Autowired private CorridaActualizacionRepository corridaRepo;
+
+    // ==========================================
+    // 🔐 AUTENTICACIÓN Y REGISTRO
+    // ==========================================
 
     @PostMapping("/registro")
     public ResponseEntity<String> registrarUsuario(@RequestBody Usuario nuevoUsuario) {
@@ -76,21 +79,21 @@ public class UsuarioController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
+    // ==========================================
+    // 📦 GESTIÓN DE INVENTARIO (EXCEL Y MANUAL)
+    // ==========================================
+
     @PostMapping("/inventario/subir")
     public ResponseEntity<String> subirInventario(
             @RequestParam("archivo") MultipartFile archivo,
             @RequestParam(value = "idSucursal", defaultValue = "99") Long idSucursal 
     ) {
-        if (archivo.isEmpty()) {
-            return ResponseEntity.badRequest().body("Archivo vacío.");
-        }
+        if (archivo.isEmpty()) return ResponseEntity.badRequest().body("Archivo vacío.");
         try {
             excelService.procesarExcelInventario(archivo, idSucursal);
-            return ResponseEntity.ok("✅ Archivo '" + archivo.getOriginalFilename() + "' procesado y guardado en la Base de Datos.");
+            return ResponseEntity.ok("✅ Archivo '" + archivo.getOriginalFilename() + "' procesado con éxito.");
         } catch (Exception e) {
-            e.printStackTrace(); 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("❌ Error al procesar el Excel: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("❌ Error: " + e.getMessage());
         }
     }
 
@@ -103,6 +106,8 @@ public class UsuarioController {
             map.put("id", precio.getMedicamento().getId_medicamento()); 
             map.put("nombre", precio.getMedicamento().getNombre_canonico());
             map.put("precio", precio.getPrecio_max_vta());
+            // Mostramos laboratorio si existe
+            map.put("laboratorio", precio.getMedicamento().getLaboratorio()); 
             return map;
         }).collect(Collectors.toList());
         
@@ -116,87 +121,41 @@ public class UsuarioController {
             @RequestParam("nuevoPrecio") Double nuevoPrecio) {
         
         return precioVigenteRepo.buscarPorSucursal(idSucursal).stream()
-                .filter(p -> p.getId().getTexto_busqueda().equalsIgnoreCase(textoBusqueda))
+                .filter(p -> p.getTextoBusqueda() != null && p.getTextoBusqueda().equalsIgnoreCase(textoBusqueda))
                 .findFirst()
                 .map(precio -> {
-                    precio.setPrecio_max_vta(java.math.BigDecimal.valueOf(nuevoPrecio));
-                    precio.setVigente_desde(java.time.OffsetDateTime.now());
+                    precio.setPrecio_max_vta(BigDecimal.valueOf(nuevoPrecio));
+                    precio.setVigente_desde(OffsetDateTime.now());
                     precioVigenteRepo.save(precio);
-                    return ResponseEntity.ok("✅ Precio actualizado correctamente a $" + nuevoPrecio);
+                    return ResponseEntity.ok("✅ Precio actualizado a $" + nuevoPrecio);
                 })
                 .orElse(ResponseEntity.badRequest().body("❌ No se encontró el medicamento en esta sucursal."));
     }
 
-    @PostMapping("/solicitud-inscripcion")
-    public ResponseEntity<String> recibirSolicitud(@RequestBody SolicitudInscripcion nuevaSolicitud) {
-        try {
-            nuevaSolicitud.setEstado_solicitud("PENDIENTE");
-            nuevaSolicitud.setFecha_solicitud(java.time.OffsetDateTime.now());
-            if (nuevaSolicitud.getAcepta_ley_21719() == null || !nuevaSolicitud.getAcepta_ley_21719()) {
-                return ResponseEntity.badRequest().body("❌ Error: Debe aceptar la Ley 21.719 para procesar los datos.");
+    // 🔥 NUEVO: Corregir nombre del medicamento en Maestro e Inventario
+    @PatchMapping("/inventario/actualizar-nombre")
+    @Transactional // Esto asegura que si falla uno, no se guarde el otro a medias
+    public ResponseEntity<String> actualizarNombreMedicamento(
+            @RequestParam("idMedicamento") Long idMedicamento,
+            @RequestParam("nuevoNombre") String nuevoNombre) {
+        
+        return medicamentoRepository.findById(idMedicamento).map(med -> {
+            // 1. Actualizamos el catálogo maestro (Tabla medicamento)
+            med.setNombre_canonico(nuevoNombre);
+            medicamentoRepository.save(med);
+
+            // 2. Actualizamos el texto de búsqueda en el inventario (Tabla precio_vigente)
+            List<PrecioVigente> preciosRelacionados = precioVigenteRepo.findAll().stream()
+                .filter(p -> p.getMedicamento() != null && p.getMedicamento().getId_medicamento().equals(idMedicamento))
+                .collect(Collectors.toList());
+
+            for (PrecioVigente pv : preciosRelacionados) {
+                pv.setTextoBusqueda(nuevoNombre);
+                precioVigenteRepo.save(pv);
             }
-            solicitudRepo.save(nuevaSolicitud);
-            return ResponseEntity.ok("✅ Solicitud enviada con éxito.");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("❌ Error al guardar la solicitud: " + e.getMessage());
-        }
-    }
 
-    @GetMapping("/solicitudes/pendientes")
-    public ResponseEntity<List<SolicitudInscripcion>> obtenerSolicitudesPendientes() {
-        return ResponseEntity.ok(solicitudRepo.buscarPorEstado("PENDIENTE"));
-    }
-
-    // 🔥 EL MÉTODO APROBAR CORREGIDO Y DEFINITIVO 🔥
-    @PatchMapping("/solicitudes/{id}/aprobar")
-    @Transactional // Hace los 3 pasos de forma segura
-    public ResponseEntity<String> aprobarSolicitud(@PathVariable Long id) {
-        return solicitudRepo.findById(id).map(solicitud -> {
-            
-            // 1. Cambiamos el estado de la solicitud
-            solicitud.setEstado_solicitud("APROBADA");
-            solicitudRepo.save(solicitud);
-
-            // 2. CREAMOS LA SUCURSAL REAL en la base de datos
-            SucursalFarmacia nuevaSucursal = new SucursalFarmacia();
-            nuevaSucursal.setNombre_sucursal(solicitud.getNombre_fantasia());
-            // Juntamos la dirección con la comuna para el mapa
-            nuevaSucursal.setDireccion(solicitud.getDireccion() + ", " + solicitud.getComuna()); 
-            
-            // Reparado: usando BigDecimal y CamelCase
-            nuevaSucursal.setLatitud(java.math.BigDecimal.ZERO); 
-            nuevaSucursal.setLongitud(java.math.BigDecimal.ZERO);
-            nuevaSucursal.setActivo(true);
-            nuevaSucursal.setCreadoEn(java.time.OffsetDateTime.now());
-            nuevaSucursal.setActualizadoEn(java.time.OffsetDateTime.now());
-            
-            sucursalFarmaciaRepository.save(nuevaSucursal);
-
-            // 3. CREAMOS LA CUENTA DE USUARIO para el farmacéutico
-            Usuario nuevoUsuario = new Usuario();
-            nuevoUsuario.setCorreo(solicitud.getQuimico_correo());
-            nuevoUsuario.setPasswordHash(passwordEncoder.encode(solicitud.getQuimico_rut())); 
-            nuevoUsuario.setRol("FARMACEUTICO");
-            
-            usuarioRepository.save(nuevoUsuario);
-
-            // Le avisamos a React que todo fue un éxito y le pasamos los datos de acceso
-            return ResponseEntity.ok("✅ Farmacia " + solicitud.getNombre_fantasia() + " creada con éxito.\n\n" +
-                                     "🔐 Credenciales generadas:\n" +
-                                     "Correo: " + solicitud.getQuimico_correo() + "\n" +
-                                     "Contraseña: " + solicitud.getQuimico_rut());
-                                     
-        }).orElse(ResponseEntity.badRequest().body("❌ Solicitud no encontrada."));
-    }
-
-    @PatchMapping("/solicitudes/{id}/rechazar")
-    public ResponseEntity<String> rechazarSolicitud(@PathVariable Long id) {
-        return solicitudRepo.findById(id).map(solicitud -> {
-            solicitud.setEstado_solicitud("RECHAZADA");
-            solicitudRepo.save(solicitud);
-            return ResponseEntity.ok("🗑️ La farmacia " + solicitud.getNombre_fantasia() + " ha sido RECHAZADA.");
-        }).orElse(ResponseEntity.badRequest().body("❌ Solicitud no encontrada."));
+            return ResponseEntity.ok("✅ Nombre actualizado correctamente en catálogo e inventario.");
+        }).orElse(ResponseEntity.badRequest().body("❌ No se encontró el medicamento en el catálogo."));
     }
 
     @PostMapping("/inventario/agregar-manual")
@@ -204,7 +163,7 @@ public class UsuarioController {
         try {
             Long idSucursal = Long.valueOf(payload.get("idSucursal").toString());
             String nombre = payload.get("nombre").toString();
-            String laboratorio = payload.get("laboratorio").toString();
+            String laboratorio = payload.get("laboratorio").toString(); // Capturamos laboratorio
             BigDecimal precio = new BigDecimal(payload.get("precio").toString());
 
             SucursalFarmacia sucursal = sucursalFarmaciaRepository.findById(idSucursal)
@@ -215,28 +174,25 @@ public class UsuarioController {
             if (medicamento == null) {
                 medicamento = new Medicamento();
                 medicamento.setNombre_canonico(nombre);
+                medicamento.setLaboratorio(laboratorio); // Guardamos el laboratorio
                 medicamento.setPrincipio_activo(nombre); 
                 medicamento.setOrigen_catalogo("MANUAL");
                 medicamento = medicamentoRepository.save(medicamento);
             }
 
-            PrecioVigenteId id = new PrecioVigenteId();
-            id.setId_sucursal(sucursal.getId_sucursal());
-            id.setTexto_busqueda(medicamento.getNombre_canonico());
-
-            cl.duoc.medimapa.ms_usuarios.model.CorridaActualizacion corrida = new cl.duoc.medimapa.ms_usuarios.model.CorridaActualizacion();
+            CorridaActualizacion corrida = new CorridaActualizacion();
             corrida.setId_fuente(idSucursal);
-            corrida.setInicio(java.time.OffsetDateTime.now());
+            corrida.setInicio(OffsetDateTime.now());
             corrida.setEstado("manual");
             corrida = corridaRepo.save(corrida);
 
             PrecioVigente pv = new PrecioVigente();
-            pv.setId(id);
+            pv.setTextoBusqueda(medicamento.getNombre_canonico());
             pv.setSucursal(sucursal);
             pv.setMedicamento(medicamento);
             pv.setPrecio_max_vta(precio);
             pv.setMoneda("CLP");
-            pv.setVigente_desde(java.time.OffsetDateTime.now());
+            pv.setVigente_desde(OffsetDateTime.now());
             pv.setCorrida(corrida);
 
             precioVigenteRepo.save(pv);
@@ -256,71 +212,111 @@ public class UsuarioController {
             PrecioVigente precioLocal = inventarioLocal.stream()
                 .filter(p -> {
                     boolean matchNombre = p.getMedicamento() != null && 
-                                          p.getMedicamento().getNombre_canonico() != null && 
                                           p.getMedicamento().getNombre_canonico().equalsIgnoreCase(nombreMedicamento);
-                    boolean matchBusqueda = p.getId() != null && 
-                                            p.getId().getTexto_busqueda() != null && 
-                                            p.getId().getTexto_busqueda().equalsIgnoreCase(nombreMedicamento);
+                    boolean matchBusqueda = p.getTextoBusqueda() != null && 
+                                            p.getTextoBusqueda().equalsIgnoreCase(nombreMedicamento);
                     return matchNombre || matchBusqueda;
                 })
                 .findFirst()
                 .orElse(null);
 
-            if (precioLocal == null) {
-                return ResponseEntity.badRequest().body("❌ El medicamento no fue encontrado en tu inventario.");
-            }
+            if (precioLocal == null) return ResponseEntity.badRequest().body("❌ Medicamento no encontrado.");
 
             Medicamento medVinculado = precioLocal.getMedicamento();
-            PrecioVigenteId idCompuestoLocal = precioLocal.getId();
+            Long idLocal = precioLocal.getId();
 
             if (medVinculado != null && "MANUAL".equalsIgnoreCase(medVinculado.getOrigen_catalogo())) {
-                
                 List<PrecioVigente> todasLasDependencias = precioVigenteRepo.findAll().stream()
-                    .filter(p -> p.getMedicamento() != null && 
-                                 p.getMedicamento().getId_medicamento().equals(medVinculado.getId_medicamento()))
+                    .filter(p -> p.getMedicamento() != null && p.getMedicamento().getId_medicamento().equals(medVinculado.getId_medicamento()))
                     .collect(Collectors.toList());
                 
                 precioVigenteRepo.deleteAll(todasLasDependencias);
-                precioVigenteRepo.flush();
-
                 medicamentoRepository.deleteById(medVinculado.getId_medicamento());
-                medicamentoRepository.flush();
-
-                return ResponseEntity.ok("✅ Medicamento MANUAL y todos sus precios asociados fueron borrados de raíz.");
-                
+                return ResponseEntity.ok("✅ Eliminado de raíz (Medicamento MANUAL).");
             } else {
-                precioVigenteRepo.deleteById(idCompuestoLocal);
-                precioVigenteRepo.flush();
-                return ResponseEntity.ok("✅ Eliminado de tu local (El Catálogo Nacional se mantuvo protegido).");
+                precioVigenteRepo.deleteById(idLocal);
+                return ResponseEntity.ok("✅ Eliminado de tu sucursal local.");
             }
-            
         } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("❌ Error crítico en BD: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("❌ Error: " + e.getMessage());
         }
     }
 
-    // 🔥 ESTE ES EL NUEVO ENDPOINT EXCLUSIVO PARA SUBIR EL EXCEL DEL ISP
+    // ==========================================
+    // 📋 GESTIÓN DE SOLICITUDES ISP Y REGISTROS
+    // ==========================================
+
+    @PostMapping("/solicitud-inscripcion")
+    public ResponseEntity<String> recibirSolicitud(@RequestBody SolicitudInscripcion nuevaSolicitud) {
+        try {
+            nuevaSolicitud.setEstado_solicitud("PENDIENTE");
+            nuevaSolicitud.setFecha_solicitud(OffsetDateTime.now());
+            if (nuevaSolicitud.getAcepta_ley_21719() == null || !nuevaSolicitud.getAcepta_ley_21719()) {
+                return ResponseEntity.badRequest().body("❌ Debe aceptar la Ley 21.719.");
+            }
+            solicitudRepo.save(nuevaSolicitud);
+            return ResponseEntity.ok("✅ Solicitud enviada.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("❌ Error: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/solicitudes/pendientes")
+    public ResponseEntity<List<SolicitudInscripcion>> obtenerSolicitudesPendientes() {
+        return ResponseEntity.ok(solicitudRepo.buscarPorEstado("PENDIENTE"));
+    }
+
+    @PatchMapping("/solicitudes/{id}/aprobar")
+    @Transactional 
+    public ResponseEntity<String> aprobarSolicitud(@PathVariable Long id) {
+        return solicitudRepo.findById(id).map(solicitud -> {
+            solicitud.setEstado_solicitud("APROBADA");
+            solicitudRepo.save(solicitud);
+
+            SucursalFarmacia nuevaSucursal = new SucursalFarmacia();
+            nuevaSucursal.setNombre_sucursal(solicitud.getNombre_fantasia());
+            nuevaSucursal.setDireccion(solicitud.getDireccion() + ", " + solicitud.getComuna()); 
+            nuevaSucursal.setLatitud(BigDecimal.ZERO); 
+            nuevaSucursal.setLongitud(BigDecimal.ZERO);
+            nuevaSucursal.setActivo(true);
+            nuevaSucursal.setCreadoEn(OffsetDateTime.now());
+            nuevaSucursal.setActualizadoEn(OffsetDateTime.now());
+            sucursalFarmaciaRepository.save(nuevaSucursal);
+
+            Usuario nuevoUsuario = new Usuario();
+            nuevoUsuario.setCorreo(solicitud.getQuimico_correo());
+            nuevoUsuario.setPasswordHash(passwordEncoder.encode(solicitud.getQuimico_rut())); 
+            nuevoUsuario.setRol("FARMACEUTICO");
+            usuarioRepository.save(nuevoUsuario);
+
+            return ResponseEntity.ok("✅ Farmacia aprobada. Acceso creado para: " + solicitud.getQuimico_correo());
+        }).orElse(ResponseEntity.badRequest().body("❌ Solicitud no encontrada."));
+    }
+
+    @PatchMapping("/solicitudes/{id}/rechazar")
+    public ResponseEntity<String> rechazarSolicitud(@PathVariable Long id) {
+        return solicitudRepo.findById(id).map(solicitud -> {
+            solicitud.setEstado_solicitud("RECHAZADA");
+            solicitudRepo.save(solicitud);
+            return ResponseEntity.ok("🗑️ La farmacia " + solicitud.getNombre_fantasia() + " ha sido RECHAZADA.");
+        }).orElse(ResponseEntity.badRequest().body("❌ Solicitud no encontrada."));
+    }
+
     @PostMapping("/admin/subir-isp")
     public ResponseEntity<String> subirExcelIsp(@RequestParam("archivo") MultipartFile archivo) {
-        if (archivo.isEmpty()) {
-            return ResponseEntity.badRequest().body("Error: El archivo Excel está vacío.");
-        }
+        if (archivo.isEmpty()) return ResponseEntity.badRequest().body("Archivo ISP vacío.");
         try {
             String resultado = ispExcelService.sincronizarBioequivalentes(archivo);
             return ResponseEntity.ok("✅ Éxito: " + resultado);
         } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("❌ Error procesando el Excel del ISP: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("❌ Error ISP: " + e.getMessage());
         }
     }
 
+    // DTO para Login
     public static class LoginRequest {
         private String correo;
         private String password;
-
         public String getCorreo() { return correo; }
         public void setCorreo(String correo) { this.correo = correo; }
         public String getPassword() { return password; }
