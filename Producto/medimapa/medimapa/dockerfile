@@ -1,0 +1,37 @@
+# Imagen base de Ubuntu con Java 17
+FROM eclipse-temurin:21-jdk-jammy
+
+WORKDIR /app
+
+# Copiamos SOLO tu código
+COPY pom.xml .
+COPY src ./src
+
+# Instalamos Maven nativo y las dependencias de Playwright
+RUN apt-get update && apt-get install -y \
+    maven \
+    libnss3 \
+    libnspr4 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2 \
+    libpango-1.0-0 \
+    libcairo2 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Compilamos usando Maven
+RUN mvn clean package -DskipTests
+
+# Instalamos los navegadores de Playwright
+RUN mvn exec:java -e -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install --with-deps"
+
+# Ejecutamos el archivo .jar
+CMD ["sh", "-c", "java -jar target/*.jar"]

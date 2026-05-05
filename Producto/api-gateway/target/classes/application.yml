@@ -23,24 +23,24 @@ spring:
       routes:
         # RUTA 1: MICROSERVICIO CATÁLOGO (Responde a medicamentos y sucursales)
         - id: ms-catalogo-route
-          uri: http://localhost:8081
+          uri: http://ms-catalogo:8081
           predicates:
             - Path=/api/medicamentos/**, /api/sucursales/**
 
         # RUTA 2: SCRAPER
         - id: medimapa-scraper-route
-          uri: http://localhost:8082
+          uri: http://medimapa:8082
           predicates:
             - Path=/api/scraper/**
             
         # RUTA 3: MICROSERVICIO GEOLOCALIZACIÓN
         - id: ms-geo-route
-          uri: http://localhost:8083
+          uri: http://ms-geocalizacion:8083
           predicates:
             - Path=/api/v1/geolocalizacion/**
 
         # RUTA 4: MICROSERVICIO USUARIOS (y Buscador en Vivo)
         - id: ms-usuarios-route
-          uri: http://localhost:8085
+          uri: http://ms-usuarios:8085
           predicates:
             - Path=/api/usuarios/**, /api/buscador/**

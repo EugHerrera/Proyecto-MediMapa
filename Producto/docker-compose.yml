@@ -1,0 +1,60 @@
+services:
+  # 1. LA BASE DE DATOS
+  db-medimapa:
+    image: postgis/postgis:15-3.3
+    environment:
+      POSTGRES_DB: medimapa_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 753691
+    ports:
+      - "5432:5432"
+  
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d medimapa_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. TUS MICROSERVICIOS INTERNOS
+  ms-usuarios:
+    build: ./ms-usuarios
+    depends_on:
+      db-medimapa:
+        condition: service_healthy
+  
+  ms-geocalizacion:
+    build: ./ms-geocalizacion/geocalizacion
+    depends_on:
+      db-medimapa:
+        condition: service_healthy
+
+  ms-catalogo:
+    build: ./ms-catalogo
+    depends_on:
+      db-medimapa:
+        condition: service_healthy
+
+  
+
+  medimapa: # Tu Scraper con Playwright
+    build: ./medimapa/medimapa
+    depends_on:
+      db-medimapa:
+        condition: service_healthy
+
+  # 3. LA PUERTA AL MUNDO (API GATEWAY)
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "8080:8080" # Expone el puerto del backend a internet
+    depends_on:
+      - ms-usuarios
+      - ms-catalogo
+      - ms-geocalizacion
+      - medimapa
+
+  # 4. TU APLICACIÓN WEB (FRONTEND)
+  frontend:
+    build: ./MediMapUI/MediMapUI/portal-web 
+    ports:
+      - "5173:80"
