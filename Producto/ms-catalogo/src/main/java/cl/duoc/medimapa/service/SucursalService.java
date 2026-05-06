@@ -1,6 +1,6 @@
 package cl.duoc.medimapa.service;
 
-import cl.duoc.medimapa.dto.SucursalResponseDTO; // <-- AQUÍ ESTÁ EL IMPORT SOLUCIONADO
+import cl.duoc.medimapa.dto.SucursalResponseDTO; 
 import cl.duoc.medimapa.repository.SucursalFarmaciaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,6 @@ public class SucursalService {
         return repo.findByActivoTrue().stream()
                 .map(suc -> {
                     SucursalResponseDTO dto = new SucursalResponseDTO();
-                    // SE CORRIGIERON LOS GUIONES BAJOS PARA QUE LOMBOK NO LLORE
                     dto.setIdSucursal(suc.getId_sucursal()); 
                     dto.setNombreSucursal(suc.getNombre_sucursal()); 
                     dto.setDireccion(suc.getDireccion());

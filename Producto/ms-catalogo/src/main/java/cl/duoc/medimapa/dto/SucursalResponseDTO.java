@@ -1,9 +1,7 @@
 package cl.duoc.medimapa.dto;
 
 import org.geolatte.geom.Point;
-
 import lombok.Data;
-
 
 @Data
 public class SucursalResponseDTO {

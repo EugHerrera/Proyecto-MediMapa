@@ -17,6 +17,9 @@ import cl.duoc.medimapa.ms_usuarios.model.SolicitudInscripcion;
 import cl.duoc.medimapa.ms_usuarios.model.SucursalFarmacia;
 import cl.duoc.medimapa.ms_usuarios.model.CorridaActualizacion;
 
+import org.geolatte.geom.builder.DSL;
+import org.geolatte.geom.crs.CoordinateReferenceSystems;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,10 +51,6 @@ public class UsuarioController {
     @Autowired private IspExcelService ispExcelService; 
     @Autowired private CorridaActualizacionRepository corridaRepo;
 
-    // ==========================================
-    // 🔐 AUTENTICACIÓN Y REGISTRO
-    // ==========================================
-
     @PostMapping("/registro")
     public ResponseEntity<String> registrarUsuario(@RequestBody Usuario nuevoUsuario) {
         String hash = passwordEncoder.encode(nuevoUsuario.getPasswordHash());
@@ -79,10 +78,6 @@ public class UsuarioController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
-    // ==========================================
-    // 📦 GESTIÓN DE INVENTARIO (EXCEL Y MANUAL)
-    // ==========================================
-
     @PostMapping("/inventario/subir")
     public ResponseEntity<String> subirInventario(
             @RequestParam("archivo") MultipartFile archivo,
@@ -106,7 +101,6 @@ public class UsuarioController {
             map.put("id", precio.getMedicamento().getId_medicamento()); 
             map.put("nombre", precio.getMedicamento().getNombre_canonico());
             map.put("precio", precio.getPrecio_max_vta());
-            // Mostramos laboratorio si existe
             map.put("laboratorio", precio.getMedicamento().getLaboratorio()); 
             return map;
         }).collect(Collectors.toList());
@@ -132,19 +126,16 @@ public class UsuarioController {
                 .orElse(ResponseEntity.badRequest().body("❌ No se encontró el medicamento en esta sucursal."));
     }
 
-    // 🔥 NUEVO: Corregir nombre del medicamento en Maestro e Inventario
     @PatchMapping("/inventario/actualizar-nombre")
-    @Transactional // Esto asegura que si falla uno, no se guarde el otro a medias
+    @Transactional 
     public ResponseEntity<String> actualizarNombreMedicamento(
             @RequestParam("idMedicamento") Long idMedicamento,
             @RequestParam("nuevoNombre") String nuevoNombre) {
         
         return medicamentoRepository.findById(idMedicamento).map(med -> {
-            // 1. Actualizamos el catálogo maestro (Tabla medicamento)
             med.setNombre_canonico(nuevoNombre);
             medicamentoRepository.save(med);
 
-            // 2. Actualizamos el texto de búsqueda en el inventario (Tabla precio_vigente)
             List<PrecioVigente> preciosRelacionados = precioVigenteRepo.findAll().stream()
                 .filter(p -> p.getMedicamento() != null && p.getMedicamento().getId_medicamento().equals(idMedicamento))
                 .collect(Collectors.toList());
@@ -163,7 +154,7 @@ public class UsuarioController {
         try {
             Long idSucursal = Long.valueOf(payload.get("idSucursal").toString());
             String nombre = payload.get("nombre").toString();
-            String laboratorio = payload.get("laboratorio").toString(); // Capturamos laboratorio
+            String laboratorio = payload.get("laboratorio").toString(); 
             BigDecimal precio = new BigDecimal(payload.get("precio").toString());
 
             SucursalFarmacia sucursal = sucursalFarmaciaRepository.findById(idSucursal)
@@ -174,7 +165,7 @@ public class UsuarioController {
             if (medicamento == null) {
                 medicamento = new Medicamento();
                 medicamento.setNombre_canonico(nombre);
-                medicamento.setLaboratorio(laboratorio); // Guardamos el laboratorio
+                medicamento.setLaboratorio(laboratorio); 
                 medicamento.setPrincipio_activo(nombre); 
                 medicamento.setOrigen_catalogo("MANUAL");
                 medicamento = medicamentoRepository.save(medicamento);
@@ -242,10 +233,6 @@ public class UsuarioController {
         }
     }
 
-    // ==========================================
-    // 📋 GESTIÓN DE SOLICITUDES ISP Y REGISTROS
-    // ==========================================
-
     @PostMapping("/solicitud-inscripcion")
     public ResponseEntity<String> recibirSolicitud(@RequestBody SolicitudInscripcion nuevaSolicitud) {
         try {
@@ -276,8 +263,10 @@ public class UsuarioController {
             SucursalFarmacia nuevaSucursal = new SucursalFarmacia();
             nuevaSucursal.setNombre_sucursal(solicitud.getNombre_fantasia());
             nuevaSucursal.setDireccion(solicitud.getDireccion() + ", " + solicitud.getComuna()); 
-            nuevaSucursal.setLatitud(BigDecimal.ZERO); 
-            nuevaSucursal.setLongitud(BigDecimal.ZERO);
+            
+            // 🔥 CAMBIO: Instanciamos un Punto (0,0) inicial usando GeoLatte en lugar de BigDecimal
+            nuevaSucursal.setUbicacion(DSL.point(CoordinateReferenceSystems.WGS84, DSL.g(0.0, 0.0)));
+            
             nuevaSucursal.setActivo(true);
             nuevaSucursal.setCreadoEn(OffsetDateTime.now());
             nuevaSucursal.setActualizadoEn(OffsetDateTime.now());
@@ -313,7 +302,6 @@ public class UsuarioController {
         }
     }
 
-    // DTO para Login
     public static class LoginRequest {
         private String correo;
         private String password;
