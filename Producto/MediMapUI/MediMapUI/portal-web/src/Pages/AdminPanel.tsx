@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { apiUsuarios } from '../services/api';
 import './AdminPanel.css';
 
@@ -22,8 +22,6 @@ const AdminPanel = () => {
   // ==========================================
   // ESTADOS DEL SÚPER ADMIN
   // ==========================================
-  const [solicitudes, setSolicitudes] = useState<any[]>([]);
-  const [sucursalesMaster, setSucursalesMaster] = useState<any[]>([]);
   const [medicamentosMaster, setMedicamentosMaster] = useState<any[]>([]);
   const [archivoIsp, setArchivoIsp] = useState<File | null>(null);
 
@@ -42,7 +40,6 @@ const AdminPanel = () => {
   useEffect(() => {
     if (rolUsuario === 'ADMIN') {
       cargarDatosAdmin();
-      cargarSolicitudesPendientes();
     } else if (rolUsuario === 'FARMACEUTICO') {
       cargarInventarioReal();
     }
@@ -50,20 +47,9 @@ const AdminPanel = () => {
 
   const cargarDatosAdmin = async () => {
     try {
-      const [respSuc, respMed] = await Promise.all([
-        apiUsuarios.get(`/usuarios/farmacias-admin`),
-        apiUsuarios.get(`/usuarios/medicamentos-admin`)
-      ]);
-      setSucursalesMaster(respSuc.data);
+      const respMed = await apiUsuarios.get(`/usuarios/medicamentos-admin`);
       setMedicamentosMaster(respMed.data);
     } catch (error) { console.error("Error al cargar datos maestros:", error); }
-  };
-
-  const cargarSolicitudesPendientes = async () => {
-    try {
-      const respuesta = await apiUsuarios.get(`/usuarios/solicitudes/pendientes`);
-      setSolicitudes(respuesta.data); 
-    } catch (error) { console.error("Error al cargar solicitudes:", error); }
   };
 
   const cargarInventarioReal = async () => {
@@ -85,22 +71,6 @@ const AdminPanel = () => {
       const mensaje = await respuesta.text();
       alert(mensaje);
     } catch (error) { alert("❌ Error al contactar al motor de Scraping."); } finally { setCargando(false); }
-  };
-
-  const manejarAprobacion = async (id: number) => {
-    if (!window.confirm("¿Aprobar esta farmacia?")) return;
-    try {
-      const resp = await apiUsuarios.patch(`/usuarios/solicitudes/${id}/aprobar`);
-      alert(resp.data); cargarSolicitudesPendientes(); 
-    } catch (err) { alert("Error al aprobar."); }
-  };
-
-  const manejarRechazo = async (id: number) => {
-    if (!window.confirm("¿Rechazar esta solicitud?")) return;
-    try {
-      const resp = await apiUsuarios.patch(`/usuarios/solicitudes/${id}/rechazar`);
-      alert(resp.data); cargarSolicitudesPendientes(); 
-    } catch (err) { alert("Error al rechazar."); }
   };
 
   const manejarSubidaIsp = async () => {

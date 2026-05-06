@@ -1,5 +1,6 @@
 package cl.duoc.geocalizacion.service;
 
+import org.locationtech.jts.geom.Point;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,14 +16,13 @@ public class GeolocalizacionService {
 
     /**
      * Busca sucursales cercanas a una ubicación específica
-     * @param lat Latitud del usuario
-     * @param lon Longitud del usuario
+     * @param ubicacion Ubicación del usuario como Point
      * @param radio Radio de búsqueda en metros
      * @return Lista de sucursales cercanas
      */
-    public List<SucursalFarmacia> obtenerCercanas(double lat, double lon, double radio) {
+    public List<SucursalFarmacia> obtenerCercanas(Point ubicacion, double radio) {
         // La ubicación del usuario se procesa y se olvida (Ley 21.719)
-        return sucursalRepository.buscarCercanas(lat, lon, radio);
+        return sucursalRepository.buscarCercanas(ubicacion, radio);
     }
 }
 
