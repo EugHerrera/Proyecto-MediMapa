@@ -53,8 +53,14 @@ interface SucursalGeo {
   id_sucursal: number;
   nombre_sucursal: string;
   direccion: string;
-  latitud: number;
-  longitud: number;
+  latitud?: number;
+  longitud?: number;
+  ubicacion?: {
+    type?: string;
+    coordinates?: [number, number];
+    x?: number;
+    y?: number;
+  };
   comuna: { nombreCom: string } | null;
 }
 
@@ -211,8 +217,10 @@ const RedFarmacias: React.FC = () => {
 
   const farmaciasProcesadas = useMemo(() => {
     const lista = farmacias.map((sucursal) => {
-      const distancia = ubicacion
-        ? calcularDistanciaKm(ubicacion.lat, ubicacion.lng, Number(sucursal.latitud), Number(sucursal.longitud))
+      const lat = sucursal.latitud ?? sucursal.ubicacion?.coordinates?.[1] ?? sucursal.ubicacion?.y;
+      const lon = sucursal.longitud ?? sucursal.ubicacion?.coordinates?.[0] ?? sucursal.ubicacion?.x;
+      const distancia = ubicacion && lat != null && lon != null
+        ? calcularDistanciaKm(ubicacion.lat, ubicacion.lng, Number(lat), Number(lon))
         : 0;
       const nombre = sucursal.nombre_sucursal || 'Farmacia cercana';
       const cadenaNombre = nombre.toLowerCase().includes('ahumada')
@@ -225,6 +233,8 @@ const RedFarmacias: React.FC = () => {
       const tipo = cadenaNombre === 'Independiente' ? 'Independiente' : 'Cadena';
       return {
         ...sucursal,
+        latitud: lat,
+        longitud: lon,
         distancia,
         tipo,
         cadenaNombre,
@@ -388,16 +398,18 @@ const RedFarmacias: React.FC = () => {
                 </>
               )}
 
-              {farmaciasProcesadas.map((sucursal) => (
-                <Marker key={sucursal.id_sucursal} position={[Number(sucursal.latitud), Number(sucursal.longitud)]} icon={getIconoFarmacia(sucursal.cadenaNombre)}>
-                  <Popup>
-                    <strong>{sucursal.nombre_sucursal}</strong><br/>
-                    {sucursal.direccion}<br/>
-                    <small>{sucursal.comunaNombre}</small><br/>
-                    <small>{sucursal.distancia?.toFixed(2)} km</small>
-                  </Popup>
-                </Marker>
-              ))}
+              {farmaciasProcesadas
+                .filter((sucursal) => sucursal.latitud != null && sucursal.longitud != null)
+                .map((sucursal) => (
+                  <Marker key={sucursal.id_sucursal} position={[Number(sucursal.latitud), Number(sucursal.longitud)]} icon={getIconoFarmacia(sucursal.cadenaNombre)}>
+                    <Popup>
+                      <strong>{sucursal.nombre_sucursal}</strong><br/>
+                      {sucursal.direccion}<br/>
+                      <small>{sucursal.comunaNombre}</small><br/>
+                      <small>{sucursal.distancia?.toFixed(2)} km</small>
+                    </Popup>
+                  </Marker>
+                ))}
             </MapContainer>
           </div>
 
