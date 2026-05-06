@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
-@Table(name = "farmacias") // Podrías llamarle 'cadenas_farmacia' en un futuro para más claridad
+@Table(name = "cadena_farmacia") // Podrías llamarle 'cadenas_farmacia' en un futuro para más claridad
 @Data
 public class Farmacia {
 

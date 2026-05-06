@@ -8,7 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
 @Entity
-@Table(name = "farmacias")
+@Table(name = "cadena_farmacia")
 @Data
 public class Farmacia {
     @Id

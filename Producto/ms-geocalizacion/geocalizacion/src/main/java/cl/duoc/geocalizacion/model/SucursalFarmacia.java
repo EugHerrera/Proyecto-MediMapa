@@ -2,7 +2,7 @@ package cl.duoc.geocalizacion.model;
 
 import java.time.OffsetDateTime;
 
-import org.geolatte.geom.Point;
+import org.locationtech.jts.geom.Point;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

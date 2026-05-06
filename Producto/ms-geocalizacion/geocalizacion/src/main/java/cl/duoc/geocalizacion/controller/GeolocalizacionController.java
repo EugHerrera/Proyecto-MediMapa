@@ -1,5 +1,8 @@
 package cl.duoc.geocalizacion.controller;
 
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,6 +18,7 @@ import java.util.List;
 public class GeolocalizacionController {
     
     private final GeolocalizacionService service;
+    private final GeometryFactory geometryFactory = new GeometryFactory();
 
     public GeolocalizacionController(GeolocalizacionService service) {
         this.service = service;
@@ -25,7 +29,9 @@ public class GeolocalizacionController {
             @RequestParam double lat, 
             @RequestParam double lon, 
             @RequestParam(defaultValue = "1000") double radio) {
-        // La ubicación del usuario se procesa y se olvida (Ley 21.719)
-        return ResponseEntity.ok(service.obtenerCercanas(lat, lon, radio));
+        Point ubicacionBusqueda = geometryFactory.createPoint(new Coordinate(lon, lat));
+        ubicacionBusqueda.setSRID(4326);
+        // La ubicación de búsqueda se procesa y se olvida (Ley 21.719)
+        return ResponseEntity.ok(service.obtenerCercanas(ubicacionBusqueda, radio));
     }
 }
