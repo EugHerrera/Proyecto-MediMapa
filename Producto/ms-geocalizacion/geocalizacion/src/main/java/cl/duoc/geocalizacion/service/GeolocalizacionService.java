@@ -22,7 +22,12 @@ public class GeolocalizacionService {
      */
     public List<SucursalFarmacia> obtenerCercanas(Point ubicacion, double radio) {
         // La ubicación del usuario se procesa y se olvida (Ley 21.719)
-        return sucursalRepository.buscarCercanas(ubicacion, radio);
+        
+        // Extraemos las coordenadas del Point (Y = Latitud, X = Longitud)
+        double lat = ubicacion.getY();
+        double lng = ubicacion.getX();
+        
+        // Le pasamos los números pelados a la consulta nativa
+        return sucursalRepository.buscarCercanas(lat, lng, radio);
     }
 }
-
