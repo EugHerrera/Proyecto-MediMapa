@@ -6,7 +6,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import cl.duoc.geocalizacion.model.SucursalFarmacia;
+import java.util.List;
+
+@Repository
+public interface SucursalFarmaciaRepository extends JpaRepository<SucursalFarmacia, Long> {
 
     // 🔥 CORRECCIÓN: Uso de CAST en vez de :: para evitar que Spring Boot se confunda con los parámetros
     @Query(value = "SELECT * FROM sucursal_farmacia s WHERE ST_DWithin(CAST(s.ubicacion AS geography), CAST(ST_SetSRID(ST_MakePoint(:lng, :lat), 4326) AS geography), :distancia)", nativeQuery = true)
