@@ -67,7 +67,8 @@ const AdminPanel = () => {
     if (!window.confirm("⚠️ ¿Iniciar extracción masiva? Esto tomará varios minutos.")) return;
     setCargando(true);
     try {
-      const respuesta = await fetch('http://localhost:8082/api/scraper/forzar-masivo', { method: 'POST' });
+      // 🔥 CORRECCIÓN: PUERTO 8080 PARA PASAR POR EL GATEWAY 🔥
+      const respuesta = await fetch('http://localhost:8080/api/scraper/forzar-masivo', { method: 'POST' });
       const mensaje = await respuesta.text();
       alert(mensaje);
     } catch (error) { alert("❌ Error al contactar al motor de Scraping."); } finally { setCargando(false); }
@@ -111,7 +112,6 @@ const AdminPanel = () => {
     } catch (error) { alert("❌ Error al guardar el precio."); }
   };
 
-  // 🔥 NUEVA FUNCIÓN: Corregir nombre
   const corregirNombre = async (idMed: number, nombreActual: string) => {
     const nuevoNombre = window.prompt(`Corregir nombre para "${nombreActual}":`, nombreActual);
     if (!nuevoNombre || nuevoNombre === nombreActual) return;
@@ -146,9 +146,6 @@ const AdminPanel = () => {
     } catch (error) { alert("❌ Error al eliminar."); }
   };
 
-  // ==========================================
-  // RENDER VISTA SÚPER ADMIN
-  // ==========================================
   const renderVistaAdmin = () => (
     <div className="admin-dashboard-grid" style={{ display: 'grid', gap: '20px' }}>
       <div className="admin-card" style={{ gridColumn: '1 / -1', padding: '15px' }}>
@@ -202,9 +199,6 @@ const AdminPanel = () => {
     </div>
   );
 
-  // ==========================================
-  // RENDER VISTA FARMACÉUTICO
-  // ==========================================
   const renderVistaFarmaceutico = () => (
     <>
       <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>

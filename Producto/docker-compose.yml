@@ -8,7 +8,9 @@ services:
       POSTGRES_PASSWORD: 753691
     ports:
       - "5432:5432"
-  
+    # 🔥 ARREGLO CRÍTICO: Persistencia de datos
+    volumes:
+      - pgdata_medimapa:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d medimapa_db"]
       interval: 5s
@@ -34,8 +36,6 @@ services:
       db-medimapa:
         condition: service_healthy
 
-  
-
   medimapa: # Tu Scraper con Playwright
     build: ./medimapa/medimapa
     depends_on:
@@ -58,3 +58,7 @@ services:
     build: ./MediMapUI/MediMapUI/portal-web 
     ports:
       - "5173:80"
+
+# 🔥 DECLARACIÓN DEL VOLUMEN GLOBAL
+volumes:
+  pgdata_medimapa:

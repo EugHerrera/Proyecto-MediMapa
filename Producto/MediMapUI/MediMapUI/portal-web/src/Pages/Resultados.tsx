@@ -5,12 +5,10 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import './Resultados.css'; 
 
-// IMPORTS DE LOGOS
 import logotipoAhumada from '../assets/logotipoahumada.png';
 import logotipoDrSimi from '../assets/logotipodrsimi.png';
 import logotipoSalcobrand from '../assets/logotiposalcobrand.png';
 
-// 1. PIN ROJO PARA EL USUARIO
 const userRedIcon = L.icon({
   iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
@@ -20,7 +18,6 @@ const userRedIcon = L.icon({
   shadowSize: [41, 41]
 });
 
-// 2. CREADOR DE PINES CON LOGOS
 const crearIconoCircular = (logoUrl: string, borderColor: string) => {
   return L.divIcon({
     className: 'cadena-icon',
@@ -30,7 +27,6 @@ const crearIconoCircular = (logoUrl: string, borderColor: string) => {
   });
 };  
 
-// 3. GENERAMOS LOS 3 ICONOS DE LAS CADENAS Y EL DE INDEPENDIENTES
 const ahumadaIcon = crearIconoCircular(logotipoAhumada, '#c41e3a'); 
 const salcobrandIcon = crearIconoCircular(logotipoSalcobrand, '#0066cc'); 
 const drsimiIcon = crearIconoCircular(logotipoDrSimi, '#0066cc'); 
@@ -41,7 +37,6 @@ const independienteIcon = L.divIcon({
   iconAnchor: [17, 35],
 });
 
-// 4. FUNCIÓN PARA DECIDIR QUÉ ICONO PONER
 const getIconoFarmacia = (nombreFarmacia: string) => {
   const nombre = nombreFarmacia.toLowerCase();
   if (nombre.includes('ahumada')) return ahumadaIcon;
@@ -50,7 +45,6 @@ const getIconoFarmacia = (nombreFarmacia: string) => {
   return independienteIcon;
 };
 
-// FÓRMULA MATEMÁTICA PARA MEDIR DISTANCIAS
 function calcularDistanciaKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371; 
   const dLat = (lat2 - lat1) * (Math.PI / 180);
@@ -90,7 +84,8 @@ function Resultados() {
       setRawData([]);
     }
 
-    const url = `http://localhost:8082/api/scraper/buscar?query=${encodeURIComponent(query)}${forzarRefresh ? '&forceRefresh=true' : ''}`;
+    // 🔥 CORRECCIÓN: PUERTO 8080 PARA PASAR POR EL GATEWAY 🔥
+    const url = `http://localhost:8080/api/scraper/buscar?query=${encodeURIComponent(query)}${forzarRefresh ? '&forceRefresh=true' : ''}`;
 
     fetch(url)
       .then(r => r.json())
@@ -108,16 +103,13 @@ function Resultados() {
     buscarMedicamentos(false);
   }, [query]);
 
-  // 🔥 NUEVA LÓGICA: FILTRA POR DISTANCIA Y ELIMINA PINES DUPLICADOS 🔥
   useEffect(() => {
     if (rawData.length === 0) return;
 
-    const baseLat = ubicacion ? ubicacion.lat : -33.5212; // La Florida por defecto
+    const baseLat = ubicacion ? ubicacion.lat : -33.5212;
     const baseLng = ubicacion ? ubicacion.lng : -70.5973;
 
     const farmaciasMasCercanas: Record<string, any> = {};
-    
-    // 🔥 Usamos un Map en lugar de un Array vacío para asegurar sucursales únicas
     const pinesUnicos = new Map(); 
 
     rawData.forEach((item: any) => {
@@ -128,7 +120,6 @@ function Resultados() {
       let lat = item.lat;
       let lng = item.lng;
 
-      // Si vienen sin coordenadas del backend, les asignamos unas temporales
       if (!lat || !lng) {
         if (cadena === "Farmacias Ahumada") { lat = baseLat + 0.0025; lng = baseLng + 0.0020; }
         else if (cadena === "Salcobrand") { lat = baseLat - 0.0020; lng = baseLng - 0.0025; }
@@ -136,26 +127,19 @@ function Resultados() {
         else { lat = baseLat - 0.0030; lng = baseLng + 0.0015; }
       }
 
-      // Calculamos qué tan lejos está esta farmacia específica de ti
       const distanciaKm = calcularDistanciaKm(baseLat, baseLng, lat, lng);
       const sucursalLista = { ...item, lat, lng, cadenaOficial: cadena, distancia: distanciaKm };
       
-      // 🔥 LÓGICA ANTI-DUPLICADOS PARA EL MAPA: 
-      // Si el Map aún no tiene esta sucursal (ej: 'Dr. Simi - La Florida 9660'), la guardamos.
-      // Si ya la tiene, la ignora, evitando que se dibujen dos pines en el mismo lugar.
       if (!pinesUnicos.has(item.farmacia)) {
         pinesUnicos.set(item.farmacia, sucursalLista);
       }
 
-      // LÓGICA DE TARJETAS (CERCANÍA): Mantenemos la que esté más cerca
       if (!farmaciasMasCercanas[cadena] || distanciaKm < farmaciasMasCercanas[cadena].distancia) {
         farmaciasMasCercanas[cadena] = sucursalLista;
       }
     });
 
     setPreciosTarjetas(Object.values(farmaciasMasCercanas));
-    
-    // 🔥 Convertimos el Map limpio de vuelta a un arreglo para que React lo dibuje
     setTodasLasSucursales(Array.from(pinesUnicos.values())); 
 
   }, [rawData, ubicacion]); 
