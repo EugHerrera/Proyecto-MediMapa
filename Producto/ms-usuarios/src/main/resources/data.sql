@@ -2,7 +2,7 @@
 -- 4. USUARIOS DEL SISTEMA
 -- ==========================================
 INSERT INTO usuario (correo, password_hash, rol) 
-VALUES ('eugenio@medimapa.cl', '$2a$10$51smH0aSZ/6tcZusb8mrX.QCt.eEd5LvLh6e1rLaKC7JI9X3ojQ7e', 'ADMIN')
+VALUES ('eugenio@medimapa.cl', '$2a$10$8.UnVuG9HLdaV9p0aM4.0.1M3gCqQkX2y6D.1j0m9.Y7.Q91.2i/m', 'ADMIN') 
 ON CONFLICT DO NOTHING;
 
 INSERT INTO usuario (correo, password_hash, rol) 

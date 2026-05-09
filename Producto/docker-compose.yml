@@ -20,7 +20,9 @@ services:
   # 2. TUS MICROSERVICIOS INTERNOS
   ms-usuarios:
     build: ./ms-usuarios
-    restart: on-failure # 🔥 CORRECCIÓN: Resiliencia ante caídas de DB
+    restart: on-failure 
+    ports:
+      - "8085:8085" # 🔥 EL PARCHE MÁGICO: Exponemos el puerto hacia Windows
     depends_on:
       db-medimapa:
         condition: service_healthy
