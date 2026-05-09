@@ -14,20 +14,11 @@ public class GeolocalizacionService {
     @Autowired
     private SucursalFarmaciaRepository sucursalRepository;
 
-    /**
-     * Busca sucursales cercanas a una ubicación específica
-     * @param ubicacion Ubicación del usuario como Point
-     * @param radio Radio de búsqueda en metros
-     * @return Lista de sucursales cercanas
-     */
     public List<SucursalFarmacia> obtenerCercanas(Point ubicacion, double radio) {
-        // La ubicación del usuario se procesa y se olvida (Ley 21.719)
+        // Extraemos las coordenadas crudas para el SQL Nativo
+        double lat = ubicacion.getY(); 
+        double lng = ubicacion.getX(); 
         
-        // Extraemos las coordenadas del Point (Y = Latitud, X = Longitud)
-        double lat = ubicacion.getY();
-        double lng = ubicacion.getX();
-        
-        // Le pasamos los números pelados a la consulta nativa
         return sucursalRepository.buscarCercanas(lat, lng, radio);
     }
 }

@@ -20,24 +20,28 @@ services:
   # 2. TUS MICROSERVICIOS INTERNOS
   ms-usuarios:
     build: ./ms-usuarios
+    restart: on-failure # 🔥 CORRECCIÓN: Resiliencia ante caídas de DB
     depends_on:
       db-medimapa:
         condition: service_healthy
   
   ms-geocalizacion:
     build: ./ms-geocalizacion/geocalizacion
+    restart: on-failure # 🔥 CORRECCIÓN: Resiliencia ante caídas de DB
     depends_on:
       db-medimapa:
         condition: service_healthy
 
   ms-catalogo:
     build: ./ms-catalogo
+    restart: on-failure # 🔥 CORRECCIÓN: Resiliencia ante caídas de DB
     depends_on:
       db-medimapa:
         condition: service_healthy
 
   medimapa: # Tu Scraper con Playwright
     build: ./medimapa/medimapa
+    restart: on-failure # 🔥 CORRECCIÓN: Resiliencia ante caídas de DB
     depends_on:
       db-medimapa:
         condition: service_healthy
@@ -45,6 +49,7 @@ services:
   # 3. LA PUERTA AL MUNDO (API GATEWAY)
   api-gateway:
     build: ./api-gateway
+    restart: on-failure # 🔥 CORRECCIÓN: Autocorrección de red
     ports:
       - "8080:8080" # Expone el puerto del backend a internet
     depends_on:
@@ -56,6 +61,7 @@ services:
   # 4. TU APLICACIÓN WEB (FRONTEND)
   frontend:
     build: ./MediMapUI/MediMapUI/portal-web 
+    restart: on-failure # 🔥 CORRECCIÓN: Tolerancia a fallos de Nginx
     ports:
       - "5173:80"
 

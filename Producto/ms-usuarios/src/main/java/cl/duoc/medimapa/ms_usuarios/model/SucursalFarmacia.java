@@ -2,7 +2,7 @@ package cl.duoc.medimapa.ms_usuarios.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.geolatte.geom.Point;
+import org.locationtech.jts.geom.Point;
 import java.time.OffsetDateTime;
 
 @Entity
@@ -20,7 +20,6 @@ public class SucursalFarmacia {
     @Column(nullable = false, length = 400)
     private String direccion; 
 
-    // 🔥 CAMBIO: Reemplazamos BigDecimal por Point nativo
     @Column(columnDefinition = "geometry(Point, 4326)", nullable = false)
     private Point ubicacion; 
 

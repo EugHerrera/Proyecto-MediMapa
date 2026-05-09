@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+// 🔥 IMPORTAMOS AXIOS DESDE NUESTRO ARCHIVO CENTRAL
+import { apiUsuarios } from '../services/api';
 import './Catalogo.css'; 
 
-// Importamos el sello que acabas de crear
 import SelloBioequivalente from '../assets/sello-bioequivalente.svg';
 
 interface MedicamentoResponseDTO {
@@ -19,21 +20,18 @@ const Bioequivalentes: React.FC = () => {
   const [medicamentos, setMedicamentos] = useState<MedicamentoResponseDTO[]>([]);
   const [cargando, setCargando] = useState(false);
 
-  // Conexión al microservicio a través del Gateway (Puerto 8080)
   useEffect(() => {
     const fetchMedicamentos = async () => {
       setCargando(true);
       try {
-        let url = 'http://localhost:8080/api/medicamentos';
+        let url = '/medicamentos';
         if (busqueda.trim() !== '') {
-          url = `http://localhost:8080/api/medicamentos/buscar?q=${busqueda}`;
+          url = `/medicamentos/buscar?q=${busqueda}`;
         }
 
-        const respuesta = await fetch(url);
-        if (respuesta.ok) {
-          const data = await respuesta.json();
-          setMedicamentos(data);
-        }
+        // 🔥 CORRECCIÓN: REEMPLAZAMOS EL FETCH NATIVO POR AXIOS
+        const respuesta = await apiUsuarios.get(url);
+        setMedicamentos(respuesta.data);
       } catch (error) {
         console.error("Error de conexión con el catálogo:", error);
       } finally {
@@ -45,13 +43,11 @@ const Bioequivalentes: React.FC = () => {
     return () => clearTimeout(timeoutId);
   }, [busqueda]);
 
-  // Filtramos para mostrar solo los certificados
   const bioequivalentesFiltrados = medicamentos.filter((med) => med.esBioequivalente);
 
   return (
     <div className="catalogo-container">
       
-      {/* Banner Principal con Identidad Visual Dorada */}
       <div className="catalogo-banner" style={{ background: 'linear-gradient(90deg, #ca8a04 0%, #059669 100%)' }}>
         <div className="banner-content">
           <div className="banner-title" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
@@ -64,7 +60,6 @@ const Bioequivalentes: React.FC = () => {
         </div>
       </div>
 
-      {/* Cuadro Educativo sobre Bioequivalencia */}
       <div className="catalogo-disclaimer" style={{ borderLeftColor: '#ca8a04', backgroundColor: '#fefce8' }}>
         <div className="disclaimer-icon">💡</div>
         <div className="disclaimer-text">
@@ -77,7 +72,6 @@ const Bioequivalentes: React.FC = () => {
         </div>
       </div>
 
-      {/* Buscador Específico */}
       <div className="catalogo-search-section" style={{ marginTop: '2rem' }}>
         <div className="search-box">
           <label style={{ color: '#ca8a04' }}>Buscar por Principio Activo</label>
@@ -94,7 +88,6 @@ const Bioequivalentes: React.FC = () => {
         </div>
       </div>
 
-      {/* Tabla de Resultados con Interacción */}
       <div className="catalogo-resultados">
         {cargando ? (
            <div style={{ padding: '40px', textAlign: 'center', color: '#ca8a04' }}>Consultando registros...</div>

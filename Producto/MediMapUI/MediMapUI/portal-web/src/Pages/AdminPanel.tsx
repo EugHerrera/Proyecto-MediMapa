@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { apiUsuarios } from '../services/api';
+// 🔥 IMPORTAMOS apiScraper TAMBIÉN
+import { apiUsuarios, apiScraper } from '../services/api';
 import './AdminPanel.css';
 
 const AdminPanel = () => {
@@ -67,10 +68,9 @@ const AdminPanel = () => {
     if (!window.confirm("⚠️ ¿Iniciar extracción masiva? Esto tomará varios minutos.")) return;
     setCargando(true);
     try {
-      // 🔥 CORRECCIÓN: PUERTO 8080 PARA PASAR POR EL GATEWAY 🔥
-      const respuesta = await fetch('http://localhost:8080/api/scraper/forzar-masivo', { method: 'POST' });
-      const mensaje = await respuesta.text();
-      alert(mensaje);
+      // 🔥 CORRECCIÓN: USAMOS AXIOS A TRAVÉS DEL GATEWAY 🔥
+      const respuesta = await apiScraper.post('/scraper/forzar-masivo');
+      alert(respuesta.data);
     } catch (error) { alert("❌ Error al contactar al motor de Scraping."); } finally { setCargando(false); }
   };
 

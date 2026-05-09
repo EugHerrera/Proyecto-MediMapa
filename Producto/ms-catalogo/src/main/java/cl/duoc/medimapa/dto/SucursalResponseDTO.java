@@ -1,6 +1,7 @@
 package cl.duoc.medimapa.dto;
 
-import org.geolatte.geom.Point;
+// 🔥 CORRECCIÓN: Usamos LocationTech JTS para evitar choques de serialización
+import org.locationtech.jts.geom.Point;
 import lombok.Data;
 
 @Data

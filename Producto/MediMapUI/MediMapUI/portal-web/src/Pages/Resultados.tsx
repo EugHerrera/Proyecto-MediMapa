@@ -4,6 +4,8 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-le
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import './Resultados.css'; 
+// 🔥 IMPORTAMOS APISCRAPER
+import { apiScraper } from '../services/api';
 
 import logotipoAhumada from '../assets/logotipoahumada.png';
 import logotipoDrSimi from '../assets/logotipodrsimi.png';
@@ -84,13 +86,12 @@ function Resultados() {
       setRawData([]);
     }
 
-    // 🔥 CORRECCIÓN: PUERTO 8080 PARA PASAR POR EL GATEWAY 🔥
-    const url = `http://localhost:8080/api/scraper/buscar?query=${encodeURIComponent(query)}${forzarRefresh ? '&forceRefresh=true' : ''}`;
+    // 🔥 CORRECCIÓN: REEMPLAZAMOS EL FETCH POR AXIOS (apiScraper) 🔥
+    const url = `/scraper/buscar?query=${encodeURIComponent(query)}${forzarRefresh ? '&forceRefresh=true' : ''}`;
 
-    fetch(url)
-      .then(r => r.json())
-      .then(data => {
-        setRawData(data);
+    apiScraper.get(url)
+      .then(response => {
+        setRawData(response.data);
         setCargando(false);
       })
       .catch(error => {
