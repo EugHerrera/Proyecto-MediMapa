@@ -2,6 +2,14 @@ server:
   port: 8080 # El Gateway SIEMPRE es el 8080
 
 spring:
+  # 🔥 aumento de espacio para excels 🔥
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+  codec:
+    max-in-memory-size: 50MB
+
   cloud:
     gateway:
       httpclient:
