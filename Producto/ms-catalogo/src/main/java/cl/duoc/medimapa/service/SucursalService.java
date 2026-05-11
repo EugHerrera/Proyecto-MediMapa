@@ -21,7 +21,15 @@ public class SucursalService {
                     dto.setIdSucursal(suc.getId_sucursal()); 
                     dto.setNombreSucursal(suc.getNombre_sucursal()); 
                     dto.setDireccion(suc.getDireccion());
-                    dto.setUbicacion(suc.getUbicacion());
+                    
+                    // 🔥 Desarmamos el Point para que el frontend lo entienda
+                    if (suc.getUbicacion() != null) {
+                        SucursalResponseDTO.UbicacionDTO ubiDto = new SucursalResponseDTO.UbicacionDTO();
+                        ubiDto.setType("Point");
+                        ubiDto.setCoordinates(new Double[]{suc.getUbicacion().getX(), suc.getUbicacion().getY()});
+                        dto.setUbicacion(ubiDto);
+                    }
+                    
                     return dto;
                 }).collect(Collectors.toList());
     }
