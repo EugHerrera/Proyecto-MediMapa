@@ -1,9 +1,7 @@
 package cl.duoc.geocalizacion.model;
 
 import java.time.OffsetDateTime;
-
 import org.locationtech.jts.geom.Point;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -23,23 +21,22 @@ public class SucursalFarmacia {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id_sucursal; 
 
-    // Relación clave: ¡Esta sucursal pertenece a una Farmacia (Marca)!
-    @ManyToOne(fetch = FetchType.LAZY)
+    // 🔥 BLINDAJE EAGER 1
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_farmacia", nullable = false)
     private Farmacia farmacia;
 
-    // Relación clave: esta sucursal pertenece a una comuna
-    @ManyToOne(fetch = FetchType.LAZY)
+    // 🔥 BLINDAJE EAGER 2
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_comuna", nullable = false)
     private Comuna comuna;
 
     @Column(nullable = false, length = 300)
-    private String nombre_sucursal; // Ej: "Local Vicuña Mackenna 1234" o "Mall Plaza Vespucio"
+    private String nombre_sucursal; 
 
     @Column(nullable = false, length = 400)
     private String direccion; 
 
-    // Aquí traemos la magia de PostGIS (Reemplaza a los BigDecimal de lat/lon)
     @Column(columnDefinition = "geometry(Point, 4326)", nullable = false)
     private Point ubicacion; 
 

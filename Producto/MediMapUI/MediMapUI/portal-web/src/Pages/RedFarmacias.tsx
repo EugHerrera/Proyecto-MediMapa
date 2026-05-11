@@ -4,6 +4,8 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-le
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import './RedFarmacias.css';
+// 🔥 IMPORTAMOS APIGEO
+import { apiGeo } from '../services/api';
 
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
@@ -13,6 +15,7 @@ import logoSalcobrand from '../assets/Salcobrand.png';
 import logotipoAhumada from '../assets/logotipoahumada.png';
 import logotipoDrSimi from '../assets/logotipodrsimi.png';
 import logotipoSalcobrand from '../assets/logotiposalcobrand.png';
+
 let DefaultIcon = L.icon({ iconUrl: icon, shadowUrl: iconShadow, iconSize: [25, 41], iconAnchor: [12, 41] });
 L.Marker.prototype.options.icon = DefaultIcon;
 
@@ -38,14 +41,10 @@ const drsimiIcon = crearIconoCircular(logotipoDrSimi, '#0066cc');
 
 const getIconoFarmacia = (cadenaNombre: string) => {
   switch (cadenaNombre) {
-    case 'Ahumada':
-      return ahumadaIcon;
-    case 'Salcobrand':
-      return salcobrandIcon;
-    case 'Dr Simi':
-      return drsimiIcon;
-    default:
-      return farmaciaIcon;
+    case 'Ahumada': return ahumadaIcon;
+    case 'Salcobrand': return salcobrandIcon;
+    case 'Dr Simi': return drsimiIcon;
+    default: return farmaciaIcon;
   }
 };
 
@@ -112,10 +111,7 @@ const RedFarmacias: React.FC = () => {
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const coords = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        };
+        const coords = { lat: position.coords.latitude, lng: position.coords.longitude };
         setUbicacion(coords);
         setEstadoUbicacion('Ubicación obtenida. Buscando farmacias cercanas...');
       },
@@ -123,29 +119,19 @@ const RedFarmacias: React.FC = () => {
         setUbicacion(null);
         setEstadoUbicacion('No se pudo obtener la ubicación. Verifica permisos del navegador.');
       },
-      {
-        enableHighAccuracy: true,
-        timeout: 12000,
-        maximumAge: 0,
-      }
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
     );
   };
 
   const buscarDireccion = async () => {
-    if (!direccionTexto.trim()) {
-      setErrorDireccion('Escribe una dirección para buscar.');
-      return;
-    }
-
+    if (!direccionTexto.trim()) { setErrorDireccion('Escribe una dirección para buscar.'); return; }
     setModoUbicacion('direccion');
     setBuscandoDireccion(true);
     setErrorDireccion('');
     setEstadoUbicacion('Buscando ubicación por dirección...');
 
     try {
-      const respuesta = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(direccionTexto)}&limit=1`
-      );
+      const respuesta = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(direccionTexto)}&limit=1`);
       const datos = await respuesta.json();
 
       if (!datos || datos.length === 0) {
@@ -153,7 +139,6 @@ const RedFarmacias: React.FC = () => {
         setEstadoUbicacion('No se encontró la dirección.');
         return;
       }
-
       const primerResultado = datos[0];
       setUbicacion({ lat: Number(primerResultado.lat), lng: Number(primerResultado.lon) });
       setEstadoUbicacion('Ubicación de dirección encontrada. Mostrando farmacias cercanas.');
@@ -161,14 +146,10 @@ const RedFarmacias: React.FC = () => {
       console.error(err);
       setErrorDireccion('Error al buscar la dirección. Intenta nuevamente.');
       setEstadoUbicacion('Error en la búsqueda de dirección.');
-    } finally {
-      setBuscandoDireccion(false);
-    }
+    } finally { setBuscandoDireccion(false); }
   };
 
-  useEffect(() => {
-    pedirUbicacion();
-  }, []);
+  useEffect(() => { pedirUbicacion(); }, []);
 
   useEffect(() => {
     if (!ubicacion) return;
@@ -176,25 +157,14 @@ const RedFarmacias: React.FC = () => {
     setCargando(true);
     setError('');
 
-    const url = `http://localhost:8080/api/v1/geolocalizacion/sucursales?lat=${ubicacion.lat}&lon=${ubicacion.lng}&radio=${radioMetros}`;
+    // 🔥 CORRECCIÓN: USAMOS AXIOS (apiGeo)
+    const url = `/v1/geolocalizacion/sucursales?lat=${ubicacion.lat}&lon=${ubicacion.lng}&radio=${radioMetros}`;
 
-    fetch(url)
+    apiGeo.get(url)
       .then((response) => {
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return response.json();
-      })
-      .then((payload) => {
-        const lista = Array.isArray(payload)
-          ? payload
-          : Array.isArray(payload?.data)
-            ? payload.data
-            : Array.isArray(payload?.sucursales)
-              ? payload.sucursales
-              : [];
-
-        if (!Array.isArray(lista)) {
-          console.warn('Geolocalización: response no es un array', payload);
-        }
+        const payload = response.data;
+        const lista = Array.isArray(payload) ? payload : Array.isArray(payload?.data) ? payload.data : Array.isArray(payload?.sucursales) ? payload.sucursales : [];
+        if (!Array.isArray(lista)) console.warn('Geolocalización: response no es un array', payload);
 
         setFarmacias(lista);
         setCargando(false);
@@ -223,45 +193,24 @@ const RedFarmacias: React.FC = () => {
         ? calcularDistanciaKm(ubicacion.lat, ubicacion.lng, Number(lat), Number(lon))
         : 0;
       const nombre = sucursal.nombre_sucursal || 'Farmacia cercana';
-      const cadenaNombre = nombre.toLowerCase().includes('ahumada')
-        ? 'Ahumada'
-        : nombre.toLowerCase().includes('salco')
-          ? 'Salcobrand'
-          : nombre.toLowerCase().includes('simi')
-            ? 'Dr Simi'
-            : 'Independiente';
+      const cadenaNombre = nombre.toLowerCase().includes('ahumada') ? 'Ahumada' : nombre.toLowerCase().includes('salco') ? 'Salcobrand' : nombre.toLowerCase().includes('simi') ? 'Dr Simi' : 'Independiente';
       const tipo = cadenaNombre === 'Independiente' ? 'Independiente' : 'Cadena';
-      return {
-        ...sucursal,
-        latitud: lat,
-        longitud: lon,
-        distancia,
-        tipo,
-        cadenaNombre,
-        comunaNombre: sucursal.comuna?.nombreCom || 'Desconocida',
-      };
+      return { ...sucursal, latitud: lat, longitud: lon, distancia, tipo, cadenaNombre, comunaNombre: sucursal.comuna?.nombreCom || 'Desconocida' };
     });
 
     return lista
       .filter((sucursal) => comuna === 'Todas' || sucursal.comunaNombre === comuna)
       .filter((sucursal) => {
-        if (tipoFarmacia === 'Independiente') {
-          return sucursal.tipo === 'Independiente';
-        }
-        if (tipoFarmacia === 'Cadena') {
-          return sucursal.tipo === 'Cadena' && cadenasSeleccionadas.includes(sucursal.cadenaNombre);
-        }
-        if (sucursal.tipo === 'Independiente') {
-          return true;
-        }
+        if (tipoFarmacia === 'Independiente') return sucursal.tipo === 'Independiente';
+        if (tipoFarmacia === 'Cadena') return sucursal.tipo === 'Cadena' && cadenasSeleccionadas.includes(sucursal.cadenaNombre);
+        if (sucursal.tipo === 'Independiente') return true;
         return cadenasSeleccionadas.length === 0 || cadenasSeleccionadas.includes(sucursal.cadenaNombre);
       })
       .sort((a, b) => a.distancia - b.distancia);
   }, [farmacias, comuna, tipoFarmacia, ubicacion, cadenasSeleccionadas]);
 
   const comunasDisponibles = useMemo(() => {
-    const nombres = Array.from(new Set(farmacias.map((sucursal) => sucursal.comuna?.nombreCom || 'Desconocida')))
-      .filter((nombre) => nombre !== 'Desconocida');
+    const nombres = Array.from(new Set(farmacias.map((sucursal) => sucursal.comuna?.nombreCom || 'Desconocida'))).filter((nombre) => nombre !== 'Desconocida');
     return ['Todas', ...nombres];
   }, [farmacias]);
 
@@ -269,185 +218,44 @@ const RedFarmacias: React.FC = () => {
 
   return (
     <div className="red-container">
-      
-      {/* 🔥 AQUÍ ESTÁ EL CAMBIO PRINCIPAL: .red-banner para heredar el estilo Premium 🔥 */}
       <header className="red-banner">
         <h1>Red de Farmacias MediMapa</h1>
         <p>Usa tu ubicación para ver las farmacias más cercanas en un mapa interactivo.</p>
-
         <div className="logos-grid">
-          <a href="https://www.farmaciasahumada.cl/" target="_blank" rel="noopener noreferrer" className="logo-card link-card">
-            <img src={logoAhumada} alt="Farmacias Ahumada" />
-          </a>
-          <a href="https://www.drsimi.cl/" target="_blank" rel="noopener noreferrer" className="logo-card link-card">
-            <img src={logoSimi} alt="Dr. Simi" />
-          </a>
-          <a href="https://salcobrand.cl/" target="_blank" rel="noopener noreferrer" className="logo-card link-card">
-            <img src={logoSalcobrand} alt="Salcobrand" />
-          </a>
+          <a href="https://www.farmaciasahumada.cl/" target="_blank" rel="noopener noreferrer" className="logo-card link-card"><img src={logoAhumada} alt="Farmacias Ahumada" /></a>
+          <a href="https://www.drsimi.cl/" target="_blank" rel="noopener noreferrer" className="logo-card link-card"><img src={logoSimi} alt="Dr. Simi" /></a>
+          <a href="https://salcobrand.cl/" target="_blank" rel="noopener noreferrer" className="logo-card link-card"><img src={logoSalcobrand} alt="Salcobrand" /></a>
           <Link to="/registro-farmacia" className="logo-card independiente-card link-card">
-            <span className="independiente-icon">🏪</span>
-            <span>Farmacias Independientes</span>
-            <small>Inscribe tu local aquí</small>
+            <span className="independiente-icon">🏪</span><span>Farmacias Independientes</span><small>Inscribe tu local aquí</small>
           </Link>
         </div>
       </header>
-
       <main className="red-main-content">
         <aside className="red-sidebar">
           <h3>Busca tu farmacia</h3>
-
-          <div className="filter-group">
-            <label>Comuna</label>
-            <select value={comuna} onChange={(e) => setComuna(e.target.value)}>
-              {comunasDisponibles.map((nombre) => (
-                <option key={nombre} value={nombre}>{nombre}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="filter-group">
-            <label>Ubicación</label>
-            <div className="ubicacion-mode">
-              <button type="button" className={modoUbicacion === 'gps' ? 'active' : ''} onClick={() => setModoUbicacion('gps')}>
-                Usar mi ubicación
-              </button>
-              <button type="button" className={modoUbicacion === 'direccion' ? 'active' : ''} onClick={() => setModoUbicacion('direccion')}>
-                Escribir dirección
-              </button>
-            </div>
-          </div>
-
-          {modoUbicacion === 'direccion' && (
-            <div className="filter-group">
-              <label>Dirección</label>
-              <input
-                type="text"
-                placeholder="Ej. Vicuña Mackenna 1234, La Florida"
-                value={direccionTexto}
-                onChange={(e) => setDireccionTexto(e.target.value)}
-              />
-              <button type="button" className="btn-buscar-direccion" onClick={buscarDireccion} disabled={buscandoDireccion}>
-                {buscandoDireccion ? 'Buscando...' : 'Buscar dirección'}
-              </button>
-              {errorDireccion && <p className="error-ubicacion">{errorDireccion}</p>}
-            </div>
-          )}
-
-          <div className="filter-group">
-            <label>Tipo de Establecimiento</label>
-            <select value={tipoFarmacia} onChange={(e) => setTipoFarmacia(e.target.value)}>
-              <option value="Todas">Todas</option>
-              <option value="Cadena">Cadenas</option>
-              <option value="Independiente">Independientes</option>
-            </select>
-          </div>
-
-          <div className="filter-group">
-            <label>Cadena</label>
-            <div className="chain-selector">
-              <label>
-                <input type="checkbox" checked={filtroAhumada} onChange={(e) => setFiltroAhumada(e.target.checked)} />
-                Ahumada
-              </label>
-              <label>
-                <input type="checkbox" checked={filtroSalcobrand} onChange={(e) => setFiltroSalcobrand(e.target.checked)} />
-                Salcobrand
-              </label>
-              <label>
-                <input type="checkbox" checked={filtroDrSimi} onChange={(e) => setFiltroDrSimi(e.target.checked)} />
-                Dr Simi
-              </label>
-            </div>
-            <small>Elige las cadenas que quieras mostrar.</small>
-          </div>
-
-          <div className="filter-group">
-            <label>Radio de búsqueda</label>
-            <input
-              type="range"
-              min={1000}
-              max={7000}
-              step={500}
-              value={radioMetros}
-              onChange={(e) => setRadioMetros(Number(e.target.value))}
-            />
-            <span>{Math.round(radioMetros / 100) / 10} km</span>
-          </div>
-
-          <button className="btn-ubicacion" type="button" onClick={pedirUbicacion}>
-            📍 Actualizar ubicación
-          </button>
-
-          {estadoUbicacion && <p className="estado-ubicacion">{estadoUbicacion}</p>}
-          {error && <p className="error-ubicacion">{error}</p>}
+          <div className="filter-group"><label>Comuna</label><select value={comuna} onChange={(e) => setComuna(e.target.value)}>{comunasDisponibles.map((nombre) => (<option key={nombre} value={nombre}>{nombre}</option>))}</select></div>
+          <div className="filter-group"><label>Ubicación</label><div className="ubicacion-mode"><button type="button" className={modoUbicacion === 'gps' ? 'active' : ''} onClick={() => setModoUbicacion('gps')}>Usar mi ubicación</button><button type="button" className={modoUbicacion === 'direccion' ? 'active' : ''} onClick={() => setModoUbicacion('direccion')}>Escribir dirección</button></div></div>
+          {modoUbicacion === 'direccion' && (<div className="filter-group"><label>Dirección</label><input type="text" placeholder="Ej. Vicuña Mackenna 1234, La Florida" value={direccionTexto} onChange={(e) => setDireccionTexto(e.target.value)} /><button type="button" className="btn-buscar-direccion" onClick={buscarDireccion} disabled={buscandoDireccion}>{buscandoDireccion ? 'Buscando...' : 'Buscar dirección'}</button>{errorDireccion && <p className="error-ubicacion">{errorDireccion}</p>}</div>)}
+          <div className="filter-group"><label>Tipo de Establecimiento</label><select value={tipoFarmacia} onChange={(e) => setTipoFarmacia(e.target.value)}><option value="Todas">Todas</option><option value="Cadena">Cadenas</option><option value="Independiente">Independientes</option></select></div>
+          <div className="filter-group"><label>Cadena</label><div className="chain-selector"><label><input type="checkbox" checked={filtroAhumada} onChange={(e) => setFiltroAhumada(e.target.checked)} /> Ahumada</label><label><input type="checkbox" checked={filtroSalcobrand} onChange={(e) => setFiltroSalcobrand(e.target.checked)} /> Salcobrand</label><label><input type="checkbox" checked={filtroDrSimi} onChange={(e) => setFiltroDrSimi(e.target.checked)} /> Dr Simi</label></div><small>Elige las cadenas que quieras mostrar.</small></div>
+          <div className="filter-group"><label>Radio de búsqueda</label><input type="range" min={1000} max={7000} step={500} value={radioMetros} onChange={(e) => setRadioMetros(Number(e.target.value))} /><span>{Math.round(radioMetros / 100) / 10} km</span></div>
+          <button className="btn-ubicacion" type="button" onClick={pedirUbicacion}>📍 Actualizar ubicación</button>
+          {estadoUbicacion && <p className="estado-ubicacion">{estadoUbicacion}</p>}{error && <p className="error-ubicacion">{error}</p>}
         </aside>
-
         <section className="red-results">
           <div className="mapa-real">
             <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }}>
-              <VolarAlCentro lat={mapCenter[0]} lng={mapCenter[1]} />
-              <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
-              
-              {ubicacion && (
-                <>
-                  <Marker position={[ubicacion.lat, ubicacion.lng]} icon={DefaultIcon}>
-                    <Popup>Tú estás aquí</Popup>
-                  </Marker>
-                  <Circle center={[ubicacion.lat, ubicacion.lng]} radius={radioMetros} pathOptions={{ color: '#ca8a04', fillColor: '#ca8a04', fillOpacity: 0.1 }} />
-                </>
-              )}
-
-              {farmaciasProcesadas
-                .filter((sucursal) => sucursal.latitud != null && sucursal.longitud != null)
-                .map((sucursal) => (
-                  <Marker key={sucursal.id_sucursal} position={[Number(sucursal.latitud), Number(sucursal.longitud)]} icon={getIconoFarmacia(sucursal.cadenaNombre)}>
-                    <Popup>
-                      <strong>{sucursal.nombre_sucursal}</strong><br/>
-                      {sucursal.direccion}<br/>
-                      <small>{sucursal.comunaNombre}</small><br/>
-                      <small>{sucursal.distancia?.toFixed(2)} km</small>
-                    </Popup>
-                  </Marker>
-                ))}
+              <VolarAlCentro lat={mapCenter[0]} lng={mapCenter[1]} /><TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
+              {ubicacion && (<><Marker position={[ubicacion.lat, ubicacion.lng]} icon={DefaultIcon}><Popup>Tú estás aquí</Popup></Marker><Circle center={[ubicacion.lat, ubicacion.lng]} radius={radioMetros} pathOptions={{ color: '#ca8a04', fillColor: '#ca8a04', fillOpacity: 0.1 }} /></>)}
+              {farmaciasProcesadas.filter((sucursal) => sucursal.latitud != null && sucursal.longitud != null).map((sucursal) => (<Marker key={sucursal.id_sucursal} position={[Number(sucursal.latitud), Number(sucursal.longitud)]} icon={getIconoFarmacia(sucursal.cadenaNombre)}><Popup><strong>{sucursal.nombre_sucursal}</strong><br/>{sucursal.direccion}<br/><small>{sucursal.comunaNombre}</small><br/><small>{sucursal.distancia?.toFixed(2)} km</small></Popup></Marker>))}
             </MapContainer>
           </div>
-
           <div className="lista-farmacias lista-cercanas">
-            <div className="lista-header">
-              <h3>Farmacias más cercanas</h3>
-              <span>{farmaciasProcesadas.length} resultados</span>
-            </div>
+            <div className="lista-header"><h3>Farmacias más cercanas</h3><span>{farmaciasProcesadas.length} resultados</span></div>
             <table className="tabla-farmacias">
-              <thead>
-                <tr>
-                  <th>Nombre</th>
-                  <th>Dirección</th>
-                  <th>Comuna</th>
-                  <th>Tipo</th>
-                  <th>Distancia</th>
-                </tr>
-              </thead>
+              <thead><tr><th>Nombre</th><th>Dirección</th><th>Comuna</th><th>Tipo</th><th>Distancia</th></tr></thead>
               <tbody>
-                {cargando ? (
-                  <tr><td colSpan={5}>Cargando resultados cercanos...</td></tr>
-                ) : farmaciasProcesadas.length === 0 ? (
-                  <tr><td colSpan={5}>No hay farmacias dentro del radio seleccionado.</td></tr>
-                ) : (
-                  farmaciasProcesadas.map((sucursal) => (
-                    <tr key={sucursal.id_sucursal}>
-                      <td>{sucursal.nombre_sucursal}</td>
-                      <td>{sucursal.direccion}</td>
-                      <td>{sucursal.comunaNombre}</td>
-                      <td>
-                        <span className={`badge ${sucursal.tipo === 'Cadena' ? 'cadena' : 'independiente'}`}>
-                          {sucursal.tipo}
-                        </span>
-                      </td>
-                      <td>{sucursal.distancia?.toFixed(2)} km</td>
-                    </tr>
-                  ))
-                )}
+                {cargando ? (<tr><td colSpan={5}>Cargando resultados cercanos...</td></tr>) : farmaciasProcesadas.length === 0 ? (<tr><td colSpan={5}>No hay farmacias dentro del radio seleccionado.</td></tr>) : (farmaciasProcesadas.map((sucursal) => (<tr key={sucursal.id_sucursal}><td>{sucursal.nombre_sucursal}</td><td>{sucursal.direccion}</td><td>{sucursal.comunaNombre}</td><td><span className={`badge ${sucursal.tipo === 'Cadena' ? 'cadena' : 'independiente'}`}>{sucursal.tipo}</span></td><td>{sucursal.distancia?.toFixed(2)} km</td></tr>)))}
               </tbody>
             </table>
           </div>
@@ -456,5 +264,4 @@ const RedFarmacias: React.FC = () => {
     </div>
   );
 };
-
 export default RedFarmacias;

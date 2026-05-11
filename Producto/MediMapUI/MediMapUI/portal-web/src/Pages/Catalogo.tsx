@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+// 🔥 IMPORTAMOS AXIOS
+import { apiUsuarios } from '../services/api';
 import './Catalogo.css';
 
 interface MedicamentoResponseDTO {
@@ -45,20 +47,18 @@ const Catalogo: React.FC = () => {
     const fetchMedicamentos = async () => {
       setCargando(true);
       try {
-        let url = 'http://localhost:8080/api/medicamentos';
+        let url = '/medicamentos';
 
         if (busqueda.trim() !== '') {
-          url = `http://localhost:8080/api/medicamentos/buscar?q=${busqueda}`;
+          url = `/medicamentos/buscar?q=${busqueda}`;
         } 
         else if (categoriaActiva !== 'Todas') {
-          url = `http://localhost:8080/api/medicamentos/categoria?nombre=${categoriaActiva}`;
+          url = `/medicamentos/categoria?nombre=${categoriaActiva}`;
         }
 
-        const respuesta = await fetch(url);
-        if (respuesta.ok) {
-          const data = await respuesta.json();
-          setMedicamentos(data);
-        }
+        // 🔥 CORRECCIÓN: AXIOS EN LUGAR DE FETCH
+        const respuesta = await apiUsuarios.get(url);
+        setMedicamentos(respuesta.data);
       } catch (error) {
         console.error("Error de conexión:", error);
       } finally {
@@ -196,7 +196,6 @@ const Catalogo: React.FC = () => {
                   <td>{med.categoria || 'Sin clasificar'}</td>
                   <td>
                     {med.esBioequivalente ? (
-                      /* 🔥 EL NUEVO SELLO DORADO CON LA LETRA B 🔥 */
                       <span className="badge bio-gold">
                         <span className="icon-b">B</span> BIOEQUIVALENTE
                       </span>

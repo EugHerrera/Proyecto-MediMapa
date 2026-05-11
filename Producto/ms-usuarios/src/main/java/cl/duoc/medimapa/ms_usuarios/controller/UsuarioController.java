@@ -17,8 +17,8 @@ import cl.duoc.medimapa.ms_usuarios.model.SolicitudInscripcion;
 import cl.duoc.medimapa.ms_usuarios.model.SucursalFarmacia;
 import cl.duoc.medimapa.ms_usuarios.model.CorridaActualizacion;
 
-import org.geolatte.geom.builder.DSL;
-import org.geolatte.geom.crs.CoordinateReferenceSystems;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -264,8 +264,10 @@ public class UsuarioController {
             nuevaSucursal.setNombre_sucursal(solicitud.getNombre_fantasia());
             nuevaSucursal.setDireccion(solicitud.getDireccion() + ", " + solicitud.getComuna()); 
             
-            // 🔥 CAMBIO: Instanciamos un Punto (0,0) inicial usando GeoLatte en lugar de BigDecimal
-            nuevaSucursal.setUbicacion(DSL.point(CoordinateReferenceSystems.WGS84, DSL.g(0.0, 0.0)));
+            GeometryFactory geometryFactory = new GeometryFactory();
+            org.locationtech.jts.geom.Point puntoVacio = geometryFactory.createPoint(new Coordinate(0.0, 0.0));
+            puntoVacio.setSRID(4326);
+            nuevaSucursal.setUbicacion(puntoVacio);
             
             nuevaSucursal.setActivo(true);
             nuevaSucursal.setCreadoEn(OffsetDateTime.now());
