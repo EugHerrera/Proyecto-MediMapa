@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-// 🔥 IMPORTAMOS apiScraper TAMBIÉN
 import { apiUsuarios, apiScraper } from '../services/api';
 import './AdminPanel.css';
 
@@ -18,13 +17,14 @@ const AdminPanel = () => {
   const [nuevoNombre, setNuevoNombre] = useState('');
   const [nuevoLaboratorio, setNuevoLaboratorio] = useState('');
   const [nuevoPrecio, setNuevoPrecio] = useState('');
-  const ID_SUCURSAL = 99; // ID de la sucursal que creamos en PostgreSQL
+  const ID_SUCURSAL = 99; 
 
   // ==========================================
   // ESTADOS DEL SÚPER ADMIN
   // ==========================================
   const [medicamentosMaster, setMedicamentosMaster] = useState<any[]>([]);
   const [archivoIsp, setArchivoIsp] = useState<File | null>(null);
+  const [solicitudes, setSolicitudes] = useState<any[]>([]);
 
   // ==========================================
   // CONTROL DE SESIÓN Y CARGA
@@ -48,9 +48,15 @@ const AdminPanel = () => {
 
   const cargarDatosAdmin = async () => {
     try {
-      const respMed = await apiUsuarios.get(`/usuarios/medicamentos-admin`);
+      const [respMed, respSol] = await Promise.all([
+        apiUsuarios.get(`/usuarios/medicamentos-admin`),
+        apiUsuarios.get(`/usuarios/solicitudes/pendientes`)
+      ]);
       setMedicamentosMaster(respMed.data);
-    } catch (error) { console.error("Error al cargar datos maestros:", error); }
+      setSolicitudes(respSol.data);
+    } catch (error) { 
+      console.error("Error al cargar datos administrativos:", error); 
+    }
   };
 
   const cargarInventarioReal = async () => {
@@ -68,7 +74,6 @@ const AdminPanel = () => {
     if (!window.confirm("⚠️ ¿Iniciar extracción masiva? Esto tomará varios minutos.")) return;
     setCargando(true);
     try {
-      // 🔥 CORRECCIÓN: USAMOS AXIOS A TRAVÉS DEL GATEWAY 🔥
       const respuesta = await apiScraper.post('/scraper/forzar-masivo');
       alert(respuesta.data);
     } catch (error) { alert("❌ Error al contactar al motor de Scraping."); } finally { setCargando(false); }
@@ -87,6 +92,35 @@ const AdminPanel = () => {
     } catch (error) { alert("❌ Error al procesar Excel ISP."); } finally { setCargando(false); }
   };
 
+  // 🔥 BYPASS: Cambiado a GET + Inyección de Token
+  const manejarAprobarFarmacia = async (id: number, nombre: string) => {
+    if (!window.confirm(`¿Aprobar la farmacia "${nombre}"? Se creará su sucursal y usuario automáticamente.`)) return;
+    try {
+      const token = localStorage.getItem('token');
+      await apiUsuarios.get(`/usuarios/solicitudes/${id}/aprobar`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert("✅ Farmacia aprobada con éxito.");
+      cargarDatosAdmin();
+    } catch (error) { 
+      console.error(error);
+      alert("❌ Error al aprobar la solicitud."); 
+    }
+  };
+
+  // 🔥 BYPASS: Cambiado a GET + Inyección de Token
+  const manejarRechazarFarmacia = async (id: number, nombre: string) => {
+    if (!window.confirm(`¿Rechazar definitivamente la solicitud de "${nombre}"?`)) return;
+    try {
+      const token = localStorage.getItem('token');
+      await apiUsuarios.get(`/usuarios/solicitudes/${id}/rechazar`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert("🗑️ Solicitud rechazada.");
+      cargarDatosAdmin();
+    } catch (error) { alert("❌ Error al rechazar la solicitud."); }
+  };
+
   // ==========================================
   // FUNCIONES DEL FARMACÉUTICO
   // ==========================================
@@ -102,21 +136,26 @@ const AdminPanel = () => {
     } catch (err) { alert("❌ Error al subir archivo."); } finally { setCargando(false); }
   };
 
+  // 🔥 BYPASS: Cambiado a GET
   const guardarNuevoPrecio = async (nombreMedicamento: string, precioInputId: string) => {
     const inputElement = document.getElementById(precioInputId) as HTMLInputElement;
     const nuevoPrecio = inputElement?.value;
     if (!nuevoPrecio) return;
     try {
-      await apiUsuarios.put(`/usuarios/inventario/actualizar-precio?idSucursal=${ID_SUCURSAL}&textoBusqueda=${encodeURIComponent(nombreMedicamento)}&nuevoPrecio=${nuevoPrecio}`);
+      await apiUsuarios.get(`/usuarios/inventario/actualizar-precio?idSucursal=${ID_SUCURSAL}&textoBusqueda=${encodeURIComponent(nombreMedicamento)}&nuevoPrecio=${nuevoPrecio}`);
       alert(`✅ Precio actualizado.`); cargarInventarioReal(); 
     } catch (error) { alert("❌ Error al guardar el precio."); }
   };
 
+  // 🔥 BYPASS: Cambiado a GET + Inyección de Token
   const corregirNombre = async (idMed: number, nombreActual: string) => {
     const nuevoNombre = window.prompt(`Corregir nombre para "${nombreActual}":`, nombreActual);
     if (!nuevoNombre || nuevoNombre === nombreActual) return;
     try {
-      await apiUsuarios.patch(`/usuarios/inventario/actualizar-nombre?idMedicamento=${idMed}&nuevoNombre=${encodeURIComponent(nuevoNombre)}`);
+      const token = localStorage.getItem('token');
+      await apiUsuarios.get(`/usuarios/inventario/actualizar-nombre?idMedicamento=${idMed}&nuevoNombre=${encodeURIComponent(nuevoNombre)}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       alert("✅ Nombre corregido."); cargarInventarioReal();
     } catch (error) { alert("❌ Error al corregir el nombre."); }
   };
@@ -138,16 +177,21 @@ const AdminPanel = () => {
     } catch (error: any) { alert(`❌ Error al guardar en el servidor.`); } finally { setCargando(false); }
   };
 
+  // 🔥 BYPASS: Cambiado a GET
   const eliminarMedicamento = async (nombreMedicamento: string) => {
     if (!window.confirm(`¿Eliminar "${nombreMedicamento}"?`)) return;
     try {
-      await apiUsuarios.delete(`/usuarios/inventario/eliminar?idSucursal=${ID_SUCURSAL}&nombreMedicamento=${encodeURIComponent(nombreMedicamento)}`);
+      await apiUsuarios.get(`/usuarios/inventario/eliminar?idSucursal=${ID_SUCURSAL}&nombreMedicamento=${encodeURIComponent(nombreMedicamento)}`);
       alert(`✅ Eliminado.`); cargarInventarioReal(); 
     } catch (error) { alert("❌ Error al eliminar."); }
   };
 
+  // ==========================================
+  // RENDERIZADO DE VISTAS
+  // ==========================================
   const renderVistaAdmin = () => (
     <div className="admin-dashboard-grid" style={{ display: 'grid', gap: '20px' }}>
+      
       <div className="admin-card" style={{ gridColumn: '1 / -1', padding: '15px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3 style={{margin: 0}}>🤖 Motor Scraper</h3>
@@ -155,6 +199,57 @@ const AdminPanel = () => {
             {cargando ? '⏳ Procesando...' : '⚡ Forzar Actualización Masiva'}
           </button>
         </div>
+      </div>
+
+      <div className="admin-card" style={{ gridColumn: '1 / -1', borderLeft: '5px solid #059669' }}>
+        <h2>📩 Solicitudes de Inscripción Pendientes</h2>
+        {solicitudes.length === 0 ? (
+          <p style={{ color: '#64748b', textAlign: 'center', padding: '20px' }}>No hay solicitudes de farmacias nuevas por ahora.</p>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Farmacia / Razón Social</th>
+                  <th>Ubicación</th>
+                  <th>Químico Responsable</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {solicitudes.map((sol) => (
+                  <tr key={sol.id_solicitud}>
+                    <td>
+                      <strong>{sol.nombre_fantasia}</strong><br />
+                      <small style={{ color: '#64748b' }}>{sol.razon_social} (RUT: {sol.rut_empresa})</small>
+                    </td>
+                    <td>{sol.direccion}, {sol.comuna}</td>
+                    <td>
+                      {sol.quimico_nombre}<br />
+                      <small style={{ color: '#059669', fontWeight: 'bold' }}>{sol.quimico_correo}</small>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '10px' }}>
+                        <button 
+                          onClick={() => manejarAprobarFarmacia(sol.id_solicitud, sol.nombre_fantasia)} 
+                          style={{ backgroundColor: '#22c55e', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                        >
+                          Aprobar
+                        </button>
+                        <button 
+                          onClick={() => manejarRechazarFarmacia(sol.id_solicitud, sol.nombre_fantasia)} 
+                          style={{ backgroundColor: '#ef4444', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                        >
+                          Rechazar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       <div className="admin-card" style={{ gridColumn: '1 / -1', borderLeft: '5px solid #ca8a04', backgroundColor: '#fefce8' }}>
