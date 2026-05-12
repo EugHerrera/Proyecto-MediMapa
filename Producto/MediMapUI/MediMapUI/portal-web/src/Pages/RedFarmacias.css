@@ -7,7 +7,7 @@
   color: #1e293b;
 }
 
-/* 🔥 NUEVO BANNER PREMIUM (Acorde a FAQ y Catálogo) 🔥 */
+/*  NUEVO BANNER PREMIUM (Acorde a FAQ y Catálogo) */
 .red-banner {
   background: linear-gradient(90deg, #ca8a04 0%, #059669 100%);
   color: white;
@@ -50,7 +50,7 @@
 
 /* Tarjetas de Logos */
 .logo-card {
-  background: rgba(255, 255, 255, 0.95); /* Fondo blanco un poco translúcido */
+  background: rgba(255, 255, 255, 0.95); 
   border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 12px;
   padding: 1.2rem;
@@ -71,7 +71,7 @@
 .link-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.3); 
-  border-color: #ca8a04; /* Borde dorado al pasar el mouse */
+  border-color: #ca8a04; 
 }
 
 .logo-card img {
@@ -81,12 +81,12 @@
 }
 
 .independiente-card {
-  background: #fefce8; /* Fondo amarillo clarito */
+  background: #fefce8; 
   flex-direction: column;
-  color: #854d0e; /* Texto dorado oscuro */
+  color: #854d0e; 
   font-weight: 700;
   font-size: 0.8rem;
-  border: 1px dashed #ca8a04; /* Borde punteado dorado */
+  border: 1px dashed #ca8a04; 
 }
 
 .independiente-icon {
@@ -121,9 +121,9 @@
 
 .red-sidebar h3 {
   margin-top: 0;
-  color: #ca8a04; /* Título Dorado */
+  color: #ca8a04; 
   font-size: 1.2rem;
-  border-bottom: 2px solid #fef08a; /* Línea separadora amarilla */
+  border-bottom: 2px solid #fef08a; 
   padding-bottom: 12px;
   margin-bottom: 1.8rem;
 }
@@ -138,7 +138,7 @@
   font-weight: 700;
   margin-bottom: 8px;
   font-size: 0.85rem;
-  color: #059669; /* Verde esmeralda */
+  color: #059669;
 }
 
 .filter-group select, .filter-group input[type="text"] {
@@ -174,12 +174,12 @@
 }
 
 .ubicacion-mode button.active {
-  background: #059669; /* Verde */
+  background: #059669; 
   color: white;
   border-color: #059669;
 }
 
-/* 🔥 BOTONES CON DEGRADADO 🔥 */
+/*  BOTONES CON DEGRADADO */
 .btn-buscar-direccion, .btn-ubicacion {
   margin-top: 0.75rem;
   width: 100%;
@@ -224,7 +224,7 @@
   min-height: 420px;
   border-radius: 20px;
   overflow: hidden;
-  border: 2px solid #ca8a04; /* Borde dorado alrededor del mapa */
+  border: 2px solid #ca8a04; 
   box-shadow: 0 10px 20px rgba(15, 23, 42, 0.05);
 }
 
@@ -249,8 +249,8 @@
   padding: 1.2rem;
   text-align: left;
   font-weight: 700;
-  color: #854d0e; /* Dorado oscuro */
-  border-bottom: 2px solid #ca8a04; /* Separador dorado */
+  color: #854d0e; 
+  border-bottom: 2px solid #ca8a04; 
 }
 
 .tabla-farmacias td {
@@ -269,8 +269,7 @@
 
 /* Badges */
 .badge.cadena { background: #e2e8f0; color: #475569; } 
-.badge.independiente { background: #fef08a; color: #854d0e; border: 1px solid #ca8a04;} /* Pymes en dorado */
-
+.badge.independiente { background: #fef08a; color: #854d0e; border: 1px solid #ca8a04;} 
 @media (max-width: 900px) {
   .red-main-content { grid-template-columns: 1fr; }
   .red-sidebar { position: static; }

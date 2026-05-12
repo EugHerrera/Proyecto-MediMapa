@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-// 🔥 IMPORTAMOS AXIOS
 import { apiUsuarios } from '../services/api';
 import './Catalogo.css';
 
@@ -56,7 +55,7 @@ const Catalogo: React.FC = () => {
           url = `/medicamentos/categoria?nombre=${categoriaActiva}`;
         }
 
-        // 🔥 CORRECCIÓN: AXIOS EN LUGAR DE FETCH
+        // AXIOS 
         const respuesta = await apiUsuarios.get(url);
         setMedicamentos(respuesta.data);
       } catch (error) {

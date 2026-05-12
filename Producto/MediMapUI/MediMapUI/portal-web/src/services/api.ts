@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// 🔥 CORRECCIÓN: Agregamos el /api al final para que el Gateway reconozca las rutas
+// Agregamos el /api al final para que el Gateway reconozca las rutas
 const GATEWAY_URL = 'http://localhost:8080/api';
 
 export const apiUsuarios = axios.create({

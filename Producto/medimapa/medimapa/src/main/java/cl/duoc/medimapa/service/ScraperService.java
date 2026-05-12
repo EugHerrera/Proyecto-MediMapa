@@ -37,7 +37,7 @@ public class ScraperService {
                         page.navigate(estrategia.generarUrl(medicamento.getNombre_canonico()));
                         page.waitForTimeout(3000); 
                         
-                        // 🔥 Pasamos el nombre para que el scraper valide
+                        //  Pasamos el nombre para que el scraper valide
                         BigDecimal precio = estrategia.extraerMenorPrecio(page, medicamento.getNombre_canonico());
                         
                         if (precio != null) {
@@ -82,7 +82,7 @@ public class ScraperService {
                     page.navigate(estrategia.generarUrl(terminoBusqueda));
                     page.waitForLoadState(com.microsoft.playwright.options.LoadState.DOMCONTENTLOADED);
                     
-                    // 🔥 Pasamos la búsqueda exacta
+                    // Pasamos la búsqueda exacta
                     BigDecimal precio = estrategia.extraerMenorPrecio(page, terminoBusqueda);
                     
                     if (precio != null) {

@@ -60,7 +60,6 @@ public class ExcelService {
                         });
 
                 PrecioVigente precio = new PrecioVigente();
-                // 🔥 GUARDADO LIMPIO SIN LLAVE COMPUESTA
                 precio.setTextoBusqueda(nombreCanonico.toLowerCase());
                 precio.setMedicamento(med);
                 precio.setPrecio_max_vta(BigDecimal.valueOf(precioExcel));

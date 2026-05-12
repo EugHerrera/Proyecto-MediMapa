@@ -4,7 +4,6 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-le
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import './RedFarmacias.css';
-// 🔥 IMPORTAMOS APIGEO
 import { apiGeo } from '../services/api';
 
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -60,7 +59,7 @@ interface SucursalGeo {
     x?: number;
     y?: number;
   };
-  comuna: { nombreCom: string } | null;
+  comunaNombre?: string;
 }
 
 function calcularDistanciaKm(lat1: number, lon1: number, lat2: number, lon2: number) {
@@ -157,7 +156,7 @@ const RedFarmacias: React.FC = () => {
     setCargando(true);
     setError('');
 
-    // 🔥 CORRECCIÓN: USAMOS AXIOS (apiGeo)
+    // AXIOS (apiGeo)
     const url = `/v1/geolocalizacion/sucursales?lat=${ubicacion.lat}&lon=${ubicacion.lng}&radio=${radioMetros}`;
 
     apiGeo.get(url)
@@ -195,7 +194,7 @@ const RedFarmacias: React.FC = () => {
       const nombre = sucursal.nombre_sucursal || 'Farmacia cercana';
       const cadenaNombre = nombre.toLowerCase().includes('ahumada') ? 'Ahumada' : nombre.toLowerCase().includes('salco') ? 'Salcobrand' : nombre.toLowerCase().includes('simi') ? 'Dr Simi' : 'Independiente';
       const tipo = cadenaNombre === 'Independiente' ? 'Independiente' : 'Cadena';
-      return { ...sucursal, latitud: lat, longitud: lon, distancia, tipo, cadenaNombre, comunaNombre: sucursal.comuna?.nombreCom || 'Desconocida' };
+      return { ...sucursal, latitud: lat, longitud: lon, distancia, tipo, cadenaNombre, comunaNombre: sucursal.comunaNombre || 'Desconocida' };
     });
 
     return lista
@@ -210,7 +209,7 @@ const RedFarmacias: React.FC = () => {
   }, [farmacias, comuna, tipoFarmacia, ubicacion, cadenasSeleccionadas]);
 
   const comunasDisponibles = useMemo(() => {
-    const nombres = Array.from(new Set(farmacias.map((sucursal) => sucursal.comuna?.nombreCom || 'Desconocida'))).filter((nombre) => nombre !== 'Desconocida');
+    const nombres = Array.from(new Set(farmacias.map((sucursal) => sucursal.comunaNombre || 'Desconocida'))).filter((nombre) => nombre !== 'Desconocida');
     return ['Todas', ...nombres];
   }, [farmacias]);
 

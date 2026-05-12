@@ -31,13 +31,12 @@ public class JwtFilter extends OncePerRequestFilter {
         String email = null;
         String jwt = null;
 
-        // El estándar es que el token venga precedido por la palabra "Bearer "
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            jwt = authorizationHeader.substring(7); // Cortamos la palabra "Bearer " para dejar solo el token
+            jwt = authorizationHeader.substring(7); 
             try {
-                email = jwtUtil.extraerEmail(jwt); // Usamos la máquina que creamos antes
+                email = jwtUtil.extraerEmail(jwt); 
             } catch (Exception e) {
-                // Si el token es falso o expiró, simplemente el email queda en null
+
             }
         }
 
@@ -46,19 +45,16 @@ public class JwtFilter extends OncePerRequestFilter {
             
             if (jwtUtil.validarToken(jwt, email)) {
                 String rol = jwtUtil.extraerRol(jwt);
-                
-                // 3. Le decimos a Spring Security: "Tranquilo, yo lo revisé, tiene pasaporte válido y este rol"
+
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         email, null, Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + rol)));
                 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                
-                // Lo dejamos pasar y lo registramos en el sistema de seguridad
+
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
         
-        // Continuar con el flujo normal de la petición
         chain.doFilter(request, response);
     }
 }

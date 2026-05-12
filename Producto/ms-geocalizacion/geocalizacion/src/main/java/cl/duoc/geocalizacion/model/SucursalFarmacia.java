@@ -21,12 +21,11 @@ public class SucursalFarmacia {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id_sucursal; 
 
-    // 🔥 BLINDAJE EAGER 1
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_farmacia", nullable = false)
     private Farmacia farmacia;
 
-    // 🔥 BLINDAJE EAGER 2
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_comuna", nullable = false)
     private Comuna comuna;

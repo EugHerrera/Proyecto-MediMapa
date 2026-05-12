@@ -4,7 +4,6 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, Circle } from 'react-le
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import './Resultados.css'; 
-// 🔥 IMPORTAMOS APISCRAPER
 import { apiScraper } from '../services/api';
 
 import logotipoAhumada from '../assets/logotipoahumada.png';
@@ -86,7 +85,7 @@ function Resultados() {
       setRawData([]);
     }
 
-    // 🔥 CORRECCIÓN: REEMPLAZAMOS EL FETCH POR AXIOS (apiScraper) 🔥
+    //  AXIOS (apiScraper) 
     const url = `/scraper/buscar?query=${encodeURIComponent(query)}${forzarRefresh ? '&forceRefresh=true' : ''}`;
 
     apiScraper.get(url)

@@ -8,7 +8,7 @@ const FAQ = () => {
     setPreguntaActiva(preguntaActiva === index ? null : index);
   };
 
-  // 🔥 Añadimos un icono a cada pregunta para hacer el diseño más rico
+  // Añadimos un icono a cada pregunta para hacer el diseño más rico
   const listaPreguntas = [
     {
       icono: "📍",
@@ -26,7 +26,7 @@ const FAQ = () => {
       respuesta: "Absolutamente no. Protegemos tu privacidad operando bajo la Ley 21.719. Todo tu procesamiento de búsqueda es volátil, lo que significa que no guardamos historiales médicos, direcciones exactas ni requerimos que inicies sesión para cotizar."
     },
     {
-      icono: "B", // O podrías usar un SVG de tu sello aquí
+      icono: "B", 
       pregunta: "¿Qué significa que un medicamento sea Bioequivalente?",
       respuesta: "Son medicamentos que han demostrado ante el Instituto de Salud Pública (ISP) que contienen el mismo principio activo y tienen la misma eficacia clínica que el medicamento original de marca, pero generalmente a un precio mucho más económico."
     },
@@ -40,7 +40,7 @@ const FAQ = () => {
   return (
     <div className="faq-container">
       
-      {/* 🔥 NUEVO BANNER SUPERIOR 🔥 */}
+      {/*  NUEVO BANNER SUPERIOR */}
       <div className="faq-banner">
         <h2>Centro de Ayuda</h2>
         <p>Resolvemos tus dudas sobre cómo funciona nuestro buscador de medicamentos.</p>

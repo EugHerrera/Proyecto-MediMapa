@@ -33,8 +33,6 @@ public class SolicitudInscripcion {
     private String estado_solicitud; // PENDIENTE, APROBADA, RECHAZADA
 
     // --- GETTERS Y SETTERS ---
-    // (Genera los getters y setters aquí con tu IDE o pega los de abajo)
-
     public Long getId_solicitud() { return id_solicitud; }
     public void setId_solicitud(Long id_solicitud) { this.id_solicitud = id_solicitud; }
 

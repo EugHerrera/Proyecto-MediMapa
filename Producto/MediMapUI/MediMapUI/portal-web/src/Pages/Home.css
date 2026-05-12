@@ -18,11 +18,11 @@
   max-width: 800px;
 }
 
-/* 🔥 ETIQUETA SUPERIOR EN TONO DORADO SUTIL 🔥 */
+/*ETIQUETA SUPERIOR EN TONO DORADO SUTIL */
 .badge-modern {
   display: inline-block;
-  background-color: #fefce8; /* Fondo amarillo clarito */
-  color: #854d0e; /* Texto dorado oscuro */
+  background-color: #fefce8;
+  color: #854d0e;
   padding: 6px 16px;
   border-radius: 20px;
   font-size: 0.85rem;
@@ -40,7 +40,7 @@
   letter-spacing: -1px;
 }
 
-/* 🔥 TEXTO DEL TÍTULO CON DEGRADADO DORADO A VERDE 🔥 */
+/*  TEXTO DEL TÍTULO CON DEGRADADO DORADO A VERDE  */
 .highlight-premium {
   background: linear-gradient(90deg, #ca8a04 0%, #059669 80%);
   -webkit-background-clip: text;
@@ -85,7 +85,7 @@
   background: transparent;
 }
 
-/* 🔥 BOTÓN DE BÚSQUEDA PREMIUM 🔥 */
+/*  BOTÓN DE BÚSQUEDA PREMIUM */
 .modern-search-button {
   background: linear-gradient(90deg, #ca8a04 0%, #059669 100%);
   color: white;
@@ -136,7 +136,7 @@
 }
 
 .modern-pill:hover {
-  border-color: #ca8a04; /* Borde dorado al pasar el mouse */
+  border-color: #ca8a04;
   color: #ca8a04; 
   background-color: #fefce8;
 }
@@ -189,9 +189,7 @@
   border-radius: 6px;
 }
 
-/* =========================================
-   TARJETAS CLÍNICAS PREMIUM
-   ========================================= */
+/* TARJETAS CLÍNICAS PREMIUM */
 .home-cards-section {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -215,12 +213,12 @@
 
 .action-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 20px 25px -5px rgba(202, 138, 4, 0.15); /* Sombra dorada suave */
-  border-color: #ca8a04; /* Borde dorado */
+  box-shadow: 0 20px 25px -5px rgba(202, 138, 4, 0.15); 
+  border-color: #ca8a04; 
 }
 
 .card-icon-wrapper {
-  background: #fefce8; /* Fondo dorado clarito */
+  background: #fefce8;
   color: #ca8a04;
   padding: 15px;
   border-radius: 12px;
@@ -249,7 +247,7 @@
 
 .card-link {
   font-weight: 700;
-  color: #059669; /* Mantiene la flecha verde para contraste */
+  color: #059669;
   font-size: 0.95rem;
 }
 
@@ -259,9 +257,7 @@
   }
 }
 
-/* =========================================
-   SECCIÓN BIOEQUIVALENTES (Si la tienes en el Home)
-   ========================================= */
+/* SECCIÓN BIOEQUIVALENTES (Home)*/
 .banner-bioequivalente {
   background: linear-gradient(90deg, #ca8a04 0%, #059669 100%); 
   color: white;
