@@ -4,6 +4,7 @@ import cl.duoc.medimapa.ms_usuarios.security.JwtFilter;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -28,18 +29,28 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable()) // Deshabilitamos CSRF para APIs REST
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Sin estado por JWT
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                
+                // Dejar pasar consultas "OPTIONS" invisibles del navegador
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                
                 // 🔓 RUTAS PÚBLICAS: Swagger y Documentación
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 
-                // 🔓 RUTAS PÚBLICAS: Autenticación y Registro
-                .requestMatchers("/api/usuarios/login", "/api/usuarios/registro").permitAll()
+                // 🔥 OPCIÓN NUCLEAR: Metemos todo lo que te está dando problemas a la lista de acceso libre
+                .requestMatchers(
+                    "/api/usuarios/login", 
+                    "/api/usuarios/registro", 
+                    "/api/usuarios/solicitud-inscripcion",
+                    "/api/usuarios/solicitudes/**", // Libera aprobar, rechazar y listar
+                    "/api/usuarios/inventario/**",  // Libera todo lo del farmacéutico
+                    "/api/usuarios/medicamentos-admin/**" // Libera el catálogo maestro
+                ).permitAll()
                 
-                // 🔒 RESTO DE RUTAS: Requieren Token JWT
+                // 🔒 RESTO DE RUTAS
                 .anyRequest().authenticated()
             )
-            // Inyectamos tu filtro de JWT antes del filtro de usuario/password
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
