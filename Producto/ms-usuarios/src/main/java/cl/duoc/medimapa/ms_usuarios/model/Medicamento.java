@@ -18,7 +18,6 @@ public class Medicamento {
     @Column(name = "principio_activo", length = 400)
     private String principio_activo; 
 
-    // 🔥 NUEVO: Campo para el laboratorio/marca
     @Column(name = "laboratorio", length = 200)
     private String laboratorio;
 

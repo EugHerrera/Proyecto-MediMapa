@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
-@Table(name = "cadena_farmacia") // Podrías llamarle 'cadenas_farmacia' en un futuro para más claridad
+@Table(name = "cadena_farmacia") 
 @Data
 public class Farmacia {
 
@@ -13,6 +13,6 @@ public class Farmacia {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String nombre; // Ej: "Salcobrand", "Cruz Verde"
+    private String nombre; 
 
 }

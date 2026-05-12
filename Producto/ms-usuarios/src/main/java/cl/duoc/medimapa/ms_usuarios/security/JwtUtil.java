@@ -13,7 +13,7 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    // 🔥 CORRECCIÓN CRÍTICA: Llave estática para que los tokens sobrevivan a los reinicios del servidor.
+    // Llave estática para que los tokens sobrevivan a los reinicios del servidor.
     private static final String SECRET_PASS = "MediMapa2026DuocUCProyectoFinalArquitecturaSoftware";
     private static final Key SECRET_KEY = Keys.hmacShaKeyFor(SECRET_PASS.getBytes());
     

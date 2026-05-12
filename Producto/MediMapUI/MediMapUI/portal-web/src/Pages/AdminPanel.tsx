@@ -8,9 +8,7 @@ const AdminPanel = () => {
   const [rolUsuario, setRolUsuario] = useState('');
   const [cargando, setCargando] = useState(false);
   
-  // ==========================================
   // ESTADOS DEL FARMACÉUTICO
-  // ==========================================
   const [inventario, setInventario] = useState<any[]>([]);
   const [totalMedicamentos, setTotalMedicamentos] = useState(0);
   const [archivo, setArchivo] = useState<File | null>(null);
@@ -19,16 +17,13 @@ const AdminPanel = () => {
   const [nuevoPrecio, setNuevoPrecio] = useState('');
   const ID_SUCURSAL = 99; 
 
-  // ==========================================
   // ESTADOS DEL SÚPER ADMIN
-  // ==========================================
   const [medicamentosMaster, setMedicamentosMaster] = useState<any[]>([]);
   const [archivoIsp, setArchivoIsp] = useState<File | null>(null);
   const [solicitudes, setSolicitudes] = useState<any[]>([]);
 
-  // ==========================================
   // CONTROL DE SESIÓN Y CARGA
-  // ==========================================
+
   useEffect(() => {
     const rolGuardado = localStorage.getItem('usuarioRol');
     if (!rolGuardado) {
@@ -67,9 +62,7 @@ const AdminPanel = () => {
     } catch (error: any) { console.error("Error al cargar el inventario real:", error); }
   };
 
-  // ==========================================
   // FUNCIONES DEL SÚPER ADMIN
-  // ==========================================
   const manejarScrapingMasivo = async () => {
     if (!window.confirm("⚠️ ¿Iniciar extracción masiva? Esto tomará varios minutos.")) return;
     setCargando(true);
@@ -92,7 +85,7 @@ const AdminPanel = () => {
     } catch (error) { alert("❌ Error al procesar Excel ISP."); } finally { setCargando(false); }
   };
 
-  // 🔥 BYPASS: Cambiado a GET + Inyección de Token
+  // BYPASS: Inyección de Token
   const manejarAprobarFarmacia = async (id: number, nombre: string) => {
     if (!window.confirm(`¿Aprobar la farmacia "${nombre}"? Se creará su sucursal y usuario automáticamente.`)) return;
     try {
@@ -108,7 +101,7 @@ const AdminPanel = () => {
     }
   };
 
-  // 🔥 BYPASS: Cambiado a GET + Inyección de Token
+  // BYPASS: Inyección de Token
   const manejarRechazarFarmacia = async (id: number, nombre: string) => {
     if (!window.confirm(`¿Rechazar definitivamente la solicitud de "${nombre}"?`)) return;
     try {
@@ -121,9 +114,7 @@ const AdminPanel = () => {
     } catch (error) { alert("❌ Error al rechazar la solicitud."); }
   };
 
-  // ==========================================
   // FUNCIONES DEL FARMACÉUTICO
-  // ==========================================
   const subirArchivoInventario = async () => {
     if (!archivo) return;
     setCargando(true);
@@ -136,7 +127,7 @@ const AdminPanel = () => {
     } catch (err) { alert("❌ Error al subir archivo."); } finally { setCargando(false); }
   };
 
-  // 🔥 BYPASS: Cambiado a GET
+  // BYPASS: Cambiado a GET
   const guardarNuevoPrecio = async (nombreMedicamento: string, precioInputId: string) => {
     const inputElement = document.getElementById(precioInputId) as HTMLInputElement;
     const nuevoPrecio = inputElement?.value;
@@ -147,7 +138,7 @@ const AdminPanel = () => {
     } catch (error) { alert("❌ Error al guardar el precio."); }
   };
 
-  // 🔥 BYPASS: Cambiado a GET + Inyección de Token
+  // BYPASS: Cambiado a GET + Inyección de Token
   const corregirNombre = async (idMed: number, nombreActual: string) => {
     const nuevoNombre = window.prompt(`Corregir nombre para "${nombreActual}":`, nombreActual);
     if (!nuevoNombre || nuevoNombre === nombreActual) return;
@@ -177,7 +168,7 @@ const AdminPanel = () => {
     } catch (error: any) { alert(`❌ Error al guardar en el servidor.`); } finally { setCargando(false); }
   };
 
-  // 🔥 BYPASS: Cambiado a GET
+  // BYPASS: Cambiado a GET
   const eliminarMedicamento = async (nombreMedicamento: string) => {
     if (!window.confirm(`¿Eliminar "${nombreMedicamento}"?`)) return;
     try {
@@ -186,9 +177,7 @@ const AdminPanel = () => {
     } catch (error) { alert("❌ Error al eliminar."); }
   };
 
-  // ==========================================
   // RENDERIZADO DE VISTAS
-  // ==========================================
   const renderVistaAdmin = () => (
     <div className="admin-dashboard-grid" style={{ display: 'grid', gap: '20px' }}>
       

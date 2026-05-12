@@ -22,7 +22,7 @@ public class ScraperScheduler {
     // Cuando quieras que sea diario a las 3AM, usas @Scheduled(cron = "0 0 3 * * ?")
     @Scheduled(fixedDelay = 300000)
     public void tareaProgramadaScraping() {
-        System.out.println("⏰ [CRON] Iniciando tarea programada Multi-Farmacia...");
+        System.out.println(" [CRON] Iniciando tarea programada Multi-Farmacia...");
 
         // 1. Creamos la corrida (ID fuente 0 = Multi-farmacia)
         CorridaActualizacion corrida = new CorridaActualizacion();
@@ -32,21 +32,21 @@ public class ScraperScheduler {
         corrida = corridaRepo.save(corrida);
 
         try {
-            // 2. Ejecutamos pasándole SOLO la corrida. 
-            // ¡El ScraperService buscará las sucursales por sí solo!
+            // 2. Ejecutamos pasándole solo la corrida. 
+            // El ScraperService buscará las sucursales por sí solo
             scraperService.ejecutarScrapingAutomatico(corrida);
 
             corrida.setEstado("ok");
             corrida.setFin(OffsetDateTime.now());
             corridaRepo.save(corrida);
-            System.out.println("⏰ [CRON] Tarea finalizada con éxito.");
+            System.out.println(" [CRON] Tarea finalizada con éxito.");
             
         } catch (Exception e) {
             corrida.setEstado("error");
             corrida.setDetalle_error(e.getMessage());
             corrida.setFin(OffsetDateTime.now());
             corridaRepo.save(corrida);
-            System.err.println("⏰ [CRON] Error en la tarea: " + e.getMessage());
+            System.err.println(" [CRON] Error en la tarea: " + e.getMessage());
         }
     }
 }

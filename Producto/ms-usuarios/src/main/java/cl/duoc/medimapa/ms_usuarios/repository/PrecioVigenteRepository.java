@@ -8,11 +8,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-// 🔥 Actualizado a Long
 @Repository
 public interface PrecioVigenteRepository extends JpaRepository<PrecioVigente, Long> {
     
-    // 🔥 Ahora busca en la columna simple 'textoBusqueda'
     @Query("SELECT p FROM PrecioVigente p WHERE LOWER(p.textoBusqueda) LIKE LOWER(CONCAT('%', :texto, '%'))")
     List<PrecioVigente> buscarPorTexto(@Param("texto") String texto);
     

@@ -63,7 +63,7 @@ const RegistroFarmacia = () => {
     <div className="registro-container">
       <div className="form-wrapper">
         
-        {/* 🔥 AQUÍ ESTÁ EL NUEVO BANNER PREMIUM 🔥 */}
+        {/*BANNER*/}
         <header className="registro-banner">
           <h1>Paso 1: Formulario de Afiliación</h1>
           <p>Complete los datos para unir su farmacia a la red MediMapa. Un administrador validará su SEREMI.</p>

@@ -1,7 +1,7 @@
 .registro-container {
   background-color: #f1f5f9;
   min-height: 100vh;
-  /* El padding superior de 110px evita que la Navbar tape el contenido */
+
   padding: 110px 20px 40px 20px; 
   font-family: 'Inter', sans-serif;
 }
@@ -15,7 +15,7 @@
   box-shadow: 0 4px 20px rgba(0,0,0,0.05);
 }
 
-/* 🔥 NUEVO BANNER PREMIUM 🔥 */
+/*  NUEVO BANNER PREMIUM */
 .registro-banner {
   background: linear-gradient(90deg, #ca8a04 0%, #059669 100%);
   color: white;
@@ -24,7 +24,7 @@
   text-align: center;
   margin-bottom: 40px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  margin-top: -10px; /* Para que quede bien pegado arriba dentro de la caja blanca */
+  margin-top: -10px; 
 }
 
 .registro-banner h1 { 
@@ -48,7 +48,7 @@
   margin-bottom: 30px;
 }
 
-/* 🔥 TÍTULOS DE SECCIÓN CON DEGRADADO 🔥 */
+/*  TÍTULOS DE SECCIÓN CON DEGRADADO */
 .section-title {
   background: linear-gradient(90deg, #ca8a04 0%, #059669 100%);
   color: white;
@@ -67,7 +67,7 @@
 
 .input-group { display: flex; flex-direction: column; gap: 6px; }
 
-/* 🔥 ETIQUETAS EN TONO DORADO OSCURO 🔥 */
+/* ETIQUETAS EN TONO DORADO OSCURO */
 .input-group label { 
   font-size: 0.9rem; 
   font-weight: 700; 
@@ -93,7 +93,7 @@
 
 .full-width { grid-column: span 2; }
 
-/* 🔥 CAJA DE ADVERTENCIA LEGAL (Estilo Disclaimer) 🔥 */
+/*  CAJA DE ADVERTENCIA LEGAL  */
 .ley-box {
   background: #fefce8; 
   padding: 20px;
@@ -114,7 +114,7 @@
 /* Acciones del Formulario */
 .form-actions { display: flex; gap: 20px; align-items: center; }
 
-/* 🔥 BOTÓN GUARDAR CON DEGRADADO 🔥 */
+/* BOTÓN GUARDAR CON DEGRADADO  */
 .btn-save {
   background: linear-gradient(90deg, #ca8a04 0%, #059669 100%);
   color: white;

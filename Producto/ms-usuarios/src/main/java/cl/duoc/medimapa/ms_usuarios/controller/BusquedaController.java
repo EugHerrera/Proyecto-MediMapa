@@ -27,7 +27,6 @@ public class BusquedaController {
         List<Map<String, Object>> respuestaLista = resultados.stream().map(precio -> {
             Map<String, Object> mapa = new HashMap<>();
             
-            // 🔥 CORRECCIÓN AQUÍ: Usar getNombre_canonico() que es el getter que existe
             mapa.put("medicamento", precio.getMedicamento().getNombre_canonico());
             
             mapa.put("precio", precio.getPrecio_max_vta());

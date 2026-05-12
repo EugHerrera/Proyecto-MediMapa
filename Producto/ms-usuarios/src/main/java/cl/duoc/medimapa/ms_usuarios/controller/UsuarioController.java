@@ -86,9 +86,9 @@ public class UsuarioController {
         if (archivo.isEmpty()) return ResponseEntity.badRequest().body("Archivo vacío.");
         try {
             excelService.procesarExcelInventario(archivo, idSucursal);
-            return ResponseEntity.ok("✅ Archivo procesado con éxito.");
+            return ResponseEntity.ok("Archivo procesado con éxito.");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("❌ Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
     }
 
@@ -106,7 +106,6 @@ public class UsuarioController {
         return ResponseEntity.ok(respuesta);
     }
 
-    // 🔥 HACK: Cambiado a GET
     @GetMapping("/inventario/actualizar-precio")
     public ResponseEntity<String> actualizarPrecioManual(
             @RequestParam("idSucursal") Long idSucursal,
@@ -120,12 +119,11 @@ public class UsuarioController {
                     precio.setPrecio_max_vta(BigDecimal.valueOf(nuevoPrecio));
                     precio.setVigente_desde(OffsetDateTime.now());
                     precioVigenteRepo.save(precio);
-                    return ResponseEntity.ok("✅ Precio actualizado a $" + nuevoPrecio);
+                    return ResponseEntity.ok(" Precio actualizado a $" + nuevoPrecio);
                 })
-                .orElse(ResponseEntity.badRequest().body("❌ No se encontró el medicamento."));
+                .orElse(ResponseEntity.badRequest().body(" No se encontró el medicamento."));
     }
 
-    // 🔥 HACK: Cambiado a GET
     @GetMapping("/inventario/actualizar-nombre")
     @Transactional 
     public ResponseEntity<String> actualizarNombreMedicamento(
@@ -142,8 +140,8 @@ public class UsuarioController {
                 pv.setTextoBusqueda(nuevoNombre);
                 precioVigenteRepo.save(pv);
             }
-            return ResponseEntity.ok("✅ Nombre actualizado.");
-        }).orElse(ResponseEntity.badRequest().body("❌ No se encontró el medicamento."));
+            return ResponseEntity.ok(" Nombre actualizado.");
+        }).orElse(ResponseEntity.badRequest().body(" No se encontró el medicamento."));
     }
 
     @PostMapping("/inventario/agregar-manual")
@@ -182,13 +180,12 @@ public class UsuarioController {
             pv.setCorrida(corrida);
             precioVigenteRepo.save(pv);
 
-            return ResponseEntity.ok("✅ Medicamento guardado.");
+            return ResponseEntity.ok(" Medicamento guardado.");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("❌ Error al guardar.");
+            return ResponseEntity.badRequest().body(" Error al guardar.");
         }
     }
 
-    // 🔥 HACK: Cambiado a GET
     @GetMapping("/inventario/eliminar")
     public ResponseEntity<?> eliminarMedicamentoInventario(
             @RequestParam Long idSucursal, 
@@ -200,7 +197,7 @@ public class UsuarioController {
                              (p.getTextoBusqueda() != null && p.getTextoBusqueda().equalsIgnoreCase(nombreMedicamento)))
                 .findFirst().orElse(null);
 
-            if (precioLocal == null) return ResponseEntity.badRequest().body("❌ No encontrado.");
+            if (precioLocal == null) return ResponseEntity.badRequest().body(" No encontrado.");
             Medicamento medVinculado = precioLocal.getMedicamento();
             if (medVinculado != null && "MANUAL".equalsIgnoreCase(medVinculado.getOrigen_catalogo())) {
                 List<PrecioVigente> dependencias = precioVigenteRepo.findAll().stream()
@@ -208,13 +205,13 @@ public class UsuarioController {
                     .collect(Collectors.toList());
                 precioVigenteRepo.deleteAll(dependencias);
                 medicamentoRepository.deleteById(medVinculado.getId_medicamento());
-                return ResponseEntity.ok("✅ Eliminado de raíz.");
+                return ResponseEntity.ok(" Eliminado de raíz.");
             } else {
                 precioVigenteRepo.deleteById(precioLocal.getId());
-                return ResponseEntity.ok("✅ Eliminado de tu sucursal.");
+                return ResponseEntity.ok(" Eliminado de tu sucursal.");
             }
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("❌ Error interno.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(" Error interno.");
         }
     }
 
@@ -224,9 +221,9 @@ public class UsuarioController {
             nuevaSolicitud.setEstado_solicitud("PENDIENTE");
             nuevaSolicitud.setFecha_solicitud(OffsetDateTime.now());
             solicitudRepo.save(nuevaSolicitud);
-            return ResponseEntity.ok("✅ Solicitud enviada.");
+            return ResponseEntity.ok(" Solicitud enviada.");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("❌ Error.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(" Error.");
         }
     }
 
@@ -235,7 +232,6 @@ public class UsuarioController {
         return ResponseEntity.ok(solicitudRepo.buscarPorEstado("PENDIENTE"));
     }
 
-    // 🔥 HACK: Cambiado a GET absoluto
     @GetMapping("/solicitudes/{id}/aprobar")
     @Transactional 
     public ResponseEntity<String> aprobarSolicitud(@PathVariable Long id) {
@@ -262,8 +258,8 @@ public class UsuarioController {
             nuevoUsuario.setRol("FARMACEUTICO");
             usuarioRepository.save(nuevoUsuario);
 
-            return ResponseEntity.ok("✅ Aprobada.");
-        }).orElse(ResponseEntity.badRequest().body("❌ Solicitud no encontrada."));
+            return ResponseEntity.ok(" Aprobada.");
+        }).orElse(ResponseEntity.badRequest().body(" Solicitud no encontrada."));
     }
 
     // 🔥 HACK: Cambiado a GET absoluto
@@ -273,7 +269,7 @@ public class UsuarioController {
             solicitud.setEstado_solicitud("RECHAZADA");
             solicitudRepo.save(solicitud);
             return ResponseEntity.ok("🗑️ RECHAZADA.");
-        }).orElse(ResponseEntity.badRequest().body("❌ No encontrada."));
+        }).orElse(ResponseEntity.badRequest().body(" No encontrada."));
     }
 
     @PostMapping("/admin/subir-isp")
@@ -281,9 +277,9 @@ public class UsuarioController {
         if (archivo.isEmpty()) return ResponseEntity.badRequest().body("Archivo ISP vacío.");
         try {
             String resultado = ispExcelService.sincronizarBioequivalentes(archivo);
-            return ResponseEntity.ok("✅ Éxito: " + resultado);
+            return ResponseEntity.ok(" Éxito: " + resultado);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("❌ Error.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(" Error.");
         }
     }
 

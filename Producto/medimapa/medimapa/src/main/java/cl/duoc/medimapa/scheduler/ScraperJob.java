@@ -25,9 +25,9 @@ public class ScraperJob {
     // cron = "0 0 3 * * *" -> Significa "Ejecutar todos los días a las 3:00 AM"
     @Scheduled(cron = "0 0 3 * * *")
     public void actualizarBaseDeDatosNocturna() {
-        logger.info("🌙 Iniciando reloj nocturno: Despertando al Motor Scraper...");
+        logger.info("Iniciando reloj nocturno: Despertando al Motor Scraper...");
 
-        // 1. Creamos la bitácora de la corrida (Igual que en tu CommandLineRunner)
+        // 1. Creacion de la bitácora de la corrida 
         CorridaActualizacion corrida = new CorridaActualizacion();
         corrida.setId_fuente(0L); 
         corrida.setInicio(OffsetDateTime.now());
@@ -36,7 +36,7 @@ public class ScraperJob {
         try {
             corrida = corridaRepo.save(corrida);
         } catch (Exception e) {
-            logger.warn("⚠️ Advertencia: No se pudo guardar la corrida inicial. Ejecutando igual...");
+            logger.warn(" Advertencia: No se pudo guardar la corrida inicial. Ejecutando igual...");
         }
 
         // 2. Llamamos a tu método REAL. 
@@ -51,7 +51,7 @@ public class ScraperJob {
                 corridaRepo.save(corrida);
             } catch (Exception ignored) {}
 
-            logger.info("🌅 Scraper Nocturno Finalizado con éxito. ¡Caché actualizado!");
+            logger.info(" Scraper Nocturno Finalizado con éxito. ¡Caché actualizado!");
 
         } catch (Exception e) {
             // Si algo falla a nivel global, lo registramos
@@ -62,7 +62,7 @@ public class ScraperJob {
                 corridaRepo.save(corrida);
             } catch (Exception ignored) {}
 
-            logger.error("❌ Error grave en el scraper nocturno: {}", e.getMessage());
+            logger.error(" Error grave en el scraper nocturno: {}", e.getMessage());
         }
     }
 }

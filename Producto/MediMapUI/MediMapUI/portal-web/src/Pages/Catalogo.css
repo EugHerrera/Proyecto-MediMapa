@@ -83,11 +83,8 @@
   line-height: 1.5;
 }
 
-/* =========================================
-   TITULO SECCIÓN: CATEGORÍA TERAPÉUTICA
-   ========================================= */
+/* TITULO SECCIÓN: CATEGORÍA TERAPÉUTICA*/
 .section-title {
-  /* 🔥 Ahora usa el mismo degradado premium del banner */
   background: linear-gradient(90deg, #ca8a04 0%, #059669 100%); 
   color: #ffffff !important; 
   padding: 12px 20px;
@@ -133,9 +130,7 @@
   box-shadow: 0 0 0 1px #ca8a04;
 }
 
-/* =========================================
-   BUSCADOR Y FILTROS
-   ========================================= */
+/* BUSCADOR Y FILTROS*/
 .catalogo-search-section {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -147,7 +142,7 @@
   display: block;
   font-weight: 700;
   margin-bottom: 8px;
-  color: #ca8a04; /* 🔥 Etiquetas en tono dorado */
+  color: #ca8a04; 
 }
 
 .input-with-icon {
@@ -184,9 +179,7 @@
   background: white;
 }
 
-/* =========================================
-   TABLA DE RESULTADOS
-   ========================================= */
+/*  TABLA DE RESULTADOS*/
 .tabla-catalogo {
   width: 100%;
   border-collapse: collapse;
@@ -200,9 +193,9 @@
   background: transparent;
   padding: 15px;
   text-align: left;
-  color: #854d0e; /* 🔥 Títulos en dorado oscuro */
+  color: #854d0e; 
   font-weight: 700;
-  border-bottom: 2px solid #ca8a04; /* 🔥 Línea separadora dorada */
+  border-bottom: 2px solid #ca8a04; 
 }
 
 .tabla-catalogo td {
@@ -212,7 +205,7 @@
   font-size: 0.95rem;
 }
 
-/* 🔥 EL NUEVO SELLO DORADO BIOEQUIVALENTE 🔥 */
+/* EL NUEVO SELLO DORADO BIOEQUIVALENTE */
 .badge.bio-gold {
   display: inline-flex;
   align-items: center;
