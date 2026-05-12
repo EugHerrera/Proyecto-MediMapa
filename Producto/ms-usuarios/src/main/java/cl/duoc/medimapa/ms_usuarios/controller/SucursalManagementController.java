@@ -33,7 +33,6 @@ public class SucursalManagementController {
         return sucursalRepo.findById(id).map(sucursal -> {
             sucursal.setNombre_sucursal(datosNuevos.getNombre_sucursal());
             sucursal.setDireccion(datosNuevos.getDireccion());
-            // 🔥 CAMBIO: Actualizamos el objeto Point completo
             sucursal.setUbicacion(datosNuevos.getUbicacion());
             sucursal.setActivo(datosNuevos.getActivo());
             sucursal.setActualizadoEn(OffsetDateTime.now());

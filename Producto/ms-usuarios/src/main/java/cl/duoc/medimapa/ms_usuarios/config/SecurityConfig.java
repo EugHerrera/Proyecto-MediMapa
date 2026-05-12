@@ -35,10 +35,10 @@ public class SecurityConfig {
                 // Dejar pasar consultas "OPTIONS" invisibles del navegador
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 
-                // 🔓 RUTAS PÚBLICAS: Swagger y Documentación
+                // RUTAS PÚBLICAS: Swagger y Documentación
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 
-                // 🔥 OPCIÓN NUCLEAR: Metemos todo lo que te está dando problemas a la lista de acceso libre
+                // Metemos todo lo que te está dando problemas a la lista de acceso libre
                 .requestMatchers(
                     "/api/usuarios/login", 
                     "/api/usuarios/registro", 

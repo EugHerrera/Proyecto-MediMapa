@@ -12,5 +12,5 @@ public class Farmacia {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String nombre; // Ej: "Salcobrand", "Cruz Verde"
+    private String nombre; 
 }

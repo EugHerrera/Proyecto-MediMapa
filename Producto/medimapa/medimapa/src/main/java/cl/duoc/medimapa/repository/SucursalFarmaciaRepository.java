@@ -8,6 +8,5 @@ import java.util.List;
 @Repository
 public interface SucursalFarmaciaRepository extends JpaRepository<SucursalFarmacia, Long> {
     
-    // 🔥 MAGIA DE SPRING DATA: Busca todas las sucursales por el ID de la cadena (Marca)
     List<SucursalFarmacia> findByFarmacia_Id(Long idFarmacia);
 }

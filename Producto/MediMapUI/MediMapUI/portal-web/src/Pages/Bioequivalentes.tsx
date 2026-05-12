@@ -29,7 +29,7 @@ const Bioequivalentes: React.FC = () => {
           url = `/medicamentos/buscar?q=${busqueda}`;
         }
 
-        // 🔥 CORRECCIÓN: REEMPLAZAMOS EL FETCH NATIVO POR AXIOS
+        // AXIOS
         const respuesta = await apiUsuarios.get(url);
         setMedicamentos(respuesta.data);
       } catch (error) {

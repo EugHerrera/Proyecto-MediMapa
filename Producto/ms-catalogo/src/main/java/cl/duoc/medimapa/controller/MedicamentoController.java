@@ -9,7 +9,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/medicamentos")
-// 🔥 CORRECCIÓN: Se eliminó @CrossOrigin porque el Gateway ahora gestiona los permisos
 public class MedicamentoController {
 
     @Autowired

@@ -19,7 +19,7 @@ public class IspExcelService {
         Workbook workbook = WorkbookFactory.create(file.getInputStream());
         Sheet sheet = workbook.getSheetAt(0);
         
-        // 🔥 MAGIA: Traemos tu catálogo de 50 medicamentos a la memoria
+        // Traemos tu catálogo de 50 medicamentos a la memoria
         List<Medicamento> catalogo = medicamentoRepo.findAll();
         int totalActualizados = 0;
 
@@ -70,9 +70,8 @@ public class IspExcelService {
 
             if (textoIsp.isEmpty()) continue;
 
-            // 🔥 CRUCE INTELIGENTE: ¿El texto del gobierno contiene nuestras palabras?
+            //  CRUCE INTELIGENTE: ¿El texto del gobierno contiene nuestras palabras?
             for (Medicamento m : catalogo) {
-                // Solo revisamos los que aún no tienen el sello
                 if (!m.getEs_bioequivalente()) {
                     String nomDb = m.getNombre_canonico() != null ? m.getNombre_canonico().toLowerCase() : "";
                     String prinDb = m.getPrincipio_activo() != null ? m.getPrincipio_activo().toLowerCase() : "";
@@ -89,6 +88,6 @@ public class IspExcelService {
         }
         
         workbook.close();
-        return "✅ Sincronización completa. Se certificaron " + totalActualizados + " medicamentos de tu catálogo.";
+        return " Sincronización completa. Se certificaron " + totalActualizados + " medicamentos de tu catálogo.";
     }
 }

@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.time.OffsetDateTime;
 
-// 🔥 CORRECCIÓN: Usamos LocationTech JTS igual que en ms-geocalizacion
 import org.locationtech.jts.geom.Point;
 
 @Data

@@ -27,7 +27,7 @@ const Home = () => {
           <div className="badge-modern">Nueva plataforma web Informativa y Geolocalizada</div>
           
           <h1 className="hero-title">
-            {/* 🔥 AQUÍ ESTÁ EL CAMBIO: highlight-premium para el degradado 🔥 */}
+            {/* highlight-premium para el degradado  */}
             Encuentra tu medicamento al <span className="highlight-premium">mejor precio</span> en La Florida
           </h1>
           
@@ -83,7 +83,7 @@ const Home = () => {
 
       </div>
 
-      {/* SECCIÓN: LAS 3 TARJETAS CLÍNICAS CON ESTILO PREMIUM */}
+      {/* SECCIÓN: LAS 3 TARJETAS CLÍNICAS */}
       <div className="home-cards-section">
         <Link to="/catalogo" className="action-card">
           <div className="card-icon-wrapper">

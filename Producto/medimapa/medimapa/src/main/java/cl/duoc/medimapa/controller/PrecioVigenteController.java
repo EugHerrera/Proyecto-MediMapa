@@ -40,14 +40,14 @@ public class PrecioVigenteController {
         if (!forceRefresh) {
             List<PrecioVigente> preciosEnBD = precioRepo.buscarPorNombreMedicamento(query);
             if (!preciosEnBD.isEmpty()) {
-                System.out.println("⚡ Obteniendo precios cacheados desde PostgreSQL...");
+                System.out.println(" Obteniendo precios cacheados desde PostgreSQL...");
                 List<Map<String, Object>> respuestaCacheada = new ArrayList<>();
                 
                 for (PrecioVigente pv : preciosEnBD) {
                     Map<String, Object> dato = new HashMap<>();
                     dato.put("farmacia", pv.getSucursal() != null ? pv.getSucursal().getNombre_sucursal() : "Desconocida");
                     dato.put("precio", pv.getPrecio_max_vta());
-                    // 🔥 Aquí extraemos el texto correctamente
+                    //Aquí extraemos el texto correctamente
                     dato.put("medicamento", pv.getMedicamento() != null ? pv.getMedicamento().getNombre_canonico() : pv.getTextoBusqueda());
                     
                     if (pv.getMedicamento() != null) {
@@ -63,11 +63,11 @@ public class PrecioVigenteController {
             }
         }
 
-        System.out.println("🚀 INICIANDO MODO TURBO (Playwright) para buscar precios frescos...");
+        System.out.println(" INICIANDO MODO TURBO (Playwright) para buscar precios frescos...");
         List<Map<String, Object>> preciosNacionales = scraperService.compararEnVivo(query);
 
         if (preciosNacionales.isEmpty()) {
-            System.out.println("❌ No se encontraron resultados en la web.");
+            System.out.println("No se encontraron resultados en la web.");
             return new ArrayList<>();
         }
 
@@ -96,12 +96,12 @@ public class PrecioVigenteController {
             }
         }
 
-        System.out.println("🗑️ Borrando basura antigua de caché para: " + query);
+        System.out.println("Borrando basura antigua de caché para: " + query);
         List<PrecioVigente> basuraAntigua = precioRepo.buscarPorNombreMedicamento(query);
         precioRepo.deleteAll(basuraAntigua);
         precioRepo.flush(); 
 
-        System.out.println("💾 Guardando los nuevos precios en la Base de Datos...");
+        System.out.println("Guardando los nuevos precios en la Base de Datos...");
         CorridaActualizacion corrida = new CorridaActualizacion();
         corrida.setId_fuente(0L); 
         corrida.setInicio(java.time.OffsetDateTime.now());
@@ -129,7 +129,7 @@ public class PrecioVigenteController {
             }
 
             PrecioVigente pv = new PrecioVigente();
-            // 🔥 GUARDADO LIMPIO: Sin llaves compuestas
+            //  GUARDADO LIMPIO
             pv.setTextoBusqueda(query); 
             pv.setSucursal(sucursal);
             pv.setMedicamento(med);
@@ -143,7 +143,7 @@ public class PrecioVigenteController {
         
         respuestaExpandida.forEach(map -> map.remove("sucursalObj"));
 
-        System.out.println("✅ Actualización completada sin errores de SQL.");
+        System.out.println("Actualización completada sin errores de SQL.");
         return respuestaExpandida;
     }
 }

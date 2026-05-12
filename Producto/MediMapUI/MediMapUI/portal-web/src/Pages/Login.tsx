@@ -16,20 +16,17 @@ const Login = () => {
     setCargando(true);
 
     try {
-      // 🔥 2. MAGIA DE AXIOS: URL limpia y petición directa
-      // Ya sabe que debe ir a http://localhost:8085/api gracias al .env
+
       const respuesta = await apiUsuarios.post('/usuarios/login', {
         correo: correo,
         password: password
       });
-
-      // 3. Con Axios, la respuesta JSON siempre viene dentro de ".data"
       const data = respuesta.data;
 
       console.log("¡Respuesta de Java completa!:", data);
       console.log("¿Me dio un pasaporte JWT?:", data.token);
 
-      // Guardamos el rol, el correo y EL TOKEN
+      // Guardamos el rol, el correo y el token
       localStorage.setItem('usuarioRol', data.rol);
       localStorage.setItem('usuarioCorreo', correo); 
       localStorage.setItem('token', data.token); 
@@ -44,7 +41,7 @@ const Login = () => {
       }
         
     } catch (err: any) {
-      // 4. Axios maneja los errores automáticamente. Si Java manda un 401 (No Autorizado), cae aquí.
+      // Axios maneja los errores automáticamente. Si Java manda un 401 (No Autorizado), cae aquí.
       if (err.response && err.response.data && err.response.data.error) {
         setError(err.response.data.error); // Mensaje específico de tu backend
       } else {

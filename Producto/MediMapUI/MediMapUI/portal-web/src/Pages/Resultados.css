@@ -7,7 +7,7 @@
   color: #1e293b;
 }
 
-/* 🔥 HEADER / BANNER PREMIUM 🔥 */
+/*  HEADER / BANNER PREMIUM  */
 .resultados-header {
   background: linear-gradient(90deg, #ca8a04 0%, #059669 100%);
   color: white;
@@ -54,7 +54,7 @@
 
 .btn-forzar-busqueda {
   background-color: white;
-  color: #059669; /* Verde clínico */
+  color: #059669;
   border: none;
   padding: 12px 20px;
   border-radius: 8px;
@@ -79,7 +79,7 @@
 
 /* Tarjetas de Precios */
 .seccion-precios h3 {
-  color: #ca8a04; /* Título Dorado */
+  color: #ca8a04;
   font-size: 1.3rem;
   margin-bottom: 20px;
   border-bottom: 2px solid #fef08a;
@@ -106,11 +106,11 @@
 
 .precio-card:hover {
   transform: translateY(-5px);
-  border-color: #059669; /* Borde verde al hacer hover */
+  border-color: #059669; 
   box-shadow: 0 10px 20px -5px rgba(5, 150, 105, 0.1);
 }
 
-/* 🔥 Sello Bioequivalente Dorado en la Tarjeta 🔥 */
+/*  Sello Bioequivalente Dorado en la Tarjeta  */
 .sello-bio-tarjeta {
   align-self: flex-start;
   background-color: #fef08a;
@@ -146,7 +146,7 @@
 .precio-card .precio-valor {
   font-size: 2.2rem;
   font-weight: 800;
-  color: #059669; /* Verde esmeralda para destacar el precio */
+  color: #059669; 
   margin-top: auto;
   padding-top: 20px;
 }
@@ -213,7 +213,7 @@
   height: 500px;
   border-radius: 16px;
   overflow: hidden;
-  border: 2px solid #ca8a04; /* Borde dorado premium para el mapa */
+  border: 2px solid #ca8a04; 
   box-shadow: 0 10px 20px rgba(0,0,0,0.1);
   z-index: 1;
 }

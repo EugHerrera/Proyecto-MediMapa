@@ -8,6 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
-    // Magia pura de Spring Boot: Con solo nombrar este método, él arma el SQL por debajo.
     Optional<Usuario> findByCorreo(String correo);
 }

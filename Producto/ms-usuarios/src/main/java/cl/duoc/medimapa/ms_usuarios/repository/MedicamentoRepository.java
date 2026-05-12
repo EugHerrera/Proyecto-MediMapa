@@ -10,7 +10,6 @@ import java.util.Optional;
 @Repository
 public interface MedicamentoRepository extends JpaRepository<Medicamento, Long> {
 
-    // 🔥 Agregamos LOWER para que encuentre el nombre aunque cambien las mayúsculas
     @Query("SELECT m FROM Medicamento m WHERE LOWER(m.nombre_canonico) = LOWER(:nombre)")
     Optional<Medicamento> findByNombreCanonico(@Param("nombre") String nombre);
 }

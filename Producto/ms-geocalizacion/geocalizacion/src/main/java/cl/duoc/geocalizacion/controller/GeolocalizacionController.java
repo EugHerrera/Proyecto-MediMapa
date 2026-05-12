@@ -33,7 +33,6 @@ public class GeolocalizacionController {
             @RequestParam(defaultValue = "1000") double radio) {
         Point ubicacionBusqueda = geometryFactory.createPoint(new Coordinate(lon, lat));
         ubicacionBusqueda.setSRID(4326);
-        // La ubicación de búsqueda se procesa y se olvida (Ley 21.719)
         List<SucursalFarmacia> sucursales = service.obtenerCercanas(ubicacionBusqueda, radio);
         List<SucursalGeoDTO> dtoList = sucursales.stream().map(this::toDto).collect(Collectors.toList());
         return ResponseEntity.ok(dtoList);

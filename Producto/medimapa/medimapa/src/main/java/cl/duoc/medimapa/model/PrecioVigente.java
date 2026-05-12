@@ -10,12 +10,12 @@ import java.time.OffsetDateTime;
 @Data
 public class PrecioVigente {
 
-    // 1. Nueva llave primaria simple y autoincremental
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; 
 
-    // 2. Las relaciones a sucursal ahora son normales (ya no son MapsId)
+
     @ManyToOne
     @JoinColumn(name = "id_sucursal", nullable = false)
     private SucursalFarmacia sucursal; 
@@ -24,7 +24,7 @@ public class PrecioVigente {
     @JoinColumn(name = "id_medicamento")
     private Medicamento medicamento; 
 
-    // 3. Mantenemos el texto de búsqueda como una columna normal
+
     @Column(name = "texto_busqueda", length = 255)
     private String textoBusqueda;
 

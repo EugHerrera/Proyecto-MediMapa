@@ -27,7 +27,7 @@ public class Medicamento {
     @Column(name = "es_bioequivalente")
     private Boolean es_bioequivalente = false;
 
-    // 🔥 Getters y Setters manuales a prueba de fallos del IDE
+    //  Getters y Setters 
     public String getNombre_canonico() { return nombre_canonico; }
     public void setNombre_canonico(String nombre_canonico) { this.nombre_canonico = nombre_canonico; }
     
