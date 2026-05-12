@@ -243,6 +243,9 @@ public class UsuarioController {
             nuevaSucursal.setNombre_sucursal(solicitud.getNombre_fantasia());
             nuevaSucursal.setDireccion(solicitud.getDireccion() + ", " + solicitud.getComuna()); 
             
+            nuevaSucursal.setId_farmacia(4L);
+            nuevaSucursal.setId_comuna(1L);
+            
             GeometryFactory geometryFactory = new GeometryFactory();
             org.locationtech.jts.geom.Point puntoVacio = geometryFactory.createPoint(new Coordinate(0.0, 0.0));
             puntoVacio.setSRID(4326);
@@ -262,7 +265,6 @@ public class UsuarioController {
         }).orElse(ResponseEntity.badRequest().body(" Solicitud no encontrada."));
     }
 
-    // 🔥 HACK: Cambiado a GET absoluto
     @GetMapping("/solicitudes/{id}/rechazar")
     public ResponseEntity<String> rechazarSolicitud(@PathVariable Long id) {
         return solicitudRepo.findById(id).map(solicitud -> {

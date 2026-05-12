@@ -33,4 +33,7 @@ public class SucursalFarmacia {
 
     @Column(name = "id_farmacia")
     private Long id_farmacia;
+
+    @Column(name = "id_comuna")
+    private Long id_comuna;
 }

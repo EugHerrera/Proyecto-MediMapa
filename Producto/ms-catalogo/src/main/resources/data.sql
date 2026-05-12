@@ -27,3 +27,8 @@ INSERT INTO medicamento (id_medicamento, nombre_canonico, principio_activo, orig
 (38, 'Omeprazol', 'Omeprazol', 'Nacional', true, true, 'Digestivo y gastrointestinal'),
 (41, 'Viadil', 'Pargeverina', 'Nacional', true, true, 'Digestivo y gastrointestinal')
 ON CONFLICT DO NOTHING;
+
+-- ==========================================
+-- SINCRONIZAR CONTADOR DE MEDICAMENTOS
+-- ==========================================
+SELECT setval(pg_get_serial_sequence('medicamento', 'id_medicamento'), coalesce(max(id_medicamento), 1), max(id_medicamento) IS NOT null) FROM medicamento;
