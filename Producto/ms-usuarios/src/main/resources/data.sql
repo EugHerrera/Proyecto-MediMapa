@@ -59,3 +59,11 @@ INSERT INTO sucursal_farmacia (id_farmacia, id_comuna, nombre_sucursal, direccio
 (1, 1, 'Ahumada - Froilán Roa 7107', 'Froilán Roa N° 7107', ST_GeomFromText('POINT(-70.59781877 -33.5162832)', 4326), true),
 (1, 1, 'Ahumada - Vicuña Mackenna 7196', 'Avda. Vicuña Mackenna N° 7196', ST_GeomFromText('POINT(-70.6021772 -33.5193445)', 4326), true),
 (1, 1, 'Ahumada - Américo Vespucio 7310', 'Avda. Américo Vespucio N° 7310', ST_GeomFromText('POINT(-70.5954295 -33.5196461)', 4326), true);
+
+
+-- ==========================================
+-- SINCRONIZAR CONTADORES DE USUARIOS Y SUCURSALES
+-- ==========================================
+SELECT setval(pg_get_serial_sequence('usuario', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM usuario;
+SELECT setval(pg_get_serial_sequence('cadena_farmacia', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM cadena_farmacia;
+SELECT setval(pg_get_serial_sequence('sucursal_farmacia', 'id_sucursal'), coalesce(max(id_sucursal), 1), max(id_sucursal) IS NOT null) FROM sucursal_farmacia;
