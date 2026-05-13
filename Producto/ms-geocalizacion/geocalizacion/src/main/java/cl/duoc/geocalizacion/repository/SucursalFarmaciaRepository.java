@@ -11,7 +11,6 @@ import java.util.List;
 @Repository
 public interface SucursalFarmaciaRepository extends JpaRepository<SucursalFarmacia, Long> {
 
-    // Usamos la función nativa de PostGIS que nunca falla
     @Query(value = "SELECT * FROM sucursal_farmacia s WHERE ST_DWithin(CAST(s.ubicacion AS geography), CAST(ST_SetSRID(ST_MakePoint(:lng, :lat), 4326) AS geography), :distancia)", nativeQuery = true)
     List<SucursalFarmacia> buscarCercanas(@Param("lat") double lat, @Param("lng") double lng, @Param("distancia") double distancia);
 }

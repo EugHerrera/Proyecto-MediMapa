@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { apiUsuarios } from '../services/api'; // <-- 1. IMPORTAMOS NUESTRO CARTERO
+import { apiUsuarios } from '../services/api'; 
 import './Login.css'; 
 
 const Login = () => {
@@ -41,9 +41,8 @@ const Login = () => {
       }
         
     } catch (err: any) {
-      // Axios maneja los errores automáticamente. Si Java manda un 401 (No Autorizado), cae aquí.
       if (err.response && err.response.data && err.response.data.error) {
-        setError(err.response.data.error); // Mensaje específico de tu backend
+        setError(err.response.data.error); 
       } else {
         setError('❌ No se pudo conectar con el servidor.');
       }

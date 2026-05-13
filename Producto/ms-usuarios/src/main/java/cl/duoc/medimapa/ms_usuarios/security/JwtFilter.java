@@ -25,7 +25,6 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
-        // 1. Buscamos el pasaporte en la cabecera "Authorization"
         final String authorizationHeader = request.getHeader("Authorization");
 
         String email = null;
@@ -40,7 +39,6 @@ public class JwtFilter extends OncePerRequestFilter {
             }
         }
 
-        // 2. Si trae email y Spring aún no lo ha autenticado
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             
             if (jwtUtil.validarToken(jwt, email)) {
