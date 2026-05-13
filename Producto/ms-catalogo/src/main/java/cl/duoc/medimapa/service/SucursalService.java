@@ -21,8 +21,6 @@ public class SucursalService {
                     dto.setIdSucursal(suc.getId_sucursal()); 
                     dto.setNombreSucursal(suc.getNombre_sucursal()); 
                     dto.setDireccion(suc.getDireccion());
-                    
-                    // 🔥 Desarmamos el Point para que el frontend lo entienda
                     if (suc.getUbicacion() != null) {
                         SucursalResponseDTO.UbicacionDTO ubiDto = new SucursalResponseDTO.UbicacionDTO();
                         ubiDto.setType("Point");

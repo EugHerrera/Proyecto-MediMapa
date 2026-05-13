@@ -19,7 +19,6 @@ public class IspExcelService {
         Workbook workbook = WorkbookFactory.create(file.getInputStream());
         Sheet sheet = workbook.getSheetAt(0);
         
-        // Traemos tu catálogo de 50 medicamentos a la memoria
         List<Medicamento> catalogo = medicamentoRepo.findAll();
         int totalActualizados = 0;
 
@@ -45,7 +44,6 @@ public class IspExcelService {
             throw new Exception("No se encontró la columna de Nombres en el Excel del ISP.");
         }
 
-        // Recorremos las 3803 filas del gobierno
         for (int i = 1; i <= sheet.getLastRowNum(); i++) {
             Row row = sheet.getRow(i);
             if (row == null) continue;
@@ -60,7 +58,6 @@ public class IspExcelService {
                 textoIsp += String.valueOf(cellNombre.getNumericCellValue()).trim().toLowerCase();
             }
 
-            // Sumamos el principio activo del ISP para hacer una red de pesca más grande
             if (colPrincipio != -1) {
                 Cell cellPrincipio = row.getCell(colPrincipio);
                 if (cellPrincipio != null && cellPrincipio.getCellType() == CellType.STRING) {
@@ -70,7 +67,6 @@ public class IspExcelService {
 
             if (textoIsp.isEmpty()) continue;
 
-            //  CRUCE INTELIGENTE: ¿El texto del gobierno contiene nuestras palabras?
             for (Medicamento m : catalogo) {
                 if (!m.getEs_bioequivalente()) {
                     String nomDb = m.getNombre_canonico() != null ? m.getNombre_canonico().toLowerCase() : "";

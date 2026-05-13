@@ -9,12 +9,7 @@ INSERT INTO cadena_farmacia (id, nombre) VALUES (1, 'Farmacias Ahumada') ON CONF
 INSERT INTO cadena_farmacia (id, nombre) VALUES (2, 'Farmacias Dr. Simi') ON CONFLICT DO NOTHING;
 INSERT INTO cadena_farmacia (id, nombre) VALUES (3, 'Salcobrand') ON CONFLICT DO NOTHING;
 
--- Insertar sucursales con PostGIS y referencia a comuna
--- Nota: En ST_GeomFromText, el orden es (LONGITUD LATITUD)
-
--- ==========================================
 -- SUCURSALES DR. SIMI (id_farmacia = 2)
--- ==========================================
 INSERT INTO sucursal_farmacia (id_farmacia, id_comuna, nombre_sucursal, direccion, ubicacion, activo) VALUES 
 (2, 1, 'Dr. Simi - Vicuña Mackenna 7287', 'Avda. Vicuña Mackenna 7287', ST_GeomFromText('POINT(-70.5987675 -33.5202092)', 4326), true),
 (2, 1, 'Dr. Simi - La Florida 9660', 'Avda. La Florida 9660', ST_GeomFromText('POINT(-70.5697048 -33.5428264)', 4326), true),
@@ -28,9 +23,7 @@ INSERT INTO sucursal_farmacia (id_farmacia, id_comuna, nombre_sucursal, direccio
 (2, 1, 'Dr. Simi - Vicuña Mackenna 7110 Local M-1', 'Avda. Vicuña Mackenna N°7110 local M-1', ST_GeomFromText('POINT(-70.5997773 -33.5193287)', 4326), true),
 (2, 1, 'Dr. Simi - La Florida 8988', 'Avda La Florida 8988', ST_GeomFromText('POINT(-70.5723002 -33.5352988)', 4326), true);
 
--- ==========================================
 -- SUCURSALES SALCOBRAND (id_farmacia = 3)
--- ==========================================
 INSERT INTO sucursal_farmacia (id_farmacia, id_comuna, nombre_sucursal, direccion, ubicacion, activo) VALUES
 (3, 1, 'Salcobrand - Mall Plaza Vespucio', 'Av. Vicuña Mackenna 7110, Local 120', ST_GeomFromText('POINT(-70.5970 -33.5215)', 4326), true),
 (3, 1, 'Salcobrand - Florida Center', 'Av. Vicuña Mackenna 6100, Local 1050', ST_GeomFromText('POINT(-70.5990 -33.5210)', 4326), true),
@@ -48,9 +41,7 @@ INSERT INTO sucursal_farmacia (id_farmacia, id_comuna, nombre_sucursal, direccio
 (3, 1, 'Salcobrand - Local 1', 'Avda. Vicuña Mackenna 8733 Local 1', ST_GeomFromText('POINT(-70.5934514 -33.5354859)', 4326), true),
 (3, 1, 'Salcobrand - Local E-9140', 'Avda. Vicuña Mackenna N° 7110 Local E-9140', ST_GeomFromText('POINT(-70.5997566 -33.5193173)', 4326), true);
 
--- ==========================================
 -- SUCURSALES AHUMADA (id_farmacia = 1)
--- ==========================================
 INSERT INTO sucursal_farmacia (id_farmacia, id_comuna, nombre_sucursal, direccion, ubicacion, activo) VALUES
 (1, 1, 'Ahumada - Vicuña Mackenna 7110 Local 12', 'Vicuña Mackenna N° 7110 local Nº12', ST_GeomFromText('POINT(-70.5977102 -33.5180275)', 4326), true),
 (1, 1, 'Ahumada - Vicuña Mackenna 7110 Local E-9109', 'Avda. Vicuña Mackenna N° 7110 Local E-9109', ST_GeomFromText('POINT(-70.5978765 -33.5178889)', 4326), true),

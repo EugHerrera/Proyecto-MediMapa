@@ -10,7 +10,6 @@ import java.util.Optional;
 @Repository
 public interface MedicamentoRepository extends JpaRepository<Medicamento, Long> {
     
-    // 🔥 Búsqueda "Blindada": Usa LOWER para ignorar mayúsculas y minúsculas
     @Query("SELECT m FROM Medicamento m WHERE LOWER(m.nombre_canonico) = LOWER(:nombre)")
     Optional<Medicamento> findByNombreCanonico(@Param("nombre") String nombre);
 }

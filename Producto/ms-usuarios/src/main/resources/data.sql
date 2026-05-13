@@ -1,6 +1,4 @@
--- ==========================================
 -- 1. USUARIOS DEL SISTEMA
--- ==========================================
 INSERT INTO usuario (correo, password_hash, rol) 
 VALUES ('eugenio@medimapa.cl', '$2a$10$ToDCdFtfMzBTu31noDemG.9j4EdsMr8t/4uOq2e2dxCICJuYMH6dq', 'ADMIN') 
 ON CONFLICT (correo) DO UPDATE SET password_hash = EXCLUDED.password_hash;
@@ -9,25 +7,19 @@ INSERT INTO usuario (correo, password_hash, rol)
 VALUES ('contacto@farmacialaflorida.cl', '$2a$10$HcU8pAFSr1VqlZLe5Q3Eye/rAFz6XBqmT/v.PwnciCpZK9R4ktMUG', 'FARMACEUTICO')
 ON CONFLICT (correo) DO UPDATE SET password_hash = EXCLUDED.password_hash;
 
--- ==========================================
 -- 2. GEOGRAFÍA (PostGIS)
--- ==========================================
 INSERT INTO region (id_region, nombre) VALUES (1, 'Región Metropolitana') ON CONFLICT DO NOTHING;
 
 -- En ms-usuarios la tabla comuna usa 'id' como PK según tus logs
 INSERT INTO comuna (id, nombre_com, id_region) VALUES (1, 'La Florida', 1) ON CONFLICT DO NOTHING;
 
--- ==========================================
 -- 3. CADENAS DE FARMACIA
--- ==========================================
 INSERT INTO cadena_farmacia (id, nombre) VALUES (1, 'Farmacias Ahumada') ON CONFLICT DO NOTHING;
 INSERT INTO cadena_farmacia (id, nombre) VALUES (2, 'Farmacias Dr. Simi') ON CONFLICT DO NOTHING;
 INSERT INTO cadena_farmacia (id, nombre) VALUES (3, 'Salcobrand') ON CONFLICT DO NOTHING;
 INSERT INTO cadena_farmacia (id, nombre) VALUES (4, 'Farmacia La Florida') ON CONFLICT DO NOTHING;
 
--- ==========================================
 -- 4. SUCURSALES (Data Real de La Florida)
--- ==========================================
 
 -- SUCURSAL DE PRUEBAS PARA EXCEL (ID 99 - Obligatorio para tu React)
 INSERT INTO sucursal_farmacia (id_sucursal, id_farmacia, id_comuna, nombre_sucursal, direccion, ubicacion, activo, creado_en)
@@ -61,9 +53,7 @@ INSERT INTO sucursal_farmacia (id_farmacia, id_comuna, nombre_sucursal, direccio
 (1, 1, 'Ahumada - Américo Vespucio 7310', 'Avda. Américo Vespucio N° 7310', ST_GeomFromText('POINT(-70.5954295 -33.5196461)', 4326), true);
 
 
--- ==========================================
 -- SINCRONIZAR CONTADORES DE USUARIOS Y SUCURSALES
--- ==========================================
 SELECT setval(pg_get_serial_sequence('usuario', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM usuario;
 SELECT setval(pg_get_serial_sequence('cadena_farmacia', 'id'), coalesce(max(id), 1), max(id) IS NOT null) FROM cadena_farmacia;
 SELECT setval(pg_get_serial_sequence('sucursal_farmacia', 'id_sucursal'), coalesce(max(id_sucursal), 1), max(id_sucursal) IS NOT null) FROM sucursal_farmacia;

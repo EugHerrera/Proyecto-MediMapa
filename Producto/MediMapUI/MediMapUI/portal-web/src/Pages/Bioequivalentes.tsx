@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-// 🔥 IMPORTAMOS AXIOS DESDE NUESTRO ARCHIVO CENTRAL
 import { apiUsuarios } from '../services/api';
 import './Catalogo.css'; 
 

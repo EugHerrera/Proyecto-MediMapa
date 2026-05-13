@@ -1,4 +1,4 @@
-# Etapa 1: Construcción (¡Actualizado a Node 20!)
+# Etapa 1: Construcción 
 FROM node:20-alpine as build
 WORKDIR /app
 COPY package*.json ./
@@ -13,7 +13,6 @@ RUN npm run build
 FROM nginx:alpine
 # Copiamos la build de Vite
 COPY --from=build /app/dist /usr/share/nginx/html
-# 🔥 NUEVA LÍNEA: Copiamos nuestra configuración anti-404
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80

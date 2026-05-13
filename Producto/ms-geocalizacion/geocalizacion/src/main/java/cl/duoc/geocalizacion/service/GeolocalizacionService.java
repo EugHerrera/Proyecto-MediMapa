@@ -15,7 +15,6 @@ public class GeolocalizacionService {
     private SucursalFarmaciaRepository sucursalRepository;
 
     public List<SucursalFarmacia> obtenerCercanas(Point ubicacion, double radio) {
-        // Extraemos las coordenadas crudas para el SQL Nativo
         double lat = ubicacion.getY(); 
         double lng = ubicacion.getX(); 
         

@@ -38,7 +38,7 @@ public class MedimapaApplication {
             // 1. Registramos el inicio del trabajo del robot
             System.out.println(" Registrando nueva corrida de actualización masiva...");
             CorridaActualizacion corrida = new CorridaActualizacion();
-            corrida.setId_fuente(0L); // 0 = Corrida general multi-fuente
+            corrida.setId_fuente(0L); 
             corrida.setInicio(OffsetDateTime.now());
             corrida.setEstado("parcial"); 
 
