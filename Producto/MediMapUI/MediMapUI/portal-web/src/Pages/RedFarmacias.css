@@ -7,7 +7,6 @@
   color: #1e293b;
 }
 
-/*  NUEVO BANNER PREMIUM (Acorde a FAQ y Catálogo) */
 .red-banner {
   background: linear-gradient(90deg, #ca8a04 0%, #059669 100%);
   color: white;
@@ -38,7 +37,7 @@
   z-index: 2;
 }
 
-/* Grilla de Logos dentro del banner */
+
 .logos-grid {
   display: flex;
   justify-content: center;
@@ -48,7 +47,7 @@
   z-index: 2;
 }
 
-/* Tarjetas de Logos */
+
 .logo-card {
   background: rgba(255, 255, 255, 0.95); 
   border: 1px solid rgba(255, 255, 255, 0.5);
@@ -100,7 +99,7 @@
   margin-top: 4px;
 }
 
-/* Layout de Dos Columnas */
+
 .red-main-content {
   display: grid;
   grid-template-columns: 320px 1fr;

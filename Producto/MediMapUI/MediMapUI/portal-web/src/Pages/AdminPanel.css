@@ -89,7 +89,7 @@
 }
 
 .dropzone:hover {
-  border-color: #ca8a04; /* Borde dorado al pasar el mouse */
+  border-color: #ca8a04; 
   background-color: #fefce8;
 }
 

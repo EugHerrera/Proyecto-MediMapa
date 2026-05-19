@@ -7,7 +7,7 @@
   z-index: 1000;
   width: 100%;
   font-family: 'Inter', sans-serif;
-  border-bottom: 2px solid #ca8a04; /* 🔥 Le añadí un borde dorado sutil para darle elegancia */
+  border-bottom: 2px solid #ca8a04; 
 }
 
 .navbar-content {
@@ -19,7 +19,7 @@
   align-items: center;
 }
 
-/* 1. LOGO (Izquierda) */
+
 .navbar-logo {
   display: flex;
   align-items: center;
@@ -39,7 +39,7 @@
   transform: scale(1.05);
 }
 
-/* 🔥 AQUÍ APLICAMOS EL GRADIENTE DORADO A VERDE AL LOGO 🔥 */
+
 .logo-text {
   font-weight: 800;
   font-size: 1.4rem;
@@ -51,7 +51,7 @@
   color: transparent;
 }
 
-/* 2. ENLACES CENTRALES */
+
 .navbar-links {
   display: flex;
   gap: 25px;
@@ -71,19 +71,19 @@
   padding: 5px 0;
 }
 
-/* Hover en tono dorado/mostaza */
+
 .navbar-links a:hover {
   color: #ca8a04; 
 }
 
-/* 🔥 Link activo con texto verde y borde dorado 🔥 */
+
 .active-link {
   color: #059669 !important; 
   font-weight: 700 !important;
   border-bottom: 2px solid #ca8a04; 
 }
 
-/* 3. ACCIONES DERECHA */
+
 .navbar-actions {
   display: flex;
   align-items: center;
@@ -102,12 +102,10 @@
   transition: color 0.2s;
 }
 
-/* Hover del login en dorado */
 .nav-login-btn:hover {
   color: #ca8a04; 
 }
 
-/* 🔥 Botón principal CTA con Gradiente 🔥 */
 .nav-cta-btn {
   background: linear-gradient(90deg, #ca8a04 0%, #059669 100%);
   color: white;
@@ -117,10 +115,9 @@
   font-weight: bold;
   font-size: 0.9rem;
   transition: opacity 0.3s, transform 0.1s;
-  box-shadow: 0 4px 12px rgba(202, 138, 4, 0.3); /* Sombra dorada */
+  box-shadow: 0 4px 12px rgba(202, 138, 4, 0.3); 
 }
 
-/* Hover del botón principal */
 .nav-cta-btn:hover {
   opacity: 0.9;
   transform: translateY(-2px);

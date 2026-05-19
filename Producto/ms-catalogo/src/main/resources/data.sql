@@ -1,6 +1,4 @@
--- ==========================================
 -- 1. CATÁLOGO MAESTRO DE MEDICAMENTOS
--- ==========================================
 INSERT INTO medicamento (id_medicamento, nombre_canonico, principio_activo, origen_catalogo, activo, es_bioequivalente, categoria) VALUES
 -- Categoría: Analgésicos y antiinflamatorios
 (1, 'Paracetamol', 'Paracetamol', 'Nacional', true, true, 'Analgésicos y antiinflamatorios'),

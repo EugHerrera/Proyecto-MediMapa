@@ -11,7 +11,6 @@ import java.util.List;
 @Repository
 public interface SolicitudInscripcionRepository extends JpaRepository<SolicitudInscripcion, Long> {
     
-    // Le decimos a Spring explícitamente cuál es la consulta SQL para evitar confusiones
     @Query(value = "SELECT * FROM solicitud_inscripcion WHERE estado_solicitud = :estado", nativeQuery = true)
     List<SolicitudInscripcion> buscarPorEstado(@Param("estado") String estado);
 }

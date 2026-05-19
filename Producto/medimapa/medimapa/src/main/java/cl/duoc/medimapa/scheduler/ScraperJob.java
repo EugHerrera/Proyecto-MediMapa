@@ -54,7 +54,6 @@ public class ScraperJob {
             logger.info(" Scraper Nocturno Finalizado con éxito. ¡Caché actualizado!");
 
         } catch (Exception e) {
-            // Si algo falla a nivel global, lo registramos
             corrida.setEstado("error");
             corrida.setDetalle_error(e.getMessage());
             corrida.setFin(OffsetDateTime.now());
