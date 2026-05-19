@@ -1,0 +1,7 @@
+version: "2"
+authtoken: 3Duh1QsRngI2uAitqlwOddFbJCw_3ycCRtpL1VwP5geG9tMv5
+tunnels:
+  api-gateway:
+    proto: http
+    addr: 8080
+
