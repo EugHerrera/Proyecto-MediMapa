@@ -2,27 +2,26 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './Navbar.css';
 
-// Importación según tu estructura de carpetas: src/assets/MediMapa.png
 import logoMediMapa from '../assets/MediMapa.png'; 
 
 const Navbar = () => {
   const location = useLocation(); 
   const navigate = useNavigate();
   
-  // 🔥 NUEVO ESTADO: Para saber el rol del usuario logueado
+  //  Rol del usuario logueado
   const [rolUsuario, setRolUsuario] = useState<string | null>(null);
 
-  // 🔥 NUEVA LÓGICA: Cada vez que cambia la URL, revisamos la "billetera" (localStorage)
+
   useEffect(() => {
     const rolGuardado = localStorage.getItem('usuarioRol');
     setRolUsuario(rolGuardado);
   }, [location]);
 
-  // 🔥 NUEVA LÓGICA: Botón de Cerrar Sesión
+  //  Botón de Cerrar Sesión
   const manejarCerrarSesion = () => {
-    localStorage.clear(); // Vaciamos la billetera
+    localStorage.clear(); 
     setRolUsuario(null);
-    navigate('/'); // Lo mandamos de vuelta al inicio
+    navigate('/'); 
   };
 
   // Función para resaltar el link activo
@@ -53,7 +52,7 @@ const Navbar = () => {
         <div className="navbar-actions">
           
           {rolUsuario ? (
-            // 🔥 SI EL USUARIO ESTÁ LOGUEADO: Mostrar su Rol, Botón al Panel y Cerrar Sesión
+            //  Si esta logueado, Mostrará su Rol, Botón al Panel y Cerrar Sesión
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
               <span style={{ 
                 backgroundColor: '#fefce8', 
@@ -80,7 +79,7 @@ const Navbar = () => {
               </button>
             </div>
           ) : (
-            // 🔥 SI NADIE ESTÁ LOGUEADO: Mostrar lo clásico (Login y Registro)
+            // Si nadie esta logueado: Mostrará lo clásico 
             <>
               <Link to="/login" className="nav-login-btn">
                 <span className="user-icon">👤</span> Iniciar Sesión

@@ -50,11 +50,9 @@ public class AhumadaScraper implements FarmaciaScraper {
                     continue;
                 }
 
-                // 🔥 BORRADOR MÁGICO: Eliminamos el "precio por comprimido" (ej: "$ 183 x Comp.")
-                // Así evitamos que el robot crea que la caja entera cuesta 183 pesos.
                 String textoSinUnitario = textoTarjeta.replaceAll("(?i)\\$\\s*[\\d\\.]+\\s*x\\s*[a-z\\.]+", "");
 
-                // Ahora sí, buscamos los precios reales que quedaron
+
                 Matcher m = pattern.matcher(textoSinUnitario);
                 while (m.find()) {
                     String limpio = m.group(1).replace(".", "");
@@ -70,7 +68,7 @@ public class AhumadaScraper implements FarmaciaScraper {
             }
             return minPrecio;
         } catch (Exception e) { 
-            System.err.println("❌ Error interno en Ahumada: " + e.getMessage());
+            System.err.println(" Error interno en Ahumada: " + e.getMessage());
             return null; 
         } 
     }
