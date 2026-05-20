@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Agregamos el /api al final para que el Gateway reconozca las rutas
-const GATEWAY_URL = 'https://f23715799bd03c.lhr.life/api';
+const GATEWAY_URL = 'https://5df04b72a3be68.lhr.life/api';
 
 export const apiUsuarios = axios.create({
   baseURL: GATEWAY_URL,
