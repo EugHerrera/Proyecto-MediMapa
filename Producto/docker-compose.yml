@@ -67,6 +67,42 @@ services:
     ports:
       - "5173:80"
 
+  newman-ms-usuarios:
+    image: postman/newman:latest
+    restart: "no"
+    depends_on:
+      - api-gateway
+    volumes:
+      - ./ms-usuarios_tests.json:/etc/newman/ms-usuarios_tests.json:ro
+    command: ["run", "/etc/newman/ms-usuarios_tests.json", "--delay-request", "50", "--reporters", "cli"]
+
+  newman-ms-catalogo:
+    image: postman/newman:latest
+    restart: "no"
+    depends_on:
+      - api-gateway
+    volumes:
+      - ./ms-catalogo_tests.json:/etc/newman/ms-catalogo_tests.json:ro
+    command: ["run", "/etc/newman/ms-catalogo_tests.json", "--delay-request", "50", "--reporters", "cli"]
+
+  newman-ms-geocalizacion:
+    image: postman/newman:latest
+    restart: "no"
+    depends_on:
+      - api-gateway
+    volumes:
+      - ./ms-geocalizacion_tests.json:/etc/newman/ms-geocalizacion_tests.json:ro
+    command: ["run", "/etc/newman/ms-geocalizacion_tests.json", "--delay-request", "50", "--reporters", "cli"]
+
+  newman-ms-medimapa:
+    image: postman/newman:latest
+    restart: "no"
+    depends_on:
+      - api-gateway
+    volumes:
+      - ./ms-medimapa_tests.json:/etc/newman/ms-medimapa_tests.json:ro
+    command: ["run", "/etc/newman/ms-medimapa_tests.json", "--delay-request", "50", "--reporters", "cli"]
+
 # DECLARACIÓN DEL VOLUMEN GLOBAL
 volumes:
   pgdata_medimapa:

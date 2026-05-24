@@ -1,13 +1,13 @@
-# Imagen base de Ubuntu con Java 17
-FROM eclipse-temurin:21-jdk-jammy
+# Fase de build: compilación estricta y empaquetado
+FROM eclipse-temurin:21-jdk-jammy AS build
 
 WORKDIR /app
 
-# Copiamos SOLO tu código
+# Copiamos solo el pom y el código fuente
 COPY pom.xml .
 COPY src ./src
 
-# Instalamos Maven nativo y las dependencias de Playwright
+# Instalamos Maven nativo y las dependencias de Playwright necesarias para el build
 RUN apt-get update && apt-get install -y \
     maven \
     libnss3 \
@@ -27,11 +27,15 @@ RUN apt-get update && apt-get install -y \
     libcairo2 \
     && rm -rf /var/lib/apt/lists/*
 
-# Compilamos usando Maven
-RUN mvn clean package -DskipTests
+# Quality Gate: build completo y empaquetado sin omitir pruebas
+RUN mvn clean package
+RUN cp target/*.jar app.jar
 
-# Instalamos los navegadores de Playwright
+# Instalamos los navegadores de Playwright si el proyecto lo requiere
 RUN mvn exec:java -e -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install --with-deps"
 
-# Ejecutamos el archivo .jar
-CMD ["sh", "-c", "java -jar target/*.jar"]
+# Fase de runtime: solo el artefacto empaquetado
+FROM eclipse-temurin:21-jre-jammy
+WORKDIR /app
+COPY --from=build /app/app.jar /app/app.jar
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
