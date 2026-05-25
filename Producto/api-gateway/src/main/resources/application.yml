@@ -29,7 +29,7 @@ spring:
               - OPTIONS
             allowedHeaders: "*"
       routes:
-        # RUTA 1: MICROSERVICIO CATÁLOGO (Responde a medicamentos y sucursales)
+        # RUTA 1: CATALOGO (Responde medicamentos y sucursales)
         - id: ms-catalogo-route
           uri: http://ms-catalogo:8081
           predicates:
