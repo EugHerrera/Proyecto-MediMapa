@@ -3,3 +3,48 @@ body, html {
   padding: 0;
   height: 100%;
 }
+/* =========================================
+   ACCESIBILIDAD: TAMAÑOS DE LETRA GLOBALES
+   ========================================= */
+
+/* Hacemos que el cambio de letra sea suave y no de golpe */
+html {
+  transition: font-size 0.3s ease;
+}
+
+/* Nivel 1: Letra un poco más grande */
+html.letra-grande {
+  font-size: 110%; 
+}
+
+/* Nivel 2: Letra bastante más grande para abuelitos */
+html.letra-extragrande {
+  font-size: 125%; 
+}
+
+/* Estilo para el botón flotante verde */
+.btn-accesibilidad {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  background-color: #059669; /* Verde oscuro de MediMapa */
+  color: white;
+  border: 2px solid white;
+  border-radius: 50%;
+  width: 55px;
+  height: 55px;
+  font-size: 18px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  z-index: 9999; /* Siempre visible por encima del mapa y tarjetas */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.btn-accesibilidad:hover {
+  background-color: #047857;
+  transform: scale(1.1); /* Efecto de rebote al pasar el mouse */
+}

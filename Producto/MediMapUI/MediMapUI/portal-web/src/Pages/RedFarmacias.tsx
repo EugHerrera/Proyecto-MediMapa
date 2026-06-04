@@ -62,7 +62,7 @@ interface SucursalGeo {
   comunaNombre?: string;
 }
 
-function calcularDistanciaKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+function calcularDistanciaMetros(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371;
   const dLat = (lat2 - lat1) * (Math.PI / 180);
   const dLon = (lon2 - lon1) * (Math.PI / 180);
@@ -71,7 +71,14 @@ function calcularDistanciaKm(lat1: number, lon1: number, lat2: number, lon2: num
     Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
     Math.sin(dLon / 2) * Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
+  return R * c * 1000;
+}
+
+function formatearDistancia(distancia: number) {
+  if (distancia < 1000) {
+    return `${Math.round(distancia)} m`;
+  }
+  return `${(distancia / 1000).toFixed(2)} km`;
 }
 
 function VolarAlCentro({ lat, lng }: { lat: number, lng: number }) {
@@ -189,7 +196,7 @@ const RedFarmacias: React.FC = () => {
       const lat = sucursal.latitud ?? sucursal.ubicacion?.coordinates?.[1] ?? sucursal.ubicacion?.y;
       const lon = sucursal.longitud ?? sucursal.ubicacion?.coordinates?.[0] ?? sucursal.ubicacion?.x;
       const distancia = ubicacion && lat != null && lon != null
-        ? calcularDistanciaKm(ubicacion.lat, ubicacion.lng, Number(lat), Number(lon))
+        ? calcularDistanciaMetros(ubicacion.lat, ubicacion.lng, Number(lat), Number(lon))
         : 0;
       const nombre = sucursal.nombre_sucursal || 'Farmacia cercana';
       const cadenaNombre = nombre.toLowerCase().includes('ahumada') ? 'Ahumada' : nombre.toLowerCase().includes('salco') ? 'Salcobrand' : nombre.toLowerCase().includes('simi') ? 'Dr Simi' : 'Independiente';
@@ -246,7 +253,7 @@ const RedFarmacias: React.FC = () => {
             <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }}>
               <VolarAlCentro lat={mapCenter[0]} lng={mapCenter[1]} /><TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
               {ubicacion && (<><Marker position={[ubicacion.lat, ubicacion.lng]} icon={DefaultIcon}><Popup>Tú estás aquí</Popup></Marker><Circle center={[ubicacion.lat, ubicacion.lng]} radius={radioMetros} pathOptions={{ color: '#ca8a04', fillColor: '#ca8a04', fillOpacity: 0.1 }} /></>)}
-              {farmaciasProcesadas.filter((sucursal) => sucursal.latitud != null && sucursal.longitud != null).map((sucursal) => (<Marker key={sucursal.id_sucursal} position={[Number(sucursal.latitud), Number(sucursal.longitud)]} icon={getIconoFarmacia(sucursal.cadenaNombre)}><Popup><strong>{sucursal.nombre_sucursal}</strong><br/>{sucursal.direccion}<br/><small>{sucursal.comunaNombre}</small><br/><small>{sucursal.distancia?.toFixed(2)} km</small></Popup></Marker>))}
+              {farmaciasProcesadas.filter((sucursal) => sucursal.latitud != null && sucursal.longitud != null).map((sucursal) => (<Marker key={sucursal.id_sucursal} position={[Number(sucursal.latitud), Number(sucursal.longitud)]} icon={getIconoFarmacia(sucursal.cadenaNombre)}><Popup><strong>{sucursal.nombre_sucursal}</strong><br/>{sucursal.direccion}<br/><small>{sucursal.comunaNombre}</small><br/><small>{formatearDistancia(sucursal.distancia ?? 0)}</small></Popup></Marker>))}
             </MapContainer>
           </div>
           <div className="lista-farmacias lista-cercanas">
@@ -254,7 +261,7 @@ const RedFarmacias: React.FC = () => {
             <table className="tabla-farmacias">
               <thead><tr><th>Nombre</th><th>Dirección</th><th>Comuna</th><th>Tipo</th><th>Distancia</th></tr></thead>
               <tbody>
-                {cargando ? (<tr><td colSpan={5}>Cargando resultados cercanos...</td></tr>) : farmaciasProcesadas.length === 0 ? (<tr><td colSpan={5}>No hay farmacias dentro del radio seleccionado.</td></tr>) : (farmaciasProcesadas.map((sucursal) => (<tr key={sucursal.id_sucursal}><td>{sucursal.nombre_sucursal}</td><td>{sucursal.direccion}</td><td>{sucursal.comunaNombre}</td><td><span className={`badge ${sucursal.tipo === 'Cadena' ? 'cadena' : 'independiente'}`}>{sucursal.tipo}</span></td><td>{sucursal.distancia?.toFixed(2)} km</td></tr>)))}
+                {cargando ? (<tr><td colSpan={5}>Cargando resultados cercanos...</td></tr>) : farmaciasProcesadas.length === 0 ? (<tr><td colSpan={5}>No hay farmacias dentro del radio seleccionado.</td></tr>) : (farmaciasProcesadas.map((sucursal) => (<tr key={sucursal.id_sucursal}><td>{sucursal.nombre_sucursal}</td><td>{sucursal.direccion}</td><td>{sucursal.comunaNombre}</td><td><span className={`badge ${sucursal.tipo === 'Cadena' ? 'cadena' : 'independiente'}`}>{sucursal.tipo}</span></td><td>{formatearDistancia(sucursal.distancia ?? 0)}</td></tr>)))}
               </tbody>
             </table>
           </div>
