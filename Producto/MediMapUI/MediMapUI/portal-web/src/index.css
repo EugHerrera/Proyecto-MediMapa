@@ -1,33 +1,48 @@
-body, html {
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+
+:root {
+  --primary-color: #059669; /* Verde esmeralda (salud) */
+  --secondary-color: #ca8a04; /* Amarillo oscuro (alertas/destacados) */
+  --background-light: #f8fafc; /* Fondo general gris muy claro */
+  --text-dark: #1e293b; /* Texto principal oscuro */
+  --navbar-bg: #ffffff;
+  --footer-bg: #0f172a;
+}
+
+* {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+body, html {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--background-light);
+  color: var(--text-dark);
   height: 100%;
 }
+
 /* =========================================
    ACCESIBILIDAD: TAMAÑOS DE LETRA GLOBALES
    ========================================= */
 
-/* Hacemos que el cambio de letra sea suave y no de golpe */
 html {
-  transition: font-size 0.3s ease;
+  transition: font-size 0.3s ease, background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Nivel 1: Letra un poco más grande */
 html.letra-grande {
   font-size: 110%; 
 }
 
-/* Nivel 2: Letra bastante más grande para abuelitos */
 html.letra-extragrande {
   font-size: 125%; 
 }
 
-/* Estilo para el botón flotante verde */
 .btn-accesibilidad {
   position: fixed;
   bottom: 25px;
   right: 25px;
-  background-color: #059669; /* Verde oscuro de MediMapa */
+  background-color: var(--primary-color);
   color: white;
   border: 2px solid white;
   border-radius: 50%;
@@ -37,7 +52,7 @@ html.letra-extragrande {
   font-weight: 800;
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-  z-index: 9999; /* Siempre visible por encima del mapa y tarjetas */
+  z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -46,5 +61,237 @@ html.letra-extragrande {
 
 .btn-accesibilidad:hover {
   background-color: #047857;
-  transform: scale(1.1); /* Efecto de rebote al pasar el mouse */
+  transform: scale(1.1);
+}
+
+/* =========================================
+   ACCESIBILIDAD: BOTÓN DARK MODE
+   ========================================= */
+.btn-dark-mode {
+  position: fixed;
+  bottom: 95px; 
+  right: 25px;
+  background-color: #2d2d2d; 
+  color: #fef08a;
+  border: 2px solid #525252;
+  border-radius: 50%;
+  width: 55px;
+  height: 55px;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.btn-dark-mode:hover {
+  transform: scale(1.1);
+  background-color: #171717;
+}
+
+/* =========================================
+   🌙 REGLAS GLOBALES DEL DARK MODE (GRISES)
+   ========================================= */
+
+/* 1. Fondo general de la página */
+html.dark-mode body, 
+html.dark-mode #root,
+html.dark-mode .registro-container, 
+html.dark-mode .login-page-container {
+  background-color: #121212 !important; /* Gris oscuro elegante */
+  color: #e5e5e5 !important; /* Texto claro suave */
+}
+
+/* 2. NAVBAR (ESTO MATA LA BARRA BLANCA DE ARRIBA) */
+html.dark-mode nav,
+html.dark-mode header,
+html.dark-mode .navbar,
+html.dark-mode [class*="nav"] {
+  background-color: #1a1a1a !important; 
+  border-bottom: 1px solid #333333 !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.5) !important;
+}
+
+/* Links del Navbar en Modo Oscuro */
+html.dark-mode nav a, 
+html.dark-mode header a,
+html.dark-mode .navbar a,
+html.dark-mode .nav-link {
+  color: #e5e5e5 !important;
+  transition: color 0.2s ease; /* Transición suave al pasar el mouse */
+}
+
+/* EFECTO HOVER MEJORADO PARA LA NAVBAR */
+html.dark-mode nav a:hover,
+html.dark-mode header a:hover,
+html.dark-mode .navbar a:hover,
+html.dark-mode .nav-link:hover {
+  color: #34d399 !important; 
+}
+
+/* 3. Tarjetas, Tablas y Contenedores */
+html.dark-mode .admin-card,
+html.dark-mode .precio-card,
+html.dark-mode .tabla-catalogo,
+html.dark-mode .tabla-farmacias,
+html.dark-mode .action-card,
+html.dark-mode .faq-item,
+html.dark-mode .login-card,
+html.dark-mode .form-wrapper,
+html.dark-mode .red-sidebar,
+html.dark-mode .modern-input-wrapper {
+  background-color: #1e1e1e !important;
+  border-color: #333333 !important;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.5) !important;
+}
+
+/* 4. Textos en General */
+html.dark-mode h1,
+html.dark-mode h2,
+html.dark-mode h3,
+html.dark-mode h4,
+html.dark-mode p,
+html.dark-mode td,
+html.dark-mode th,
+html.dark-mode label,
+html.dark-mode .faq-question,
+html.dark-mode .modern-search-input {
+  color: #e5e5e5 !important;
+}
+
+/* 5. Inputs y Selects (BUSCADOR PRINCIPAL) */
+html.dark-mode input,
+html.dark-mode select {
+  background-color: #2a2a2a !important;
+  color: #e5e5e5 !important;
+  border: 1px solid #525252 !important; 
+}
+
+/* 6. Cajas de aviso o disclaimers */
+html.dark-mode .catalogo-disclaimer,
+html.dark-mode .ley-box,
+html.dark-mode .info-bioequivalente,
+html.dark-mode .independiente-card {
+  background-color: #2d2d2d !important; 
+  border-color: #404040 !important;
+}
+
+html.dark-mode .catalogo-disclaimer p,
+html.dark-mode .ley-box span {
+  color: #e5e5e5 !important;
+}
+
+/* 7. FOOTER */
+html.dark-mode footer,
+html.dark-mode .footer-container,
+html.dark-mode [class*="footer"] {
+  background-color: #1a1a1a !important; 
+  border-top: 1px solid #333333 !important;
+}
+
+html.dark-mode footer p,
+html.dark-mode footer a,
+html.dark-mode footer span {
+  color: #e5e5e5 !important;
+}
+
+html.dark-mode footer a:hover {
+  color: #34d399 !important; /* Hover para los enlaces rápidos */
+}
+
+
+
+/* 8. ARREGLO DEL HOVER EN LAS TABLAS (CATÁLOGO) */
+html.dark-mode table tbody tr:hover,
+html.dark-mode table tbody tr:hover td,
+html.dark-mode .tabla-catalogo tbody tr:hover,
+html.dark-mode .tabla-catalogo tbody tr:hover td,
+html.dark-mode .tabla-farmacias tbody tr:hover td {
+  background-color: #2a2a2a !important;
+  color: #34d399 !important; 
+}
+
+/* 9. FIX PARA LAS TABLAS DEL PANEL DE ADMINISTRADOR */
+html.dark-mode .admin-table {
+  background-color: #1e1e1e !important;
+  border: 1px solid #333333 !important;
+}
+
+html.dark-mode .admin-table th {
+  border-bottom: 2px solid #ca8a04 !important; 
+  color: #fef08a !important; 
+  background-color: transparent !important;
+}
+
+html.dark-mode .admin-table td {
+  border-bottom: 1px solid #333333 !important;
+  color: #e5e5e5 !important;
+}
+
+html.dark-mode .admin-table tbody tr:hover,
+html.dark-mode .admin-table tbody tr:hover td {
+  background-color: #2a2a2a !important;
+  color: #34d399 !important;
+}
+
+
+
+/* =========================================
+   10. FIX PANEL FARMACÉUTICO (ESTILOS EN LÍNEA)
+   ========================================= */
+
+html.dark-mode .stat-card,
+html.dark-mode .admin-card > div[style] {
+  background-color: #1a1a1a !important;
+  border: 1px solid #333333 !important;
+}
+
+html.dark-mode .dropzone {
+  background-color: #1a1a1a !important;
+  border: 2px dashed #525252 !important;
+}
+
+html.dark-mode .dropzone:hover {
+  background-color: #2a2a2a !important;
+  border-color: #059669 !important;
+}
+
+html.dark-mode .stat-card h3,
+html.dark-mode .stat-card p,
+html.dark-mode .stat-card span,
+html.dark-mode .dropzone p {
+  color: #e5e5e5 !important;
+}
+
+html.dark-mode .btn-premium:disabled {
+  background: #2a2a2a !important;
+  color: #64748b !important;
+  box-shadow: none !important;
+}
+
+
+/* =========================================
+   11. FIX BOTONES DE CATEGORÍAS (CATÁLOGO)
+   ========================================= */
+
+html.dark-mode .categoria-btn {
+  background-color: #2a2a2a !important; 
+  border-color: #404040 !important;
+  color: #e5e5e5 !important;
+}
+
+html.dark-mode .categoria-btn:hover {
+  background-color: #333333 !important;
+  border-color: #059669 !important; 
+  color: #34d399 !important;
+}
+
+html.dark-mode .categoria-btn.activa {
+  background-color: #059669 !important; 
+  border-color: #047857 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 10px rgba(5, 150, 105, 0.4) !important;
 }
