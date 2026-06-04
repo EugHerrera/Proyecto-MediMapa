@@ -8,7 +8,6 @@ services:
       POSTGRES_PASSWORD: 753691
     ports:
       - "5432:5432"
-    # Persistencia de datos
     volumes:
       - pgdata_medimapa:/var/lib/postgresql/data
     healthcheck:
@@ -22,36 +21,36 @@ services:
     build: ./ms-usuarios
     restart: on-failure 
     ports:
-      - "8085:8085" # Exponemos el puerto hacia Windows
+      - "8085:8085" 
     depends_on:
       db-medimapa:
         condition: service_healthy
   
   ms-geocalizacion:
     build: ./ms-geocalizacion/geocalizacion
-    restart: on-failure # Resiliencia ante caídas de DB
+    restart: on-failure 
     depends_on:
       db-medimapa:
         condition: service_healthy
 
   ms-catalogo:
     build: ./ms-catalogo
-    restart: on-failure # Resiliencia ante caídas de DB
+    restart: on-failure 
     depends_on:
       db-medimapa:
         condition: service_healthy
 
-  medimapa: # Tu Scraper con Playwright
+  medimapa: # scraper con Playwright
     build: ./medimapa/medimapa
-    restart: on-failure # Resiliencia ante caídas de DB
+    restart: on-failure 
     depends_on:
       db-medimapa:
         condition: service_healthy
 
-  # 3. LA PUERTA AL MUNDO (API GATEWAY)
+  # 3. API GATEWAY
   api-gateway:
     build: ./api-gateway
-    restart: on-failure # Autocorrección de red
+    restart: on-failure 
     ports:
       - "8080:8080" # Expone el puerto del backend a internet
     depends_on:
@@ -60,13 +59,12 @@ services:
       - ms-geocalizacion
       - medimapa
 
-  # 4. TU APLICACIÓN WEB (FRONTEND)
+  # 4.  APLICACIÓN WEB
   frontend:
     build: ./MediMapUI/MediMapUI/portal-web 
-    restart: on-failure # Tolerancia a fallos de Nginx
+    restart: on-failure 
     ports:
       - "5173:80"
 
-# DECLARACIÓN DEL VOLUMEN GLOBAL
 volumes:
   pgdata_medimapa:
