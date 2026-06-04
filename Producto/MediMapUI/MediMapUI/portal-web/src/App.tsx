@@ -10,6 +10,7 @@ import Catalogo from './Pages/Catalogo';
 import RedFarmacias from './Pages/RedFarmacias'; 
 import AdminPanel from './Pages/AdminPanel'; 
 import Bioequivalentes from './Pages/Bioequivalentes';
+import BotonAccesibilidad from './Pages/BotonAccesibilidad'; 
 
 function App() {
   return (
@@ -44,6 +45,9 @@ function App() {
           
         </Routes>
       </div>
+      
+      <BotonAccesibilidad />
+      
       <Footer /> 
 
     </BrowserRouter>

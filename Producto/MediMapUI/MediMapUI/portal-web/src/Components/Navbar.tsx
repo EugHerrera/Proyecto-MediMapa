@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './Navbar.css';
 
-import logoMediMapa from '../assets/MediMapa.png'; 
+import logoMediMapa from '../assets/medimapa_logo.png'; 
 
 const Navbar = () => {
   const location = useLocation(); 
