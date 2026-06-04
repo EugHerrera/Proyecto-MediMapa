@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './Components/Navbar'; 
-import Footer from './Components/Footer'; // <-- IMPORTAMOS EL FOOTER AQUÍ
+import Footer from './Components/Footer'; 
 import Home from './Pages/Home';
 import Resultados from './Pages/Resultados';
 import Login from './Pages/Login';
@@ -11,6 +11,7 @@ import RedFarmacias from './Pages/RedFarmacias';
 import AdminPanel from './Pages/AdminPanel'; 
 import Bioequivalentes from './Pages/Bioequivalentes';
 import BotonAccesibilidad from './Pages/BotonAccesibilidad'; 
+import DarkModeToggle from './Pages/DarkModeToggle'; 
 
 function App() {
   return (
@@ -46,7 +47,9 @@ function App() {
         </Routes>
       </div>
       
+      {/* BOTONES FLOTANTES DE ACCESIBILIDAD */}
       <BotonAccesibilidad />
+      <DarkModeToggle />
       
       <Footer /> 
 

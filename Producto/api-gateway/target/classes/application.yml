@@ -19,7 +19,7 @@ spring:
         cors-configurations:
           '[/**]':
             allowedOrigins: 
-              - "http://localhost:5173" # React
+              - "http://localhost:5173" 
             allowedMethods:
               - GET
               - POST
