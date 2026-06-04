@@ -5,6 +5,7 @@ import './Home.css';
 import logoAhumada from '../assets/Ahumada.png'; 
 import logoSimi from '../assets/Drsimi.png';
 import logoSalcobrand from '../assets/Salcobrand.png';
+import logodos from '../assets/logoMedi_segundo.png';
 
 const Home = () => {
   const [busqueda, setBusqueda] = useState('');
@@ -25,6 +26,15 @@ const Home = () => {
         
         <div className="hero-content">
           <div className="badge-modern">Nueva plataforma web Informativa y Geolocalizada</div>
+          <img 
+            src={logodos} 
+            alt="Logo MediMapa" 
+            style={{ 
+              width: '180px', 
+              margin: '20px auto 0',
+              display: 'block' 
+            }} 
+          />
           
           <h1 className="hero-title">
             {/* highlight-premium para el degradado  */}
@@ -76,7 +86,7 @@ const Home = () => {
                <img src={logoSalcobrand} alt="Salcobrand" className="trust-logo-img" />
                <img src={logoAhumada} alt="Ahumada" className="trust-logo-img" />
                <img src={logoSimi} alt="Dr. Simi" className="trust-logo-img" />
-               <span className="logo-placeholder-pyme">🏪 Farmacias Locales</span>
+               <span className="logo-placeholder-pyme">🏪 Farmacias Independientes</span>
             </div>
           </div>
         </div>
