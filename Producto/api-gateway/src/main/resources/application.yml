@@ -19,7 +19,7 @@ spring:
         cors-configurations:
           '[/**]':
             allowedOrigins: 
-              - "https://staining-ridden-gecko.ngrok-free.dev"
+              - "http://localhost:5173" # React
             allowedMethods:
               - GET
               - POST

@@ -18,10 +18,10 @@ INSERT INTO sucursal_farmacia (id_farmacia, id_comuna, nombre_sucursal, direccio
 (2, 1, 'Dr. Simi - Vicuña Mackenna 7110 Local 15 Blvd', 'Avda. Vicuña Mackenna N°7110 Local 15 Boulevard', ST_GeomFromText('POINT(-70.5999735 -33.5165652)', 4326), true),
 (2, 1, 'Dr. Simi - La Florida 9073 Local 3', 'Avenida La Florida 9073 local 3', ST_GeomFromText('POINT(-70.5745221 -33.5344348)', 4326), true),
 (2, 1, 'Dr. Simi - Serafín Zamora 35', 'Serafín Zamora 35', ST_GeomFromText('POINT(-70.6005452 -33.5211529)', 4326), true),
-(2, 1, 'Dr. Simi - Vicuña Mackenna 7110 Local D-104', 'Avda Vicuña Mackenna N°7110 Local D-104', ST_GeomFromText('POINT(-70.5981728 -33.5178218)', 4326), true),  --REVISAR ESTOS 3
+(2, 1, 'Dr. Simi - Vicuña Mackenna 7110 Local D-104', 'Avda Vicuña Mackenna N°7110 Local D-104', ST_GeomFromText('POINT(-70.5981728 -33.5178218)', 4326), true),
 (2, 1, 'Dr. Simi - Vicuña Mackenna 7110 Local D-105', 'Avda Vicuña Mackenna N°7110 Local D-105', ST_GeomFromText('POINT(-70.5954112 -33.5175921)', 4326), true),
 (2, 1, 'Dr. Simi - Vicuña Mackenna 7110 Local M-1', 'Avda. Vicuña Mackenna N°7110 local M-1', ST_GeomFromText('POINT(-70.5997773 -33.5193287)', 4326), true),
-(2, 1, 'Dr. Simi - La Florida 8988', 'Avda La Florida 8988', ST_GeomFromText('POINT(-70.5723002 -33.5352988)', 4326), true);
+(2, 1, 'Dr. Simi - La Florida 8988', 'Avda La Florida 8988', ST_GeomFromText('POINT(-70.5723002 -33.5352988)', 4326), true)ON CONFLICT DO NOTHING;
 
 -- SUCURSALES SALCOBRAND (id_farmacia = 3)
 INSERT INTO sucursal_farmacia (id_farmacia, id_comuna, nombre_sucursal, direccion, ubicacion, activo) VALUES
@@ -39,12 +39,11 @@ INSERT INTO sucursal_farmacia (id_farmacia, id_comuna, nombre_sucursal, direccio
 (3, 1, 'Salcobrand - Local A', 'Avda. Departamental N° 1455 Local A Hospital / Clínica / Centro Medico La Florida', ST_GeomFromText('POINT(-70.5965847 -33.5101675)', 4326), true),
 (3, 1, 'Salcobrand - TM 129 Vicuña Mackenna 7110', 'Avda. Vicuña Mackenna N° 7110 TM 129', ST_GeomFromText('POINT(-70.5997566 -33.5193173)', 4326), true),
 (3, 1, 'Salcobrand - Local 1', 'Avda. Vicuña Mackenna 8733 Local 1', ST_GeomFromText('POINT(-70.5934514 -33.5354859)', 4326), true),
-(3, 1, 'Salcobrand - Local E-9140', 'Avda. Vicuña Mackenna N° 7110 Local E-9140', ST_GeomFromText('POINT(-70.5997566 -33.5193173)', 4326), true);
+(3, 1, 'Salcobrand - Local E-9140', 'Avda. Vicuña Mackenna N° 7110 Local E-9140', ST_GeomFromText('POINT(-70.5997566 -33.5193173)', 4326), true) ON CONFLICT DO NOTHING;
 
 -- SUCURSALES AHUMADA (id_farmacia = 1)
 INSERT INTO sucursal_farmacia (id_farmacia, id_comuna, nombre_sucursal, direccion, ubicacion, activo) VALUES
-(1, 1, 'Ahumada - Vicuña Mackenna 7110 Local 12', 'Vicuña Mackenna N° 7110 local Nº12', ST_GeomFromText('POINT(-70.5977102 -33.5180275)', 4326), true), --REVISAR ESTOS 2
-(1, 1, 'Ahumada - Vicuña Mackenna 7110 Local E-9109', 'Avda. Vicuña Mackenna N° 7110 Local E-9109', ST_GeomFromText('POINT(-70.5978765 -33.5178889)', 4326), true),
+(1, 1, 'Ahumada - Vicuña Mackenna 7110 Local 12', 'Vicuña Mackenna N° 7110 local Nº12', ST_GeomFromText('POINT(-70.5977102 -33.5180275)', 4326), true), 
 (1, 1, 'Ahumada - Froilán Roa 7107', 'Froilán Roa N° 7107', ST_GeomFromText('POINT(-70.59781877 -33.5162832)', 4326), true),
 (1, 1, 'Ahumada - Vicuña Mackenna 7196', 'Avda. Vicuña Mackenna N° 7196', ST_GeomFromText('POINT(-70.6021772 -33.5193445)', 4326), true),
 (1, 1, 'Ahumada - Américo Vespucio 7310', 'Avda. Américo Vespucio N° 7310', ST_GeomFromText('POINT(-70.5954295 -33.5196461)', 4326), true),
@@ -55,4 +54,4 @@ INSERT INTO sucursal_farmacia (id_farmacia, id_comuna, nombre_sucursal, direccio
 (1, 1, 'Ahumada - Santa Amalia Supermercado Líder', 'Avda. Santa Amalia N° 1763 / Supermercado Líder', ST_GeomFromText('POINT(-70.5708940 -33.5449876)', 4326), true),
 (1, 1, 'Ahumada - Rojas Magallanes 3638', 'Rojas Magallanes N° 3638', ST_GeomFromText('POINT(-70.5558007 -33.5354752)', 4326), true),
 (1, 1, 'Ahumada - Walker Martínez 3600', 'Avda. Walker Martínez Nº 3600', ST_GeomFromText('POINT(-70.5587105 -33.5218443)', 4326), true),
-(1, 1, 'Ahumada - La Florida 8988', 'Avda. La Florida 8988', ST_GeomFromText('POINT(-70.5720425 -33.5349448)', 4326), true);
+(1, 1, 'Ahumada - La Florida 8988', 'Avda. La Florida 8988', ST_GeomFromText('POINT(-70.5720425 -33.5349448)', 4326), true) ON CONFLICT DO NOTHING;
