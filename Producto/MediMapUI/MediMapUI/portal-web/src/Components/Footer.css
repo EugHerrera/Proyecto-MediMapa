@@ -1,5 +1,5 @@
 .modern-footer {
-  background-color: #0f172a; /* Azul muy oscuro, casi negro */
+  background-color: #0f172a; 
   color: #f8fafc;
   padding: 3rem 2rem 1rem 2rem;
   font-family: 'Inter', sans-serif;
@@ -17,7 +17,7 @@
 }
 
 .footer-brand h3 {
-  color: #10b981; /* Verde esmeralda para la marca */
+  color: #10b981;
   font-size: 1.5rem;
   margin-bottom: 1rem;
 }

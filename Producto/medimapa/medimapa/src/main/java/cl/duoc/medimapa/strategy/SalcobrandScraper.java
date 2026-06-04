@@ -17,9 +17,7 @@ public class SalcobrandScraper implements FarmaciaScraper {
     @Override
     public String generarUrl(String nombreMedicamento) {
         try { 
-            // 🔥 MAGIA: Junta el número con el "mg" automáticamente
             String queryAjustado = nombreMedicamento.trim().replaceAll("(\\d)\\s+([a-zA-Z])", "$1$2");
-            // Salcobrand usa el signo '+' para separar las palabras, no lo cambiamos
             return "https://salcobrand.cl/search_result?query=" + URLEncoder.encode(queryAjustado, StandardCharsets.UTF_8); 
         } 
         catch (Exception e) { return ""; }
@@ -32,7 +30,7 @@ public class SalcobrandScraper implements FarmaciaScraper {
             page.waitForTimeout(4000); 
             
             List<String> tarjetas = page.locator(".product-card, .product, .vitrine, article").allInnerTexts();
-            System.out.println("👉 Salcobrand encontró " + tarjetas.size() + " tarjetas de producto.");
+            System.out.println(" Salcobrand encontró " + tarjetas.size() + " tarjetas de producto.");
             
             BigDecimal minPrecio = null;
             Pattern pattern = Pattern.compile("\\$\\s*(\\d[\\d\\.]*)");

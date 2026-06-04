@@ -17,7 +17,7 @@ public class SimiScraper implements FarmaciaScraper {
     @Override
     public String generarUrl(String nombreMedicamento) {
         try {
-            // 🔥 MAGIA: Junta el número con el "mg" automáticamente
+            
             String queryAjustado = nombreMedicamento.trim().replaceAll("(\\d)\\s+([a-zA-Z])", "$1$2");
             String encoded = URLEncoder.encode(queryAjustado, StandardCharsets.UTF_8).replace("+", "%20");
             return "https://www.drsimi.cl/" + encoded + "?_q=" + encoded + "&map=ft&order=OrderByPriceASC";
@@ -32,7 +32,7 @@ public class SimiScraper implements FarmaciaScraper {
             page.waitForTimeout(4500); 
             
             List<String> tarjetas = page.locator("[class*='product-summary'], [class*='galleryItem'], article").allInnerTexts();
-            System.out.println("👉 Dr. Simi encontró " + tarjetas.size() + " tarjetas de producto.");
+            System.out.println(" Dr. Simi encontró " + tarjetas.size() + " tarjetas de producto.");
             
             BigDecimal minPrecio = null;
             Pattern pattern = Pattern.compile("\\$\\s*(\\d[\\d\\.]*)");
