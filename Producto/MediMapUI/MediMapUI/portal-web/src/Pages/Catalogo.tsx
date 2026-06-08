@@ -38,7 +38,6 @@ const Catalogo: React.FC = () => {
     'Antialérgicos',
     'Antidiabéticos y metabolismo',
     'Corticoides e inmunológicos',
-    'Insumos clínicos',
     'Urológico y próstata'
   ];
 

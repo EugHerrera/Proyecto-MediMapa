@@ -30,6 +30,13 @@ public class Medicamento {
     @Column(name = "es_bioequivalente")
     private Boolean es_bioequivalente = false;
 
+    // --- ESTOS SON LOS CAMPOS NUEVOS QUE FALTABAN ---
+    @Column(name = "categoria", length = 150)
+    private String categoria;
+
+    @Column(name = "requiere_receta")
+    private Boolean requiere_receta = false;
+
     // --- Getters y Setters Manuales ---
     public void setNombre_canonico(String nombre) { this.nombre_canonico = nombre; }
     public String getNombre_canonico() { return nombre_canonico; }
@@ -45,4 +52,11 @@ public class Medicamento {
 
     public void setEs_bioequivalente(Boolean esBio) { this.es_bioequivalente = esBio; }
     public Boolean getEs_bioequivalente() { return es_bioequivalente; }
+
+    // --- GETTERS Y SETTERS DE LOS CAMPOS NUEVOS ---
+    public void setCategoria(String categoria) { this.categoria = categoria; }
+    public String getCategoria() { return categoria; }
+
+    public void setRequiere_receta(Boolean requiere_receta) { this.requiere_receta = requiere_receta; }
+    public Boolean getRequiere_receta() { return requiere_receta; }
 }
