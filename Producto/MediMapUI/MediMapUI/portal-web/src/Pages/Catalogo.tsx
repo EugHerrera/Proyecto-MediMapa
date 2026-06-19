@@ -11,6 +11,12 @@ interface MedicamentoResponseDTO {
   esBioequivalente: boolean;
 }
 
+// Función para capitalizar solo la primera letra
+const formatearTexto = (texto: string | null) => {
+  if (!texto) return '';
+  return texto.charAt(0).toUpperCase() + texto.slice(1).toLowerCase();
+};
+
 const Catalogo: React.FC = () => {
   const navigate = useNavigate();
   const [categoriaActiva, setCategoriaActiva] = useState('Todas');
@@ -189,9 +195,10 @@ const Catalogo: React.FC = () => {
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fefce8'}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
-                  <td><strong>{med.principioActivo || med.nombreCanonico}</strong></td>
-                  <td>{med.nombreCanonico}</td>
-                  <td>{med.categoria || 'Sin clasificar'}</td>
+                  {/* AQUÍ ESTÁN APLICADOS LOS CAMBIOS DE FORMATO */}
+                  <td><strong>{formatearTexto(med.principioActivo || med.nombreCanonico)}</strong></td>
+                  <td>{formatearTexto(med.nombreCanonico)}</td>
+                  <td>{formatearTexto(med.categoria) || 'Sin clasificar'}</td>
                   <td>
                     {med.esBioequivalente ? (
                       <span className="badge bio-gold">
