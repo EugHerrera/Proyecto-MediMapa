@@ -1,25 +1,11 @@
 package cl.duoc.medimapa.ms_usuarios.controller;
 
 import cl.duoc.medimapa.ms_usuarios.security.JwtUtil;
-import cl.duoc.medimapa.ms_usuarios.model.Usuario;
-import cl.duoc.medimapa.ms_usuarios.repository.UsuarioRepository;
-import cl.duoc.medimapa.ms_usuarios.service.ExcelService;
-import cl.duoc.medimapa.ms_usuarios.service.IspExcelService;
-import cl.duoc.medimapa.ms_usuarios.repository.PrecioVigenteRepository;
-import cl.duoc.medimapa.ms_usuarios.repository.SucursalFarmaciaRepository;
-import cl.duoc.medimapa.ms_usuarios.repository.MedicamentoRepository;
-import cl.duoc.medimapa.ms_usuarios.repository.SolicitudInscripcionRepository;
-import cl.duoc.medimapa.ms_usuarios.repository.CorridaActualizacionRepository;
-
-import cl.duoc.medimapa.ms_usuarios.model.Medicamento;
-import cl.duoc.medimapa.ms_usuarios.model.PrecioVigente;
-import cl.duoc.medimapa.ms_usuarios.model.SolicitudInscripcion; 
-import cl.duoc.medimapa.ms_usuarios.model.SucursalFarmacia;
-import cl.duoc.medimapa.ms_usuarios.model.CorridaActualizacion;
-
+import cl.duoc.medimapa.ms_usuarios.model.*;
+import cl.duoc.medimapa.ms_usuarios.repository.*;
+import cl.duoc.medimapa.ms_usuarios.service.*;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,10 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -48,13 +31,13 @@ public class UsuarioController {
     @Autowired private PasswordEncoder passwordEncoder; 
     @Autowired private JwtUtil jwtUtil; 
     @Autowired private ExcelService excelService; 
-    @Autowired private IspExcelService ispExcelService; 
+    @Autowired private CatalogoMasivoService catalogoMasivoService;
     @Autowired private CorridaActualizacionRepository corridaRepo;
 
+    // --- LOGIN Y REGISTRO ---
     @PostMapping("/registro")
     public ResponseEntity<String> registrarUsuario(@RequestBody Usuario nuevoUsuario) {
-        String hash = passwordEncoder.encode(nuevoUsuario.getPasswordHash());
-        nuevoUsuario.setPasswordHash(hash);
+        nuevoUsuario.setPasswordHash(passwordEncoder.encode(nuevoUsuario.getPasswordHash()));
         usuarioRepository.save(nuevoUsuario);
         return ResponseEntity.ok("Usuario registrado con éxito.");
     }
@@ -64,29 +47,51 @@ public class UsuarioController {
         Optional<Usuario> usuarioOpt = usuarioRepository.findByCorreo(request.getCorreo());
         Map<String, String> response = new HashMap<>();
 
-        if (usuarioOpt.isPresent()) {
-            Usuario usuario = usuarioOpt.get();
-            if (passwordEncoder.matches(request.getPassword(), usuario.getPasswordHash())) {
-                String token = jwtUtil.generarToken(usuario.getCorreo(), usuario.getRol());
-                response.put("mensaje", "Login exitoso");
-                response.put("rol", usuario.getRol());
-                response.put("token", token);
-                return ResponseEntity.ok(response);
-            }
+        if (usuarioOpt.isPresent() && passwordEncoder.matches(request.getPassword(), usuarioOpt.get().getPasswordHash())) {
+            Usuario u = usuarioOpt.get();
+            response.put("token", jwtUtil.generarToken(u.getCorreo(), u.getRol()));
+            response.put("rol", u.getRol());
+            return ResponseEntity.ok(response);
         }
-        response.put("error", "Correo o contraseña incorrectos");
+        response.put("error", "Credenciales inválidas");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
-    @PostMapping("/inventario/subir")
-    public ResponseEntity<String> subirInventario(
-            @RequestParam("archivo") MultipartFile archivo,
-            @RequestParam(value = "idSucursal", defaultValue = "99") Long idSucursal 
-    ) {
+    // --- GESTIÓN CATÁLOGO MAESTRO (SÚPER ADMIN) ---
+    @GetMapping("/medicamentos-admin")
+    public List<Medicamento> listarTodo() {
+        return medicamentoRepository.findAll();
+    }
+
+    @PostMapping("/medicamentos-admin")
+    public ResponseEntity<Medicamento> crearMedicamento(@RequestBody Medicamento nuevoMedicamento) {
+        nuevoMedicamento.setOrigen_catalogo("ADMIN_WEB");
+        nuevoMedicamento.setActivo(true);
+        return ResponseEntity.ok(medicamentoRepository.save(nuevoMedicamento));
+    }
+
+    @PostMapping("/admin/subir-isp")
+    public ResponseEntity<String> subirExcelIsp(@RequestParam("archivo") MultipartFile archivo) {
         if (archivo.isEmpty()) return ResponseEntity.badRequest().body("Archivo vacío.");
         try {
+            return ResponseEntity.ok(catalogoMasivoService.procesarExcelIsp(archivo));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/medicamentos-admin/{id}")
+    public ResponseEntity<Void> eliminarMedicamentoGlobal(@PathVariable Long id) {
+        medicamentoRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // --- INVENTARIO FARMACÉUTICO ---
+    @PostMapping("/inventario/subir")
+    public ResponseEntity<String> subirInventario(@RequestParam("archivo") MultipartFile archivo, @RequestParam(defaultValue = "99") Long idSucursal) {
+        try {
             excelService.procesarExcelInventario(archivo, idSucursal);
-            return ResponseEntity.ok("Archivo procesado con éxito.");
+            return ResponseEntity.ok("Inventario actualizado.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
@@ -95,136 +100,34 @@ public class UsuarioController {
     @GetMapping("/inventario/listar/{idSucursal}")
     public ResponseEntity<List<Map<String, Object>>> obtenerInventarioReal(@PathVariable Long idSucursal) {
         List<PrecioVigente> inventario = precioVigenteRepo.buscarPorSucursal(idSucursal);
-        List<Map<String, Object>> respuesta = inventario.stream().map(precio -> {
+        return ResponseEntity.ok(inventario.stream().map(precio -> {
             Map<String, Object> map = new HashMap<>();
-            map.put("id", precio.getMedicamento().getId_medicamento()); 
+            map.put("id", precio.getMedicamento().getId_medicamento());
             map.put("nombre", precio.getMedicamento().getNombre_canonico());
             map.put("precio", precio.getPrecio_max_vta());
-            map.put("laboratorio", precio.getMedicamento().getLaboratorio()); 
+            map.put("laboratorio", precio.getMedicamento().getLaboratorio());
             return map;
-        }).collect(Collectors.toList());
-        return ResponseEntity.ok(respuesta);
+        }).collect(Collectors.toList()));
     }
 
     @GetMapping("/inventario/actualizar-precio")
-    public ResponseEntity<String> actualizarPrecioManual(
-            @RequestParam("idSucursal") Long idSucursal,
-            @RequestParam("textoBusqueda") String textoBusqueda,
-            @RequestParam("nuevoPrecio") Double nuevoPrecio) {
-        
+    public ResponseEntity<String> actualizarPrecioManual(@RequestParam Long idSucursal, @RequestParam String textoBusqueda, @RequestParam Double nuevoPrecio) {
         return precioVigenteRepo.buscarPorSucursal(idSucursal).stream()
                 .filter(p -> p.getTextoBusqueda() != null && p.getTextoBusqueda().equalsIgnoreCase(textoBusqueda))
-                .findFirst()
-                .map(precio -> {
+                .findFirst().map(precio -> {
                     precio.setPrecio_max_vta(BigDecimal.valueOf(nuevoPrecio));
-                    precio.setVigente_desde(OffsetDateTime.now());
                     precioVigenteRepo.save(precio);
-                    return ResponseEntity.ok(" Precio actualizado a $" + nuevoPrecio);
-                })
-                .orElse(ResponseEntity.badRequest().body(" No se encontró el medicamento."));
+                    return ResponseEntity.ok("Actualizado");
+                }).orElse(ResponseEntity.badRequest().body("No encontrado"));
     }
 
-    @GetMapping("/inventario/actualizar-nombre")
-    @Transactional 
-    public ResponseEntity<String> actualizarNombreMedicamento(
-            @RequestParam("idMedicamento") Long idMedicamento,
-            @RequestParam("nuevoNombre") String nuevoNombre) {
-        
-        return medicamentoRepository.findById(idMedicamento).map(med -> {
-            med.setNombre_canonico(nuevoNombre);
-            medicamentoRepository.save(med);
-            List<PrecioVigente> precios = precioVigenteRepo.findAll().stream()
-                .filter(p -> p.getMedicamento() != null && p.getMedicamento().getId_medicamento().equals(idMedicamento))
-                .collect(Collectors.toList());
-            for (PrecioVigente pv : precios) {
-                pv.setTextoBusqueda(nuevoNombre);
-                precioVigenteRepo.save(pv);
-            }
-            return ResponseEntity.ok(" Nombre actualizado.");
-        }).orElse(ResponseEntity.badRequest().body(" No se encontró el medicamento."));
-    }
-
-    @PostMapping("/inventario/agregar-manual")
-    public ResponseEntity<?> agregarMedicamentoManual(@RequestBody Map<String, Object> payload) {
-        try {
-            Long idSucursal = Long.valueOf(payload.get("idSucursal").toString());
-            String nombre = payload.get("nombre").toString();
-            String laboratorio = payload.get("laboratorio").toString(); 
-            BigDecimal precio = new BigDecimal(payload.get("precio").toString());
-
-            SucursalFarmacia sucursal = sucursalFarmaciaRepository.findById(idSucursal).orElseThrow();
-            Medicamento medicamento = medicamentoRepository.findByNombreCanonico(nombre).orElse(null);
-            
-            if (medicamento == null) {
-                medicamento = new Medicamento();
-                medicamento.setNombre_canonico(nombre);
-                medicamento.setLaboratorio(laboratorio); 
-                medicamento.setPrincipio_activo(nombre); 
-                medicamento.setOrigen_catalogo("MANUAL");
-                medicamento = medicamentoRepository.save(medicamento);
-            }
-
-            CorridaActualizacion corrida = new CorridaActualizacion();
-            corrida.setId_fuente(idSucursal);
-            corrida.setInicio(OffsetDateTime.now());
-            corrida.setEstado("manual");
-            corrida = corridaRepo.save(corrida);
-
-            PrecioVigente pv = new PrecioVigente();
-            pv.setTextoBusqueda(medicamento.getNombre_canonico());
-            pv.setSucursal(sucursal);
-            pv.setMedicamento(medicamento);
-            pv.setPrecio_max_vta(precio);
-            pv.setMoneda("CLP");
-            pv.setVigente_desde(OffsetDateTime.now());
-            pv.setCorrida(corrida);
-            precioVigenteRepo.save(pv);
-
-            return ResponseEntity.ok(" Medicamento guardado.");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(" Error al guardar.");
-        }
-    }
-
-    @GetMapping("/inventario/eliminar")
-    public ResponseEntity<?> eliminarMedicamentoInventario(
-            @RequestParam Long idSucursal, 
-            @RequestParam String nombreMedicamento) {
-        try {
-            List<PrecioVigente> inventarioLocal = precioVigenteRepo.buscarPorSucursal(idSucursal);
-            PrecioVigente precioLocal = inventarioLocal.stream()
-                .filter(p -> (p.getMedicamento() != null && p.getMedicamento().getNombre_canonico().equalsIgnoreCase(nombreMedicamento)) ||
-                             (p.getTextoBusqueda() != null && p.getTextoBusqueda().equalsIgnoreCase(nombreMedicamento)))
-                .findFirst().orElse(null);
-
-            if (precioLocal == null) return ResponseEntity.badRequest().body(" No encontrado.");
-            Medicamento medVinculado = precioLocal.getMedicamento();
-            if (medVinculado != null && "MANUAL".equalsIgnoreCase(medVinculado.getOrigen_catalogo())) {
-                List<PrecioVigente> dependencias = precioVigenteRepo.findAll().stream()
-                    .filter(p -> p.getMedicamento() != null && p.getMedicamento().getId_medicamento().equals(medVinculado.getId_medicamento()))
-                    .collect(Collectors.toList());
-                precioVigenteRepo.deleteAll(dependencias);
-                medicamentoRepository.deleteById(medVinculado.getId_medicamento());
-                return ResponseEntity.ok(" Eliminado de raíz.");
-            } else {
-                precioVigenteRepo.deleteById(precioLocal.getId());
-                return ResponseEntity.ok(" Eliminado de tu sucursal.");
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(" Error interno.");
-        }
-    }
-
+    // --- SOLICITUDES ---
     @PostMapping("/solicitud-inscripcion")
     public ResponseEntity<String> recibirSolicitud(@RequestBody SolicitudInscripcion nuevaSolicitud) {
-        try {
-            nuevaSolicitud.setEstado_solicitud("PENDIENTE");
-            nuevaSolicitud.setFecha_solicitud(OffsetDateTime.now());
-            solicitudRepo.save(nuevaSolicitud);
-            return ResponseEntity.ok(" Solicitud enviada.");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(" Error.");
-        }
+        nuevaSolicitud.setEstado_solicitud("PENDIENTE");
+        nuevaSolicitud.setFecha_solicitud(OffsetDateTime.now());
+        solicitudRepo.save(nuevaSolicitud);
+        return ResponseEntity.ok("Solicitud enviada.");
     }
 
     @GetMapping("/solicitudes/pendientes")
@@ -233,56 +136,25 @@ public class UsuarioController {
     }
 
     @GetMapping("/solicitudes/{id}/aprobar")
-    @Transactional 
+    @Transactional
     public ResponseEntity<String> aprobarSolicitud(@PathVariable Long id) {
-        return solicitudRepo.findById(id).map(solicitud -> {
-            solicitud.setEstado_solicitud("APROBADA");
-            solicitudRepo.save(solicitud);
-
-            SucursalFarmacia nuevaSucursal = new SucursalFarmacia();
-            nuevaSucursal.setNombre_sucursal(solicitud.getNombre_fantasia());
-            nuevaSucursal.setDireccion(solicitud.getDireccion() + ", " + solicitud.getComuna()); 
-            
-            nuevaSucursal.setId_farmacia(4L);
-            nuevaSucursal.setId_comuna(1L);
-            
-            GeometryFactory geometryFactory = new GeometryFactory();
-            org.locationtech.jts.geom.Point puntoVacio = geometryFactory.createPoint(new Coordinate(0.0, 0.0));
-            puntoVacio.setSRID(4326);
-            nuevaSucursal.setUbicacion(puntoVacio);
-            nuevaSucursal.setActivo(true);
-            nuevaSucursal.setCreadoEn(OffsetDateTime.now());
-            nuevaSucursal.setActualizadoEn(OffsetDateTime.now());
-            sucursalFarmaciaRepository.save(nuevaSucursal);
-
-            Usuario nuevoUsuario = new Usuario();
-            nuevoUsuario.setCorreo(solicitud.getQuimico_correo());
-            nuevoUsuario.setPasswordHash(passwordEncoder.encode(solicitud.getQuimico_rut())); 
-            nuevoUsuario.setRol("FARMACEUTICO");
-            usuarioRepository.save(nuevoUsuario);
-
-            return ResponseEntity.ok(" Aprobada.");
-        }).orElse(ResponseEntity.badRequest().body(" Solicitud no encontrada."));
-    }
-
-    @GetMapping("/solicitudes/{id}/rechazar")
-    public ResponseEntity<String> rechazarSolicitud(@PathVariable Long id) {
-        return solicitudRepo.findById(id).map(solicitud -> {
-            solicitud.setEstado_solicitud("RECHAZADA");
-            solicitudRepo.save(solicitud);
-            return ResponseEntity.ok("🗑️ RECHAZADA.");
-        }).orElse(ResponseEntity.badRequest().body(" No encontrada."));
-    }
-
-    @PostMapping("/admin/subir-isp")
-    public ResponseEntity<String> subirExcelIsp(@RequestParam("archivo") MultipartFile archivo) {
-        if (archivo.isEmpty()) return ResponseEntity.badRequest().body("Archivo ISP vacío.");
-        try {
-            String resultado = ispExcelService.sincronizarBioequivalentes(archivo);
-            return ResponseEntity.ok(" Éxito: " + resultado);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(" Error.");
-        }
+        return solicitudRepo.findById(id).map(sol -> {
+            sol.setEstado_solicitud("APROBADA");
+            solicitudRepo.save(sol);
+            // Crear sucursal
+            SucursalFarmacia suc = new SucursalFarmacia();
+            suc.setNombre_sucursal(sol.getNombre_fantasia());
+            suc.setDireccion(sol.getDireccion());
+            suc.setUbicacion(new GeometryFactory().createPoint(new Coordinate(0.0, 0.0)));
+            sucursalFarmaciaRepository.save(suc);
+            // Crear usuario
+            Usuario usr = new Usuario();
+            usr.setCorreo(sol.getQuimico_correo());
+            usr.setPasswordHash(passwordEncoder.encode(sol.getQuimico_rut()));
+            usr.setRol("FARMACEUTICO");
+            usuarioRepository.save(usr);
+            return ResponseEntity.ok("Aprobada");
+        }).orElse(ResponseEntity.badRequest().body("Error"));
     }
 
     public static class LoginRequest {
