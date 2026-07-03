@@ -153,3 +153,44 @@
   padding-top: 15px;
   margin: 0 20px;
 }
+
+@media (max-width: 900px) {
+  .faq-container {
+    padding: 30px 16px;
+  }
+
+  .faq-banner {
+    padding: 28px 20px;
+  }
+
+  .faq-banner h2 {
+    font-size: 2rem;
+  }
+
+  .faq-banner p {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .faq-container {
+    padding: 24px 14px;
+  }
+
+  .faq-banner {
+    padding: 22px 18px;
+  }
+
+  .faq-banner h2 {
+    font-size: 1.6rem;
+  }
+
+  .faq-question {
+    padding: 16px;
+    font-size: 1rem;
+  }
+
+  .faq-answer {
+    padding: 0 16px 16px 16px;
+  }
+}

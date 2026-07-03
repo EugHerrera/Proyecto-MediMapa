@@ -1,6 +1,6 @@
 /* Contenedor principal de la barra */
 .navbar-container {
-  background-color: #ffffff;
+  background-color: #ffffff !important;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   position: sticky;
   top: 0;
@@ -8,15 +8,18 @@
   width: 100%;
   font-family: 'Inter', sans-serif;
   border-bottom: 2px solid #ca8a04; 
+  min-width: 320px;
+}
+
+.navbar-content {
+  max-width: 100%;
+  min-width: 320px;
 }
 
 .navbar-content {
   max-width: 100%;
   padding: 0 40px; 
-  height: 70px;
-  display: grid; 
-  grid-template-columns: 1fr auto 1fr; 
-  align-items: center;
+  min-height: 70px;
 }
 
 
@@ -121,4 +124,42 @@
 .nav-cta-btn:hover {
   opacity: 0.9;
   transform: translateY(-2px);
-} 
+}
+
+@media (max-width: 900px) {
+  .navbar-content {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+    padding: 0 20px;
+    align-items: center;
+    min-height: auto;
+  }
+
+  .navbar-links {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .navbar-actions {
+    justify-self: center;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .navbar-links {
+    gap: 10px;
+    font-size: 0.9rem;
+  }
+
+  .nav-cta-btn,
+  .nav-login-btn {
+    padding: 10px 14px;
+  }
+}
+ 

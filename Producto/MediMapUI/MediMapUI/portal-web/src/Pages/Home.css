@@ -257,6 +257,39 @@
   }
 }
 
+@media (max-width: 640px) {
+  .home-modern-container {
+    padding: 40px 16px;
+  }
+
+  .hero-title {
+    font-size: 2.2rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+
+  .modern-input-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .modern-search-button {
+    width: 100%;
+    padding: 14px;
+  }
+
+  .trust-logos {
+    gap: 16px;
+  }
+
+  .home-cards-section {
+    gap: 20px;
+  }
+}
+
 /* SECCIÓN BIOEQUIVALENTES (Home)*/
 .banner-bioequivalente {
   background: linear-gradient(90deg, #ca8a04 0%, #059669 100%); 

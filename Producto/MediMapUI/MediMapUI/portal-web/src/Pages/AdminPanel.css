@@ -206,3 +206,47 @@
   background-color: #ca8a04;
   color: white;
 }
+
+@media (max-width: 900px) {
+  .admin-container {
+    padding: 20px 16px 40px 16px;
+  }
+
+  .admin-banner {
+    padding: 30px 20px;
+  }
+
+  .admin-card {
+    padding: 20px;
+  }
+
+  .admin-dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .dropzone {
+    padding: 30px 16px;
+  }
+
+  .input-precio {
+    width: 100%;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .btn-premium,
+  .btn-guardar {
+    width: 100%;
+  }
+
+  .admin-card h2 {
+    font-size: 1.2rem;
+  }
+}
