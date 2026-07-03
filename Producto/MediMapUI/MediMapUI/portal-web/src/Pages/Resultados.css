@@ -65,25 +65,45 @@
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-.btn-forzar-busqueda:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+@media (max-width: 900px) {
+  .resultados-container {
+    padding: 20px 16px 60px 16px;
+  }
+
+  .resultados-header {
+    padding: 24px 20px;
+  }
+
+  .resultados-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .btn-forzar-busqueda {
+    width: 100%;
+  }
+
+  .mapa-wrapper {
+    height: 320px;
+  }
 }
 
-.btn-forzar-busqueda:disabled {
-  background-color: #e2e8f0;
-  color: #94a3b8;
-  cursor: not-allowed;
-  box-shadow: none;
-}
+@media (max-width: 640px) {
+  .resultados-header {
+    gap: 12px;
+  }
 
-/* Tarjetas de Precios */
-.seccion-precios h3 {
-  color: #ca8a04;
-  font-size: 1.3rem;
-  margin-bottom: 20px;
-  border-bottom: 2px solid #fef08a;
-  padding-bottom: 10px;
+  .resultados-title-group {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .resultados-header h1 {
+    font-size: 1.3rem;
+  }
+
+  .precios-grid {
+    gap: 15px;
+  }
 }
 
 .precios-grid {
