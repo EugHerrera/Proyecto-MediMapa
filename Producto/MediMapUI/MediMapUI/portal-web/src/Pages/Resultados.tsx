@@ -46,6 +46,25 @@ const getIconoFarmacia = (nombreFarmacia: string) => {
   return independienteIcon;
 };
 
+// NUEVA FUNCIÓN: Obtener la imagen del logo para las tarjetas
+const getLogoFarmacia = (nombreFarmacia: string) => {
+  const nombre = nombreFarmacia.toLowerCase();
+  if (nombre.includes('ahumada')) return logotipoAhumada;
+  if (nombre.includes('salco')) return logotipoSalcobrand;
+  if (nombre.includes('simi')) return logotipoDrSimi;
+  // Retornar null o un logo por defecto para independientes si lo tuvieras
+  return null; 
+};
+
+// NUEVA FUNCIÓN: Obtener la fecha de hoy en formato DD-MM-YYYY
+const obtenerFechaHoy = () => {
+  const hoy = new Date();
+  const dia = String(hoy.getDate()).padStart(2, '0');
+  const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+  const anio = hoy.getFullYear();
+  return `${dia}-${mes}-${anio}`;
+};
+
 function calcularDistanciaKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371; 
   const dLat = (lat2 - lat1) * (Math.PI / 180);
@@ -85,7 +104,6 @@ function Resultados() {
       setRawData([]);
     }
 
-    //  AXIOS (apiScraper) 
     const url = `/scraper/buscar?query=${encodeURIComponent(query)}${forzarRefresh ? '&forceRefresh=true' : ''}`;
 
     apiScraper.get(url)
@@ -170,6 +188,9 @@ function Resultados() {
     return p.distancia <= radioKm;
   });
 
+  // Llamamos a la función una sola vez por renderizado
+  const fechaHoy = obtenerFechaHoy();
+
   return (
     <div className="resultados-container">
       
@@ -194,7 +215,11 @@ function Resultados() {
           <h3>📍 Farmacias más cercanas a ti con stock:</h3>
           
           <div className="precios-grid">
-            {preciosTarjetas.map((item, i) => (
+            {preciosTarjetas.map((item, i) => {
+              // Obtenemos el logo para esta tarjeta específica
+              const logoUrl = getLogoFarmacia(item.farmacia);
+              
+              return (
               <div key={i} className="precio-card">
                 
                 {item.esBioequivalente && (
@@ -203,20 +228,35 @@ function Resultados() {
                   </span>
                 )}
                 
-                <h4>💊 {item.medicamento}</h4>
-                <p className="farmacia-nombre">🏪 {item.farmacia}</p>
+                {/* Se eliminó el emoji de píldora de aquí */}
+                <h4>{item.medicamento}</h4>
+                
+                {/* Aquí implementamos la lógica de mostrar el logo o la casita */}
+                <div className="farmacia-nombre" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {logoUrl ? (
+                    <img 
+                      src={logoUrl} 
+                      alt={`Logo ${item.farmacia}`} 
+                      style={{ width: '24px', height: '24px', objectFit: 'contain' }} 
+                    />
+                  ) : (
+                    <span>🏪</span>
+                  )}
+                  <span>{item.farmacia}</span>
+                </div>
                 
                 <p style={{ color: '#059669', fontWeight: 'bold', margin: '5px 0' }}>
                   🚗 A {item.distancia.toFixed(2)} km de distancia
                 </p>
                 
-                <p className="stock-ok">✓ Stock revisado hoy</p>
+                {/* Se actualizó el mensaje de stock con la fecha dinámica */}
+                <p className="stock-ok">✓ Stock revisado hoy {fechaHoy}</p>
                 
                 <p className="precio-valor">
                   ${item.precio?.toLocaleString('es-CL')} CLP
                 </p>
               </div>
-            ))}
+            )})}
           </div>
 
           <div className="seccion-mapa">
