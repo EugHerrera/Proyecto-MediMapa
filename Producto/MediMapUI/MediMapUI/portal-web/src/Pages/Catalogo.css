@@ -232,6 +232,50 @@
   border: 1px solid #ca8a04;
 }
 
+/* Paginación */
+.paginacion-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-top: 30px;
+  margin-bottom: 20px;
+}
+
+.paginacion-btn {
+  background: white;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.paginacion-btn:hover:not(:disabled) {
+  background: #fefce8;
+  border-color: #ca8a04;
+  color: #ca8a04;
+  box-shadow: 0 2px 4px rgba(202, 138, 4, 0.1);
+}
+
+.paginacion-btn:disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+  border-color: #e2e8f0;
+}
+
+.paginacion-info {
+  font-size: 0.95rem;
+  color: #475569;
+  font-weight: 500;
+}
+
 @media (max-width: 768px) {
   .catalogo-search-section {
     grid-template-columns: 1fr;
