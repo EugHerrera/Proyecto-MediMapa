@@ -82,6 +82,11 @@ public class UsuarioController {
 
     @DeleteMapping("/medicamentos-admin/{id}")
     public ResponseEntity<Void> eliminarMedicamentoGlobal(@PathVariable Long id) {
+        if (!medicamentoRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        precioVigenteRepo.eliminarPorMedicamento(id);
         medicamentoRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
@@ -139,21 +144,50 @@ public class UsuarioController {
     @Transactional
     public ResponseEntity<String> aprobarSolicitud(@PathVariable Long id) {
         return solicitudRepo.findById(id).map(sol -> {
+            if (!"PENDIENTE".equalsIgnoreCase(sol.getEstado_solicitud())) {
+                return ResponseEntity.badRequest().body("La solicitud ya fue procesada.");
+            }
+
+            if (usuarioRepository.findByCorreo(sol.getQuimico_correo()).isPresent()) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("Ya existe un usuario con ese correo.");
+            }
+
             sol.setEstado_solicitud("APROBADA");
-            solicitudRepo.save(sol);
+
             // Crear sucursal
             SucursalFarmacia suc = new SucursalFarmacia();
             suc.setNombre_sucursal(sol.getNombre_fantasia());
             suc.setDireccion(sol.getDireccion());
             suc.setUbicacion(new GeometryFactory().createPoint(new Coordinate(0.0, 0.0)));
+            suc.setActivo(true);
+            suc.setCreadoEn(OffsetDateTime.now());
+            suc.setId_farmacia(4L);
+            suc.setId_comuna(1L);
             sucursalFarmaciaRepository.save(suc);
+
             // Crear usuario
             Usuario usr = new Usuario();
             usr.setCorreo(sol.getQuimico_correo());
             usr.setPasswordHash(passwordEncoder.encode(sol.getQuimico_rut()));
             usr.setRol("FARMACEUTICO");
             usuarioRepository.save(usr);
+
+            solicitudRepo.save(sol);
             return ResponseEntity.ok("Aprobada");
+        }).orElse(ResponseEntity.badRequest().body("Error"));
+    }
+
+    @GetMapping("/solicitudes/{id}/rechazar")
+    @Transactional
+    public ResponseEntity<String> rechazarSolicitud(@PathVariable Long id) {
+        return solicitudRepo.findById(id).map(sol -> {
+            if (!"PENDIENTE".equalsIgnoreCase(sol.getEstado_solicitud())) {
+                return ResponseEntity.badRequest().body("La solicitud ya fue procesada.");
+            }
+
+            sol.setEstado_solicitud("RECHAZADA");
+            solicitudRepo.save(sol);
+            return ResponseEntity.ok("Rechazada");
         }).orElse(ResponseEntity.badRequest().body("Error"));
     }
 
