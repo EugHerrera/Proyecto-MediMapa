@@ -85,6 +85,18 @@ const AdminPanel = () => {
     } catch (error) { alert("❌ Error al procesar Excel ISP."); } finally { setCargando(false); }
   };
 
+  const eliminarMedicamentoGlobal = async (id: number, nombre: string) => {
+    if (!window.confirm(`¿Eliminar "${nombre}" del catálogo global? También se borrarán sus precios asociados.`)) return;
+    try {
+      await apiUsuarios.delete(`/usuarios/medicamentos-admin/${id}`);
+      alert("✅ Medicamento eliminado del catálogo global.");
+      cargarDatosAdmin();
+    } catch (error) {
+      console.error(error);
+      alert("❌ Error al eliminar el medicamento del catálogo global.");
+    }
+  };
+
   // BYPASS: Inyección de Token
   const manejarAprobarFarmacia = async (id: number, nombre: string) => {
     if (!window.confirm(`¿Aprobar la farmacia "${nombre}"? Se creará su sucursal y usuario automáticamente.`)) return;
@@ -273,7 +285,15 @@ const AdminPanel = () => {
                 <tr key={med.id_medicamento}>
                   <td><strong>{med.nombre_canonico}</strong></td>
                   <td>{med.principio_activo}</td>
-                  <td><button onClick={() => {}} style={{ background: 'none', border: 'none' }}>🗑️</button></td>
+                  <td>
+                    <button
+                      onClick={() => eliminarMedicamentoGlobal(med.id_medicamento, med.nombre_canonico)}
+                      title="Eliminar del catálogo global"
+                      style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                    >
+                      🗑️
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
