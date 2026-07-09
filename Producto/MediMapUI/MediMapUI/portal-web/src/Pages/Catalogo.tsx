@@ -26,6 +26,7 @@ const Catalogo: React.FC = () => {
 
   const [medicamentos, setMedicamentos] = useState<MedicamentoResponseDTO[]>([]);
   const [cargando, setCargando] = useState(false);
+  const [paginaActual, setPaginaActual] = useState(1);
 
   const categorias = [
     'Seleccionar todo',
@@ -78,6 +79,11 @@ const Catalogo: React.FC = () => {
 
   }, [busqueda, categoriaActiva]); 
 
+  // Resetear página al cambiar búsqueda, categoría o tipo de filtro
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [busqueda, categoriaActiva, filtroTipo]);
+
   const handleCategoriaClick = (cat: string) => {
     setCategoriaActiva(cat === 'Seleccionar todo' ? 'Todas' : cat);
     setBusqueda(''); 
@@ -95,6 +101,14 @@ const Catalogo: React.FC = () => {
     }
     return true; 
   });
+
+  // Paginación de 100 elementos
+  const ITEMS_POR_PAGINA = 100;
+  const totalPaginas = Math.ceil(medicamentosFiltrados.length / ITEMS_POR_PAGINA);
+  const medicamentosPaginados = medicamentosFiltrados.slice(
+    (paginaActual - 1) * ITEMS_POR_PAGINA,
+    paginaActual * ITEMS_POR_PAGINA
+  );
 
   return (
     <div className="catalogo-container">
@@ -177,41 +191,71 @@ const Catalogo: React.FC = () => {
              No se encontraron medicamentos para esta búsqueda o filtro.
            </div>
         ) : (
-          <table className="tabla-catalogo">
-            <thead>
-              <tr>
-                <th>Principio Activo</th>
-                <th>Nombre Comercial (Ejemplo)</th>
-                <th>Categoría</th>
-                <th>Sello Calidad</th>
-              </tr>
-            </thead>
-            <tbody>
-              {medicamentosFiltrados.map((med) => (
-                <tr 
-                  key={med.idMedicamento}
-                  onClick={() => navigate(`/resultados?q=${encodeURIComponent(med.nombreCanonico)}`)}
-                  style={{ cursor: 'pointer', transition: 'background 0.2s' }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fefce8'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                >
-                  {/* AQUÍ ESTÁN APLICADOS LOS CAMBIOS DE FORMATO */}
-                  <td><strong>{formatearTexto(med.principioActivo || med.nombreCanonico)}</strong></td>
-                  <td>{formatearTexto(med.nombreCanonico)}</td>
-                  <td>{formatearTexto(med.categoria) || 'Sin clasificar'}</td>
-                  <td>
-                    {med.esBioequivalente ? (
-                      <span className="badge bio-gold">
-                        <span className="icon-b">B</span> BIOEQUIVALENTE
-                      </span>
-                    ) : (
-                      <span style={{color: '#94a3b8', fontSize: '0.85rem'}}>-</span>
-                    )}
-                  </td>
+          <>
+            <table className="tabla-catalogo">
+              <thead>
+                <tr>
+                  <th>Principio Activo</th>
+                  <th>Nombre Comercial (Ejemplo)</th>
+                  <th>Categoría</th>
+                  <th>Sello Calidad</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {medicamentosPaginados.map((med) => (
+                  <tr 
+                    key={med.idMedicamento}
+                    onClick={() => navigate(`/resultados?q=${encodeURIComponent(med.nombreCanonico)}`)}
+                    style={{ cursor: 'pointer', transition: 'background 0.2s' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fefce8'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    {/* AQUÍ ESTÁN APLICADOS LOS CAMBIOS DE FORMATO */}
+                    <td><strong>{formatearTexto(med.principioActivo || med.nombreCanonico)}</strong></td>
+                    <td>{formatearTexto(med.nombreCanonico)}</td>
+                    <td>{formatearTexto(med.categoria) || 'Sin clasificar'}</td>
+                    <td>
+                      {med.esBioequivalente ? (
+                        <span className="badge bio-gold">
+                          <span className="icon-b">B</span> BIOEQUIVALENTE
+                        </span>
+                      ) : (
+                        <span style={{color: '#94a3b8', fontSize: '0.85rem'}}>-</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {totalPaginas > 1 && (
+              <div className="paginacion-container">
+                <button 
+                  className="paginacion-btn"
+                  onClick={() => {
+                    setPaginaActual(prev => Math.max(prev - 1, 1));
+                    window.scrollTo({ top: 400, behavior: 'smooth' });
+                  }}
+                  disabled={paginaActual === 1}
+                >
+                  ⬅ Anterior
+                </button>
+                <span className="paginacion-info">
+                  Página <strong>{paginaActual}</strong> de <strong>{totalPaginas}</strong> (Total: {medicamentosFiltrados.length} medicamentos)
+                </span>
+                <button 
+                  className="paginacion-btn"
+                  onClick={() => {
+                    setPaginaActual(prev => Math.min(prev + 1, totalPaginas));
+                    window.scrollTo({ top: 400, behavior: 'smooth' });
+                  }}
+                  disabled={paginaActual === totalPaginas}
+                >
+                  Siguiente ➡
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 
