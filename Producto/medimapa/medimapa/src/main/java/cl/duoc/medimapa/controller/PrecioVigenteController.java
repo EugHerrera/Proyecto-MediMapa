@@ -4,6 +4,7 @@ import cl.duoc.medimapa.model.*;
 import cl.duoc.medimapa.repository.*;
 import cl.duoc.medimapa.service.ScraperService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +28,31 @@ public class PrecioVigenteController {
     @GetMapping("/precios")
     public List<PrecioVigente> obtenerTodosLosPrecios() {
         return precioRepo.findAll();
+    }
+
+    @PostMapping("/forzar-masivo")
+    public ResponseEntity<String> forzarMasivo() {
+        new Thread(() -> {
+            CorridaActualizacion corrida = new CorridaActualizacion();
+            corrida.setId_fuente(0L); 
+            corrida.setInicio(java.time.OffsetDateTime.now());
+            corrida.setEstado("parcial");
+            try {
+                corrida = corridaRepo.save(corrida);
+                scraperService.ejecutarScrapingAutomatico(corrida);
+                corrida.setEstado("ok");
+                corrida.setFin(java.time.OffsetDateTime.now());
+                corridaRepo.save(corrida);
+            } catch (Exception e) {
+                corrida.setEstado("error");
+                corrida.setDetalle_error(e.getMessage());
+                corrida.setFin(java.time.OffsetDateTime.now());
+                try {
+                    corridaRepo.save(corrida);
+                } catch (Exception ignored) {}
+            }
+        }).start();
+        return ResponseEntity.ok("Proceso de scraping masivo iniciado con éxito en segundo plano.");
     }
 
     @GetMapping("/buscar")
